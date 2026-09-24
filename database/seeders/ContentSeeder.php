@@ -79,18 +79,7 @@ class ContentSeeder extends Seeder
 
         $kawasan = Kawasan::query()->pluck('id', 'slug');
 
-        // [nama, kategori, kawasan (null = semua kawasan), ikon, deskripsi, unggulan di Home]
-        $facilities = [
-            ['Central Park', 'Olahraga & Rekreasi', 'arunika-garden', 'sprout', 'Taman 5 ha dengan danau, jogging track 2 km, dan area bermain anak.', true],
-            ['Arunika Clubhouse', 'Olahraga & Rekreasi', 'arunika-garden', 'dumbbell', 'Kolam renang dewasa dan anak, gym, studio yoga, dan ruang serbaguna.', true],
-            ['Arunika Walk', 'Komersial', 'arunika-garden', 'shopping-cart', 'Area kuliner dan ritel dengan supermarket, kafe, dan klinik.', true],
-            ['Sekolah [NAMA]', 'Pendidikan', 'arunika-hills', 'graduation-cap', 'Sekolah TK hingga SMA dengan kurikulum nasional plus.', false],
-            ['Klinik & Apotek 24 Jam', 'Kesehatan', 'arunika-garden', 'stethoscope', 'Layanan dokter umum, gigi, dan laboratorium di dalam kawasan.', false],
-            ['Sport Center', 'Olahraga & Rekreasi', 'arunika-hills', 'dumbbell', 'Lapangan futsal, basket, badminton, dan padel.', false],
-            ['Shuttle Kawasan', 'Keamanan & Transportasi', null, 'bus', 'Bus gratis ke stasiun KRL dan pusat kota di jam sibuk.', true],
-            ['Keamanan Terpadu', 'Keamanan & Transportasi', null, 'shield', 'Satu gerbang per cluster, patroli, dan CCTV 24 jam.', false],
-            ['Rumah Ibadah', 'Ibadah', 'arunika-lakeside', 'church', 'Masjid dan gereja di dalam kawasan, jalan kaki dari cluster.', false],
-        ];
+        $facilities = self::facilityData();
 
         foreach ($facilities as $index => [$name, $category, $kawasanSlug, $icon, $description, $featured]) {
             Facility::query()->updateOrCreate(['slug' => Str::slug($name)], [
@@ -105,6 +94,28 @@ class ContentSeeder extends Seeder
                 'is_published' => true,
             ]);
         }
+    }
+
+    /**
+     * Data fasilitas (teks dari desain 04). Pemetaan kawasan adalah DATA DUMMY:
+     * desain lama memakai Serpong/Cibubur/Karawang → Garden/Hills/Lakeside.
+     *
+     * @return list<array<int, mixed>>
+     */
+    public static function facilityData(): array
+    {
+        // [nama, kategori, kawasan (null = semua kawasan), ikon, deskripsi, unggulan di Home]
+        return [
+            ['Central Park', 'Olahraga & Rekreasi', 'arunika-garden', 'sprout', 'Taman 5 ha dengan danau, jogging track 2 km, dan area bermain anak.', true],
+            ['Arunika Clubhouse', 'Olahraga & Rekreasi', 'arunika-garden', 'dumbbell', 'Kolam renang dewasa dan anak, gym, studio yoga, dan ruang serbaguna.', true],
+            ['Arunika Walk', 'Komersial', 'arunika-garden', 'shopping-cart', 'Area kuliner dan ritel dengan supermarket, kafe, dan klinik.', true],
+            ['Sekolah [NAMA]', 'Pendidikan', 'arunika-hills', 'graduation-cap', 'Sekolah TK hingga SMA dengan kurikulum nasional plus.', false],
+            ['Klinik & Apotek 24 Jam', 'Kesehatan', 'arunika-garden', 'stethoscope', 'Layanan dokter umum, gigi, dan laboratorium di dalam kawasan.', false],
+            ['Sport Center', 'Olahraga & Rekreasi', 'arunika-hills', 'dumbbell', 'Lapangan futsal, basket, badminton, dan padel.', false],
+            ['Shuttle Kawasan', 'Keamanan & Transportasi', null, 'bus', 'Bus gratis ke stasiun KRL dan pusat kota di jam sibuk.', true],
+            ['Keamanan Terpadu', 'Keamanan & Transportasi', null, 'shield', 'Satu gerbang per cluster, patroli, dan CCTV 24 jam.', false],
+            ['Rumah Ibadah', 'Ibadah', 'arunika-lakeside', 'church', 'Masjid dan gereja di dalam kawasan, jalan kaki dari cluster.', false],
+        ];
     }
 
     private function seedFutureDevelopments(): void

@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Facilities\Schemas;
 
 use App\Filament\Forms\Fields;
+use App\Models\Facility;
+use App\Support\DummyData;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -31,7 +33,8 @@ class FacilityForm
                             ->label('Kawasan')
                             ->relationship('kawasan', 'name')
                             ->placeholder('Semua kawasan')
-                            ->preload(),
+                            ->preload()
+                            ->dummyHint(fn (?Facility $record, $state): bool => DummyData::isFacilityKawasan($record, $state)),
                         Fields::icon(),
                     ]),
                     Textarea::make('description')->label('Deskripsi')->rows(3),

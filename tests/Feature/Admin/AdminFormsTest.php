@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\Settings\ManageGlobalSettings;
 use App\Filament\Pages\Settings\ManageHomePage;
 use App\Filament\Pages\Settings\ManageListingPage;
 use App\Filament\Resources\Clusters\Pages\CreateCluster;
@@ -7,12 +8,15 @@ use App\Filament\Resources\Clusters\Pages\EditCluster;
 use App\Filament\Resources\Kawasans\Pages\CreateKawasan;
 use App\Filament\Resources\Leads\Pages\ListLeads;
 use App\Models\Cluster;
+use App\Models\Facility;
 use App\Models\Kawasan;
 use App\Models\Lead;
 use App\Models\Redirect;
 use App\Models\User;
+use App\Settings\GlobalSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\ListingPageSettings;
+use App\Support\DummyData;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -132,4 +136,50 @@ it('mengekspor lead ke CSV sesuai filter', function () {
         ->filterTable('utm_source', 'facebook')
         ->callAction(TestAction::make('export')->table(), ['format' => 'csv'])
         ->assertFileDownloaded();
+});
+
+it('menyembunyikan dan menolak perubahan tab Tracking untuk Admin Konten', function () {
+    $this->actingAs(User::where('email', 'konten@example.com')->first());
+
+    $settings = app(GlobalSettings::class);
+    $settings->tracking = [...$settings->tracking, 'gtm_id' => 'GTM-ASLI'];
+    $settings->save();
+
+    $page = Livewire::test(ManageGlobalSettings::class)
+        ->assertDontSee('Tracking & verifikasi')
+        ->assertDontSee('GTM-ASLI');
+
+    expect(array_filter((array) $page->get('data.tracking')))->toBeEmpty();
+
+    $page
+        // Request dimanipulasi: tetap tidak boleh mengubah tracking.
+        ->set('data.tracking', ['gtm_id' => 'GTM-PALSU'])
+        ->fillForm(['identity.brand_name' => 'Arunika Land'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(GlobalSettings::class)->tracking['gtm_id'])->toBe('GTM-ASLI');
+});
+
+it('mengizinkan Super Admin mengubah tab Tracking', function () {
+    Livewire::test(ManageGlobalSettings::class)
+        ->assertSee('Tracking & verifikasi')
+        ->fillForm(['tracking.gtm_id' => 'GTM-BARU'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(GlobalSettings::class)->tracking['gtm_id'])->toBe('GTM-BARU');
+});
+
+it('menandai data dummy di admin sampai nilainya diganti', function () {
+    $deneb = Cluster::where('slug', 'vega-garden')->first()->houseTypes()->where('slug', 'deneb')->first();
+
+    expect(DummyData::isHouseTypeValue($deneb, 'building_area', 120))->toBeTrue()
+        ->and(DummyData::isHouseTypeValue($deneb, 'building_area', 125))->toBeFalse()
+        ->and(DummyData::isFacilityKawasan(Facility::where('slug', 'rumah-ibadah')->first(), Kawasan::where('slug', 'arunika-lakeside')->value('id')))->toBeTrue()
+        ->and(DummyData::isKawasanFacilities(Kawasan::where('slug', 'arunika-hills')->first(), Kawasan::where('slug', 'arunika-hills')->first()->facilities))->toBeTrue()
+        ->and(DummyData::isKawasanFacilities(Kawasan::where('slug', 'arunika-garden')->first(), Kawasan::where('slug', 'arunika-garden')->first()->facilities))->toBeFalse();
+
+    $this->get('/admin/facilities/'.Facility::where('slug', 'rumah-ibadah')->value('id').'/edit')->assertSee('Data dummy');
+    $this->get('/admin/kawasans/'.Kawasan::where('slug', 'arunika-hills')->value('id').'/edit?tab=fasilitas-kawasan::data::tab')->assertOk();
 });

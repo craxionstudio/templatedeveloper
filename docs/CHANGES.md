@@ -63,6 +63,14 @@ Dikonfirmasi pemilik pada 24 Sep 2026 (opsi A: ikuti desain).
 5. Section "Kawasan lainnya" di Detail Kawasan
 6. Sitemap (`sitemap-properti.xml`)
 
+**Keputusan setelah Milestone 2** (dikonfirmasi pemilik 24 Sep 2026)
+
+1. Tidak ada pilihan "tampilan default" di Pengaturan Halaman → Properti. `/properti` selalu tampilan Cluster.
+2. Link "Karier" di footer diganti "Kontak". Halaman Karier tidak dibuat sekarang.
+3. Hak akses Admin Konten: boleh Pengaturan Global, Menu Navigasi, dan Redirect, **kecuali** tab "Tracking & verifikasi" di Pengaturan Global (GTM/GA4, Meta Pixel, kode verifikasi, Turnstile key). Tab itu hanya untuk Super Admin: disembunyikan di form, nilainya tidak dikirim ke browser, dan perubahan dari role lain ditolak di server. Marketing tetap hanya Lead & Newsletter.
+4. Kategori fasilitas "Ibadah" ditambahkan (dipakai kartu Rumah Ibadah di desain).
+5. Data dummy yang dikarang (tidak ada di desain) dicatat di `docs/DATA-DUMMY.md`. Field terkait di admin menampilkan penanda "Data dummy" selama nilainya belum diganti.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

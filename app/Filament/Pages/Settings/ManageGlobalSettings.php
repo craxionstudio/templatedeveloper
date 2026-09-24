@@ -112,7 +112,7 @@ class ManageGlobalSettings extends PageSettingsPage
                         TextInput::make('mobile.sticky_survey_label')->label('Sticky bar: tombol survey')->maxLength(40),
                     ]),
                 ]),
-                Tab::make('Tracking & verifikasi')->schema([
+                Tab::make('Tracking & verifikasi')->visible(fn (): bool => self::canManageTracking())->schema([
                     Grid::make(3)->schema([
                         TextInput::make('tracking.gtm_id')->label('Google Tag Manager ID')->placeholder('GTM-XXXXXXX'),
                         TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX'),
@@ -142,6 +142,45 @@ class ManageGlobalSettings extends PageSettingsPage
                 ]),
             ]),
         ]);
+    }
+
+    /**
+     * Tab "Tracking & verifikasi" hanya untuk Super Admin (keputusan pemilik 24 Sep 2026).
+     */
+    public static function canManageTracking(): bool
+    {
+        return auth()->user()?->isSuperAdmin() ?? false;
+    }
+
+    /**
+     * ID tracking & kode verifikasi tidak dikirim ke browser untuk role selain Super Admin.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (! self::canManageTracking()) {
+            unset($data['tracking']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Penolakan di sisi server: perubahan tracking dari role lain selalu dibuang,
+     * walaupun request Livewire dimanipulasi. Nilai tersimpan dipertahankan.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (! self::canManageTracking()) {
+            unset($data['tracking']);
+        }
+
+        return parent::mutateFormDataBeforeSave($data);
     }
 
     private static function logo(string $path, string $label): FileUpload

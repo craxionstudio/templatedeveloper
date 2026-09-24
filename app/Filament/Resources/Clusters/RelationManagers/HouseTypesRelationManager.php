@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Clusters\RelationManagers;
 
 use App\Filament\Forms\Fields;
 use App\Models\HouseType;
+use App\Support\DummyData;
 use App\Support\Rupiah;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -52,13 +53,13 @@ class HouseTypesRelationManager extends RelationManager
                 ]),
                 Section::make('Ukuran & ruang')->columns(4)->schema([
                     TextInput::make('land_area')->label('LT (m²)')->numeric()->minValue(0)->required(),
-                    TextInput::make('building_area')->label('LB (m²)')->numeric()->minValue(0),
+                    TextInput::make('building_area')->label('LB (m²)')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'building_area', $state)),
                     TextInput::make('bedrooms')->label('Kamar tidur')->numeric()->minValue(0)->required(),
                     TextInput::make('extra_bedrooms')->label('KT tambahan (+1)')->numeric()->minValue(0)->default(0),
-                    TextInput::make('bathrooms')->label('Kamar mandi')->numeric()->minValue(0),
+                    TextInput::make('bathrooms')->label('Kamar mandi')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'bathrooms', $state)),
                     TextInput::make('floors')->label('Lantai')->numeric()->minValue(1)->default(1),
-                    TextInput::make('carports')->label('Carport (mobil)')->numeric()->minValue(0),
-                    TextInput::make('units_available')->label('Sisa unit')->numeric()->minValue(0),
+                    TextInput::make('carports')->label('Carport (mobil)')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'carports', $state)),
+                    TextInput::make('units_available')->label('Sisa unit')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'units_available', $state)),
                 ]),
                 Section::make('Harga')->columns(2)->schema([
                     TextInput::make('price_from')->label('Harga mulai')->numeric()->minValue(0)->prefix('Rp')->required(),

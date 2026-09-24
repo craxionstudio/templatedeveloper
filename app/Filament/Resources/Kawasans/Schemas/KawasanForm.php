@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Kawasans\Schemas;
 use App\Filament\Forms\Fields;
 use App\Filament\Forms\SeoTab;
 use App\Models\Kawasan;
+use App\Support\DummyData;
 use App\Support\Rupiah;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
@@ -65,6 +66,7 @@ class KawasanForm
                         Tab::make('Fasilitas kawasan')->schema([
                             Repeater::make('facilities')
                                 ->label('Fasilitas kawasan')
+                                ->dummyHint(fn (?Kawasan $record, $state): bool => DummyData::isKawasanFacilities($record, $state))
                                 ->schema([
                                     Fields::icon(),
                                     TextInput::make('title')->label('Judul')->required()->maxLength(80),

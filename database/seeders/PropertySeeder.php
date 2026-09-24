@@ -25,48 +25,7 @@ class PropertySeeder extends Seeder
     {
         $kawasans = $this->seedKawasans();
 
-        // [nama, kawasan, jenis bangunan, tipe properti, badge, status, unggulan, tipe-tipe]
-        // tipe: [nama, kavling, LT, LB, KT, KT+, KM, lantai, carport, harga, cicilan, sisa unit]
-        $clusters = [
-            ['Vega Garden', 'arunika-garden', 'Rumah 2 lantai', PropertyType::Rumah, ClusterBadge::Terlaris, ClusterStatus::ReadyStock, true, [
-                ['Altair', '6×12', 72, 90, 3, 0, 2, 2, 1, 1.1 * self::M, 6.9 * self::JT, 8],
-                ['Deneb', '7×15', 105, 120, 3, 1, 3, 2, 2, 1.6 * self::M, 9.8 * self::JT, 5],
-                ['Rigel', '8×15', 120, 150, 4, 1, 4, 2, 2, 2.2 * self::M, 13.5 * self::JT, 3],
-            ]],
-            ['Lyra Residence', 'arunika-garden', 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, true, [
-                ['Aster', '6×12', 72, 90, 3, 0, 2, 2, 1, 1.0 * self::M, 6.2 * self::JT, 10],
-                ['Iris', '7×12', 84, 100, 3, 0, 3, 2, 1, 1.3 * self::M, 8.0 * self::JT, 6],
-            ]],
-            ['Orion Park', 'arunika-garden', 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, false, [
-                ['Nova', '8×15', 120, 150, 4, 0, 3, 2, 2, 2.2 * self::M, 13.5 * self::JT, 6],
-                ['Stella', '8×16', 128, 160, 4, 0, 3, 2, 2, 2.4 * self::M, 14.7 * self::JT, 4],
-                ['Luna', '9×18', 162, 190, 5, 0, 4, 2, 2, 3.1 * self::M, 19.1 * self::JT, 3],
-                ['Sol', '10×18', 180, 220, 5, 0, 4, 2, 2, 3.6 * self::M, 22.2 * self::JT, 2],
-            ]],
-            ['Kirana Hills', 'arunika-hills', 'Rumah 2 lantai', PropertyType::Rumah, ClusterBadge::Baru, ClusterStatus::ReadyStock, true, [
-                ['Kirana', '8×15', 120, 155, 4, 1, 4, 2, 2, 2.2 * self::M, 13.5 * self::JT, 7],
-                ['Kirana Plus', '10×15', 150, 180, 4, 1, 4, 2, 2, 2.9 * self::M, 17.9 * self::JT, 4],
-            ]],
-            ['Nara Village', 'arunika-hills', 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, false, [
-                ['Nara', '6×15', 90, 110, 3, 0, 3, 2, 1, 1.4 * self::M, 8.6 * self::JT, 9],
-                ['Nara Corner', '8×15', 120, 135, 4, 0, 3, 2, 2, 1.8 * self::M, 11.1 * self::JT, 3],
-            ]],
-            ['Sora Terrace', 'arunika-lakeside', 'Rumah 1–2 lantai', PropertyType::Rumah, ClusterBadge::Promo, ClusterStatus::ReadyStock, true, [
-                ['Sora', '6×10', 60, 45, 2, 0, 1, 1, 1, 580 * self::JT, 3.6 * self::JT, 12],
-                ['Sora 2L', '6×12', 72, 70, 3, 0, 2, 2, 1, 820 * self::JT, 5.1 * self::JT, 8],
-            ]],
-            ['Kalea Townhouse', null, 'Townhouse 3 lantai', PropertyType::Townhouse, null, ClusterStatus::ReadyStock, false, [
-                ['Kalea', '5×12', 60, 140, 3, 0, 3, 3, 1, 1.9 * self::M, 11.6 * self::JT, 6],
-            ]],
-            ['Sora Terrace II', 'arunika-lakeside', 'Rumah 2 lantai', PropertyType::Rumah, ClusterBadge::Segera, ClusterStatus::Inden, false, [
-                ['Sora Plus', '6×12', 72, 80, 3, 0, 2, 2, 1, 850 * self::JT, 5.3 * self::JT, 20],
-                ['Sora Corner', '8×12', 96, 100, 3, 0, 2, 2, 1, 1.1 * self::M, 6.8 * self::JT, 6],
-            ]],
-            ['Hana Residence', null, 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, false, [
-                ['Hana', '7×14', 98, 110, 3, 0, 2, 2, 1, 1.5 * self::M, 9.2 * self::JT, 7],
-                ['Hana Suite', '8×15', 120, 150, 4, 0, 3, 2, 2, 2.0 * self::M, 12.3 * self::JT, 4],
-            ]],
-        ];
+        $clusters = self::clusterData();
 
         foreach ($clusters as $index => [$name, $kawasanSlug, $buildingType, $propertyType, $badge, $status, $featured, $types]) {
             $cluster = Cluster::query()->updateOrCreate(['slug' => Str::slug($name)], [
@@ -114,11 +73,66 @@ class PropertySeeder extends Seeder
     }
 
     /**
-     * @return array<string, Kawasan>
+     * Data cluster & tipe. Nama, kavling, LT, KT, harga, dan cicilan mengikuti desain;
+     * LB, kamar mandi, carport, dan sisa unit adalah DATA DUMMY (docs/DATA-DUMMY.md).
+     *
+     * @return list<array<int, mixed>>
      */
-    private function seedKawasans(): array
+    public static function clusterData(): array
     {
-        $data = [
+        // [nama, kawasan, jenis bangunan, tipe properti, badge, status, unggulan, tipe-tipe]
+        // tipe: [nama, kavling, LT, LB, KT, KT+, KM, lantai, carport, harga, cicilan, sisa unit]
+        return [
+            ['Vega Garden', 'arunika-garden', 'Rumah 2 lantai', PropertyType::Rumah, ClusterBadge::Terlaris, ClusterStatus::ReadyStock, true, [
+                ['Altair', '6×12', 72, 90, 3, 0, 2, 2, 1, 1.1 * self::M, 6.9 * self::JT, 8],
+                ['Deneb', '7×15', 105, 120, 3, 1, 3, 2, 2, 1.6 * self::M, 9.8 * self::JT, 5],
+                ['Rigel', '8×15', 120, 150, 4, 1, 4, 2, 2, 2.2 * self::M, 13.5 * self::JT, 3],
+            ]],
+            ['Lyra Residence', 'arunika-garden', 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, true, [
+                ['Aster', '6×12', 72, 90, 3, 0, 2, 2, 1, 1.0 * self::M, 6.2 * self::JT, 10],
+                ['Iris', '7×12', 84, 100, 3, 0, 3, 2, 1, 1.3 * self::M, 8.0 * self::JT, 6],
+            ]],
+            ['Orion Park', 'arunika-garden', 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, false, [
+                ['Nova', '8×15', 120, 150, 4, 0, 3, 2, 2, 2.2 * self::M, 13.5 * self::JT, 6],
+                ['Stella', '8×16', 128, 160, 4, 0, 3, 2, 2, 2.4 * self::M, 14.7 * self::JT, 4],
+                ['Luna', '9×18', 162, 190, 5, 0, 4, 2, 2, 3.1 * self::M, 19.1 * self::JT, 3],
+                ['Sol', '10×18', 180, 220, 5, 0, 4, 2, 2, 3.6 * self::M, 22.2 * self::JT, 2],
+            ]],
+            ['Kirana Hills', 'arunika-hills', 'Rumah 2 lantai', PropertyType::Rumah, ClusterBadge::Baru, ClusterStatus::ReadyStock, true, [
+                ['Kirana', '8×15', 120, 155, 4, 1, 4, 2, 2, 2.2 * self::M, 13.5 * self::JT, 7],
+                ['Kirana Plus', '10×15', 150, 180, 4, 1, 4, 2, 2, 2.9 * self::M, 17.9 * self::JT, 4],
+            ]],
+            ['Nara Village', 'arunika-hills', 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, false, [
+                ['Nara', '6×15', 90, 110, 3, 0, 3, 2, 1, 1.4 * self::M, 8.6 * self::JT, 9],
+                ['Nara Corner', '8×15', 120, 135, 4, 0, 3, 2, 2, 1.8 * self::M, 11.1 * self::JT, 3],
+            ]],
+            ['Sora Terrace', 'arunika-lakeside', 'Rumah 1–2 lantai', PropertyType::Rumah, ClusterBadge::Promo, ClusterStatus::ReadyStock, true, [
+                ['Sora', '6×10', 60, 45, 2, 0, 1, 1, 1, 580 * self::JT, 3.6 * self::JT, 12],
+                ['Sora 2L', '6×12', 72, 70, 3, 0, 2, 2, 1, 820 * self::JT, 5.1 * self::JT, 8],
+            ]],
+            ['Kalea Townhouse', null, 'Townhouse 3 lantai', PropertyType::Townhouse, null, ClusterStatus::ReadyStock, false, [
+                ['Kalea', '5×12', 60, 140, 3, 0, 3, 3, 1, 1.9 * self::M, 11.6 * self::JT, 6],
+            ]],
+            ['Sora Terrace II', 'arunika-lakeside', 'Rumah 2 lantai', PropertyType::Rumah, ClusterBadge::Segera, ClusterStatus::Inden, false, [
+                ['Sora Plus', '6×12', 72, 80, 3, 0, 2, 2, 1, 850 * self::JT, 5.3 * self::JT, 20],
+                ['Sora Corner', '8×12', 96, 100, 3, 0, 2, 2, 1, 1.1 * self::M, 6.8 * self::JT, 6],
+            ]],
+            ['Hana Residence', null, 'Rumah 2 lantai', PropertyType::Rumah, null, ClusterStatus::ReadyStock, false, [
+                ['Hana', '7×14', 98, 110, 3, 0, 2, 2, 1, 1.5 * self::M, 9.2 * self::JT, 7],
+                ['Hana Suite', '8×15', 120, 150, 4, 0, 3, 2, 2, 2.0 * self::M, 12.3 * self::JT, 4],
+            ]],
+        ];
+    }
+
+    /**
+     * Data kawasan. Ringkasan & fasilitas Arunika Garden dari desain 02b/02c;
+     * fasilitas Arunika Hills & Lakeside adalah DATA DUMMY (docs/DATA-DUMMY.md).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function kawasanData(): array
+    {
+        return [
             [
                 'name' => 'Arunika Garden',
                 'summary' => 'Kawasan hijau pertama dengan Central Park 5 ha dan clubhouse, paling dekat ke gerbang tol.',
@@ -159,6 +173,14 @@ class PropertySeeder extends Seeder
                 'is_featured' => false,
             ],
         ];
+    }
+
+    /**
+     * @return array<string, Kawasan>
+     */
+    private function seedKawasans(): array
+    {
+        $data = self::kawasanData();
 
         $kawasans = [];
 
