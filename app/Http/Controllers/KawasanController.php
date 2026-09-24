@@ -1,0 +1,98 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Kawasan;
+use App\Presenters\ClusterCard;
+use App\Presenters\Image;
+use App\Presenters\KawasanCard;
+use App\Settings\KawasanDetailPageSettings;
+use App\Settings\ListingPageSettings;
+use App\Support\Breadcrumbs;
+use App\Support\Cta;
+use App\Support\PageMeta;
+use App\Support\Rupiah;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class KawasanController extends Controller
+{
+    public function show(string $slug, KawasanDetailPageSettings $settings, ListingPageSettings $listing): Response
+    {
+        // Tidak dipublikasikan / tanpa cluster publik → 404.
+        $kawasan = Kawasan::query()->visible()->where('slug', $slug)->with(['seo', 'media', 'galleryItems.media'])->firstOrFail();
+        $clusters = $kawasan->publishedClusters()->with(ClusterCard::with())->get();
+        $typesCount = $clusters->sum('house_types_count');
+
+        $hero = $settings->section('hero');
+        $about = $settings->section('about');
+        $clustersSection = $settings->section('clusters');
+        $others = $settings->section('others');
+        $seoPattern = $settings->section('seo');
+        $values = ['name' => $kawasan->name, 'kawasan' => $kawasan->name, 'summary' => $kawasan->summary, 'clusters' => $clusters->count(), 'types' => $typesCount];
+
+        return Inertia::render('Kawasan/Show', [
+            'meta' => PageMeta::make(
+                PageMeta::fill($seoPattern['title_pattern'], $values),
+                PageMeta::fill($seoPattern['description_pattern'], $values),
+                $kawasan->seo?->toArray() ?? [],
+            ),
+            'breadcrumbs' => Breadcrumbs::make([
+                [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
+                [$listing->section('toggle')['kawasan_label'], '/properti/kawasan'],
+                [$kawasan->name],
+            ]),
+            'kawasan' => [
+                'name' => $kawasan->name,
+                'summary' => $kawasan->summary,
+                'image' => Image::media($kawasan, 'hero', $kawasan->hero_alt, 'Foto kawasan '.$kawasan->name),
+            ],
+            'hero' => [
+                'eyebrow' => $hero['eyebrow'],
+                'stats' => array_values(array_filter([
+                    $kawasan->area_ha !== null ? ['value' => rtrim(rtrim(number_format((float) $kawasan->area_ha, 2, ',', '.'), '0'), ',').' ha', 'label' => $hero['stat_area_label']] : null,
+                    ['value' => (string) $clusters->count(), 'label' => $hero['stat_cluster_label']],
+                    ['value' => Rupiah::short($clusters->min('price_min')) ?? '–', 'label' => $hero['stat_price_label']],
+                ])),
+            ],
+            'about' => $about['enabled'] ? [
+                'eyebrow' => $about['eyebrow'],
+                'title' => $kawasan->about_title ?: $kawasan->name,
+                'description' => $kawasan->description,
+                'brochure' => $kawasan->getFirstMediaUrl('brochure') ?: null,
+                'brochureLabel' => $about['brochure_label'],
+                'mapUrl' => $kawasan->map_embed_url ?: ($kawasan->latitude ? "https://www.google.com/maps?q={$kawasan->latitude},{$kawasan->longitude}" : null),
+                'mapLabel' => $about['map_label'],
+            ] : null,
+            'facilities' => $settings->section('facilities')['enabled'] && filled($kawasan->facilities) ? [
+                'title' => $settings->section('facilities')['title'],
+                'items' => array_values($kawasan->facilities),
+            ] : null,
+            'clusters' => $clustersSection['enabled'] ? [
+                'eyebrow' => PageMeta::fill($clustersSection['eyebrow'], $values),
+                'title' => PageMeta::fill($clustersSection['title'], $values),
+                'link' => ['label' => $clustersSection['link_label'], 'url' => $clustersSection['link_url'].'?kawasan='.$kawasan->slug],
+                'items' => ClusterCard::collection($clusters),
+            ] : null,
+            'others' => $others['enabled'] ? $this->others($kawasan, $others) : null,
+            'cta' => Cta::resolve($settings->section('cta')),
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $section
+     * @return array<string, mixed>|null
+     */
+    private function others(Kawasan $kawasan, array $section): ?array
+    {
+        $items = Kawasan::query()->visible()->whereKeyNot($kawasan->getKey())->ordered()
+            ->with(KawasanCard::with())->limit((int) $section['limit'])->get();
+
+        return $items->isEmpty() ? null : [
+            'eyebrow' => $section['eyebrow'],
+            'title' => $section['title'],
+            'link' => ['label' => $section['link_label'], 'url' => $section['link_url']],
+            'items' => KawasanCard::collection($items),
+        ];
+    }
+}

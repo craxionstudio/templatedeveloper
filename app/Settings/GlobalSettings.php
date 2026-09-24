@@ -23,6 +23,8 @@ class GlobalSettings extends PageSettings
 
     public array $labels;
 
+    public array $not_found;
+
     public array $seo;
 
     public static function group(): string

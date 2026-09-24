@@ -14,7 +14,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | --- | --------------------------------------------------------------------------------------------------------------- | ---------- |
 | 1   | Setup: Laravel + React starter kit (Inertia v3, TS) + SSR + Filament 5 + token + font self-host + layout global | ✅ Selesai |
 | 2   | Model & admin (migrasi, seeder dummy, Filament resource, settings per halaman)                                  | ✅ Selesai |
-| 3   | Halaman publik sesuai desain                                                                                    | Belum      |
+| 3   | Halaman publik sesuai desain                                                                                    | ✅ Selesai |
 | 4   | Lead & tracking                                                                                                 | Belum      |
 | 5   | Technical SEO                                                                                                   | Belum      |
 | 6   | Performa                                                                                                        | Belum      |
@@ -176,12 +176,32 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
   menu, hotline, dan CTA; header mobile/tablet dengan ikon WA + hamburger → drawer menu.
   Drawer tetap ada di HTML SSR (link bisa di-crawl), ditutup dengan `inert`, dan
   mendukung tombol Esc, klik overlay, dan pengembalian fokus.
-- Halaman publik selain Beranda (Hero) dibangun di Milestone 3.
+- Halaman publik (desain `docs/design/`, desktop 1440 & mobile 390):
+
+    | URL                                                                            | Halaman (React)                                         | Desain                                      |
+    | ------------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------- |
+    | `/`                                                                            | `Pages/Home.tsx` (Listing Produk memakai kartu cluster) | 01                                          |
+    | `/properti` (+ filter `?kawasan=`, `tipe`, `kamar`, `harga`, `status`, `urut`) | `Pages/Properti/Index.tsx`                              | 02a                                         |
+    | `/properti/kawasan`                                                            | `Pages/Properti/Kawasan.tsx`                            | 02b                                         |
+    | `/properti/kawasan/{slug}`                                                     | `Pages/Kawasan/Show.tsx`                                | 02c                                         |
+    | `/properti/{slug}` (+ `?tipe=`)                                                | `Pages/Cluster/Show.tsx`                                | 03                                          |
+    | `/fasilitas`                                                                   | `Pages/Fasilitas/Index.tsx`                             | 04                                          |
+    | `/artikel`, `/artikel/kategori/{slug}`                                         | `Pages/Artikel/Index.tsx`                               | 05                                          |
+    | `/artikel/{slug}`                                                              | `Pages/Artikel/Show.tsx`                                | 06                                          |
+    | `/tentang-kami`, `/kontak`, `/kebijakan-privasi`, `/terima-kasih`              | `About`, `Contact`, `Privacy`, `ThankYou`               | tanpa desain, memakai pola section yang ada |
+    | URL tidak dikenal                                                              | `Pages/Errors/NotFound.tsx` (status 404 asli, SSR)      | —                                           |
+
+- Foto yang belum diunggah tampil sebagai placeholder bergaris dengan alt text (`components/site/picture.tsx`).
+- Listing, filter, kategori, pagination, dan toggle Cluster/Kawasan adalah link biasa (SSR, bisa di-crawl).
+  "Muat lagi" di mobile memakai `Inertia::scroll()`; listing yang difilter diberi `noindex`.
+- Form (Detail Rumah, Kontak, newsletter) baru tampilan; penyimpanan di Milestone 4.
 
 ## Struktur Penting
 
 - `routes/web.php` — route halaman publik
 - `app/Http/Controllers/` — controller yang mengirim data halaman ke Inertia
+- `app/Presenters/` — bentuk data kartu (cluster, kawasan, artikel, fasilitas, gambar) untuk React
+- `app/Support/{PageMeta,Breadcrumbs,Cta}.php` — meta halaman, breadcrumb, dan CTA per halaman
 - `app/Http/Middleware/HandleInertiaRequests.php` — shared prop `site` (layout global)
 - `app/Support/SiteLayout.php` — susun data header/footer/drawer + normalisasi nomor WA (62…)
 - `app/Models/` — Kawasan, Cluster, HouseType, dst. (`Cluster::refreshAggregates()` menghitung rentang kartu)

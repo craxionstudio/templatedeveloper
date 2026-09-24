@@ -87,6 +87,7 @@ class ManageClusterDetailPage extends PageSettingsPage
                         Fields::text('form.whatsapp_button_label', 'Tombol WhatsApp'),
                         Fields::text('form.survey_button_label', 'Tombol survey'),
                     ]),
+                    Fields::textarea('form.whatsapp_message', 'Template pesan WhatsApp', 2, '{cluster} dan {type} diganti otomatis.'),
                     Section::make('Marketing default')
                         ->description('Dipakai kalau cluster tidak punya marketing sendiri.')
                         ->columns(3)

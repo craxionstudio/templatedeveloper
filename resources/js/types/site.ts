@@ -45,7 +45,7 @@ export type SiteLayoutData = {
         copyright: string;
         disclaimer: string;
     };
-    labels: {
+    labels: Record<string, string> & {
         skip_to_content: string;
         main_menu: string;
         open_menu: string;
@@ -58,5 +58,6 @@ export type SiteLayoutData = {
 
 export type PageMeta = {
     title: string;
-    description?: string;
+    description?: string | null;
+    noindex?: boolean;
 };

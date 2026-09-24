@@ -48,6 +48,8 @@ return [
         'submit_label' => 'Minta Pricelist',
         'whatsapp_button_label' => 'WhatsApp',
         'survey_button_label' => 'Survey',
+        // {cluster} dan {type} diganti otomatis.
+        'whatsapp_message' => 'Halo, saya tertarik dengan {cluster} tipe {type}. Boleh minta info harga dan unit yang tersedia?',
         // Dipakai kalau cluster tidak punya marketing sendiri.
         'marketing_name' => '[NAMA MARKETING]',
         'marketing_title' => 'Marketing Arunika Land',

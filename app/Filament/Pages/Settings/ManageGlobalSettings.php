@@ -134,6 +134,15 @@ class ManageGlobalSettings extends PageSettingsPage
                         ->values()
                         ->all()),
                 ]),
+                Tab::make('Halaman 404')->schema([
+                    Fields::text('not_found.eyebrow', 'Eyebrow'),
+                    Fields::text('not_found.title', 'Judul (H1)'),
+                    Fields::textarea('not_found.message', 'Pesan'),
+                    Repeater::make('not_found.links')->label('Link lanjutan')->schema([
+                        TextInput::make('label')->required()->maxLength(60),
+                        TextInput::make('url')->required()->maxLength(255),
+                    ])->columns(2)->reorderableWithDragAndDrop()->maxItems(4),
+                ]),
                 Tab::make('SEO default')->schema([
                     TextInput::make('seo.title_pattern')->label('Pola title')->helperText('{title} = judul halaman, {brand} = nama brand.'),
                     TextInput::make('seo.home_title_pattern')->label('Pola title Beranda')->helperText('{brand} dan {tagline}.'),
