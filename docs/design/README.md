@@ -1,16 +1,26 @@
 # Design Reference — Website Developer Perumahan
 
-Referensi visual untuk implementasi. Taruh folder ini di `docs/design/` pada repo.
+Referensi visual untuk implementasi (Revisi 2, model Kawasan). Perubahan dari versi sebelumnya ada di `docs/CHANGES.md`.
 
 ## Isi
 
 | Folder | Isi |
 |---|---|
-| `desktop/` | 6 halaman versi desktop (lebar 1440px), HTML statis dengan inline style |
-| `mobile/` | 6 halaman versi mobile (lebar 390px) |
-| `screenshots/` | Screenshot full-page tiap halaman (PNG) |
+| `desktop/` | 8 halaman versi desktop (lebar 1440px), HTML statis dengan inline style |
+| `mobile/` | 8 halaman versi mobile (lebar 390px) |
+| `screenshots/` | Screenshot full-page tiap halaman (PNG), sudah dengan font asli |
+| `fonts/` | Fraunces + Plus Jakarta Sans (woff2) yang dipakai HTML di atas. Boleh dipakai ulang untuk self-host di aplikasi |
 
-Urutan file: `01-home`, `02-listing-properti`, `03-detail-rumah`, `04-fasilitas`, `05-artikel`, `06-detail-artikel`.
+| File | Halaman | URL di aplikasi |
+|---|---|---|
+| `01-home` | Beranda | `/` |
+| `02a-properti-cluster` | Produk Listing, tampilan Cluster (default) | `/properti` |
+| `02b-properti-kawasan` | Produk Listing, tampilan Kawasan | `/properti/kawasan` |
+| `02c-detail-kawasan` | Detail Kawasan (contoh: Arunika Garden) | `/properti/kawasan/{slug}` |
+| `03-detail-rumah` | Detail Rumah (contoh: Vega Garden, tipe Deneb) | `/properti/{slug-cluster}` |
+| `04-fasilitas` | Fasilitas | `/fasilitas` |
+| `05-artikel` | Artikel | `/artikel` |
+| `06-detail-artikel` | Detail Artikel | `/artikel/{slug}` |
 
 ## Cara pakai
 
@@ -19,11 +29,12 @@ Urutan file: `01-home`, `02-listing-properti`, `03-detail-rumah`, `04-fasilitas`
 - Semua teks di HTML adalah **isi awal (seeder)** untuk settings/CMS, bukan teks hardcode.
 - Kotak bergaris dengan label huruf kapital = placeholder gambar/video/peta.
 - Teks dalam kurung siku `[...]` = data yang harus diganti dengan data asli.
-- Di halaman Detail Rumah, tab tipe rumah menampilkan state "Vega" terpilih; di Artikel, filter "Semua" aktif.
+- Toggle Cluster/Kawasan di Produk Listing adalah dua link ke dua URL, bukan tab JavaScript.
+- Kartu cluster di `02a`, `02b`, `02c`, dan "Rumah lain" di `03` adalah **satu komponen yang sama**. Home juga harus memakai komponen ini (desain Home masih menampilkan kartu lama per tipe, abaikan).
+- Di Detail Rumah, tab tipe menampilkan tipe "Deneb" terpilih. Jumlah tab mengikuti jumlah tipe di cluster.
 - Di mobile Detail Rumah, bar bawah (harga + WA + Jadwalkan Survey) adalah **sticky** di bagian bawah layar.
-- Screenshot dirender tanpa font asli (fallback). Font yang benar: Fraunces (judul) + Plus Jakarta Sans (body).
 
 ## Catatan konten
 
-- Proyek hanya **satu lokasi/kawasan**. Sisa teks yang menyebut beberapa wilayah (misalnya "tiga kota" di hero atau daftar tiga kawasan di footer desktop) harus diganti ke versi satu lokasi, mengikuti versi mobile.
+- Proyek hanya **satu lokasi** (Serpong) yang terdiri dari beberapa kawasan. Label lama "Arunika Serpong/Cibubur/Karawang" yang masih tersisa di kartu Home harus diganti ke nama kawasan yang benar.
 - Halaman Tentang Kami, Kontak, Terima Kasih, dan Kebijakan Privasi belum ada desainnya. Ikuti gaya visual halaman lain, dan struktur section-nya ada di brief bagian 7A.
