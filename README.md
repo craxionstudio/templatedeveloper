@@ -13,7 +13,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | #   | Milestone                                                                                                       | Status     |
 | --- | --------------------------------------------------------------------------------------------------------------- | ---------- |
 | 1   | Setup: Laravel + React starter kit (Inertia v3, TS) + SSR + Filament 5 + token + font self-host + layout global | ✅ Selesai |
-| 2   | Model & admin (migrasi, seeder dummy, Filament resource, settings per halaman)                                  | Belum      |
+| 2   | Model & admin (migrasi, seeder dummy, Filament resource, settings per halaman)                                  | ✅ Selesai |
 | 3   | Halaman publik sesuai desain                                                                                    | Belum      |
 | 4   | Lead & tracking                                                                                                 | Belum      |
 | 5   | Technical SEO                                                                                                   | Belum      |
@@ -38,11 +38,23 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-Seeder saat ini membuat:
+Seeder membuat 3 akun admin (password semua **password**, ganti setelah login pertama):
 
-- User admin: **admin@example.com** / **password** (ganti setelah login pertama)
+| Email                 | Role         | Akses                                                                            |
+| --------------------- | ------------ | -------------------------------------------------------------------------------- |
+| admin@example.com     | Super Admin  | Semua menu, termasuk User & Role                                                 |
+| konten@example.com    | Admin Konten | Properti, Konten, Artikel, Pengaturan Halaman, Pengaturan Global, Menu, Redirect |
+| marketing@example.com | Marketing    | Lead (baca, ubah status, ekspor; tidak bisa hapus) & Newsletter                  |
 
-Data konten (cluster, fasilitas, artikel, settings per halaman) menyusul di Milestone 2.
+Data dummy (ikuti desain, teks dalam `[...]` wajib diganti):
+
+- 1 Profil Lokasi (Kota Arunika, Serpong) dan 1 Profil Developer
+- 3 kawasan: Arunika Garden (Vega Garden, Lyra Residence, Orion Park), Arunika Hills
+  (Kirana Hills, Nara Village), Arunika Lakeside (Sora Terrace, Sora Terrace II)
+- 2 cluster mandiri: Kalea Townhouse, Hana Residence — total 9 cluster dan 20 tipe rumah
+- 9 fasilitas (6 kategori), 4 pengembangan mendatang, 9 artikel di 5 kategori, 2 promo
+- Isi awal semua Pengaturan Halaman dibuat oleh migrasi settings (`database/settings/`),
+  sumbernya `database/settings/defaults/*.php`
 
 > Default database pakai **SQLite** (`database/database.sqlite`) supaya gampang dijalankan
 > lokal. Untuk production, `.env.example` sudah berisi blok **MySQL** + Redis yang tinggal
@@ -110,17 +122,43 @@ npm run check           # lint + format frontend (Vite+ / oxlint / oxfmt)
 ## Mengisi Konten
 
 **Aturan utama (brief 7A):** tidak ada teks, gambar, atau link yang di-hardcode di komponen React.
+Kalau field teks di settings dikosongkan, halaman memakai isi awal dari
+`database/settings/defaults/` (tidak pernah menampilkan string kosong).
 
-Status Milestone 1:
+Login ke `/admin`, lalu isi lewat menu:
 
-- Data layout global (nama brand, menu, hotline, CTA header, kolom footer, sosial, alamat,
-  disclaimer, label aksesibilitas) dibaca dari `config/site.php` lewat
-  `app/Support/SiteLayout.php`, lalu dikirim ke React sebagai shared prop `site`.
-- Isi sementara hero Beranda ada di `config/content.php`.
-- Di Milestone 2 kedua file ini pindah ke **Pengaturan Global**, **Menu Navigasi**, dan
-  **Beranda** di admin (`spatie/laravel-settings`), tanpa mengubah komponen React.
+- **Properti**
+    - **Kawasan** — nama, ringkasan kartu, deskripsi, luas, foto hero + galeri, fasilitas kawasan,
+      brosur, peta, tab SEO. Di bawah form ada daftar cluster di kawasan itu (masukkan cluster
+      mandiri ke kawasan, atau "Jadikan mandiri"). Jumlah cluster & harga mulai dihitung otomatis.
+      Kawasan tampil di publik hanya kalau punya minimal 1 cluster yang dipublikasikan.
+    - **Cluster** — kawasan (kosong = cluster mandiri), jenis bangunan, tipe properti, badge,
+      status, deskripsi, harga (booking fee & catatan), spesifikasi material, galeri, video/360°,
+      brosur & pricelist, marketing, promo, tab SEO. Di bawah form: **Tipe rumah** (1 sampai n,
+      urutkan dengan drag). Rentang harga/LT/KT dan cicilan mulai di kartu cluster dihitung dari
+      tipe yang dipublikasikan. Slug `kawasan` ditolak karena bentrok dengan `/properti/kawasan`.
+    - **Profil Lokasi** — kota mandiri: deskripsi, foto aerial, peta, poin keunggulan wilayah.
+- **Konten** — Promo (banner Beranda / "Promo rumah ini" di Detail Rumah, kedaluwarsa otomatis
+  tidak tampil), Fasilitas + Kategori, Pengembangan Mendatang, Profil Developer.
+- **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight, tab SEO),
+  Kategori, Tag, Penulis.
+- **Pengaturan Halaman** — satu menu per halaman: Beranda, Properti (dipakai `/properti` dan
+  `/properti/kawasan`), Detail Kawasan, Detail Rumah, Fasilitas, Artikel, Detail Artikel,
+  Tentang Kami, Kontak, Terima Kasih, Kebijakan Privasi. Tiap halaman: satu tab per section
+  (toggle "Tampilkan section"), CTA, dan tab SEO dengan preview Google. Tombol "Lihat halaman"
+  di kanan atas.
+- **Marketing** — Lead (ubah status & penanggung jawab, filter tanggal/status/cluster/UTM,
+  ekspor CSV/XLSX sesuai filter), Newsletter.
+- **Sistem** — Pengaturan Global (identitas, kontak & nomor WA, header, footer, CTA global,
+  mobile, tracking, label umum, SEO default), Menu Navigasi, Redirect, User & Role.
 
-Teks dalam kurung siku `[...]` adalah data dummy yang **wajib diganti** dengan data asli.
+Aturan admin yang berlaku di semua resource:
+
+- **Alt text wajib** setiap kali mengunggah gambar; nama file otomatis diubah jadi slug dari alt text.
+- **Slug otomatis** dari judul (bisa diedit). Kalau slug diubah, redirect 301 dari URL lama dibuat
+  otomatis (lihat menu Redirect).
+- Kolom **Properti di footer** otomatis berisi kawasan yang tampil di publik.
+
 Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarahkan ke
 `/kontak`. Hotline placeholder tampil sebagai teks tanpa link `tel:`.
 
@@ -138,7 +176,7 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
   menu, hotline, dan CTA; header mobile/tablet dengan ikon WA + hamburger → drawer menu.
   Drawer tetap ada di HTML SSR (link bisa di-crawl), ditutup dengan `inert`, dan
   mendukung tombol Esc, klik overlay, dan pengembalian fokus.
-- Halaman Beranda baru berisi Hero untuk menguji layout. Section lain dibangun di Milestone 3.
+- Halaman publik selain Beranda (Hero) dibangun di Milestone 3.
 
 ## Struktur Penting
 
@@ -146,14 +184,19 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
 - `app/Http/Controllers/` — controller yang mengirim data halaman ke Inertia
 - `app/Http/Middleware/HandleInertiaRequests.php` — shared prop `site` (layout global)
 - `app/Support/SiteLayout.php` — susun data header/footer/drawer + normalisasi nomor WA (62…)
-- `config/site.php`, `config/content.php` — isi awal layout & Beranda (sementara, lihat di atas)
+- `app/Models/` — Kawasan, Cluster, HouseType, dst. (`Cluster::refreshAggregates()` menghitung rentang kartu)
+- `app/Settings/` — satu settings class per halaman (`spatie/laravel-settings`)
+- `database/settings/defaults/` — isi awal & fallback semua settings halaman
+- `app/Support/AdminAccess.php` — hak akses per role (dipasang lewat `Gate::before`)
+- `app/Support/Rupiah.php` — format "Rp 1,6 M", "Rp 850 jt – 1,1 M"
 - `resources/js/app.tsx` — entry Inertia, sekaligus entry SSR (lewat `@inertiajs/vite`)
-- `resources/js/pages/` — halaman React
+- `resources/js/Pages/` — halaman React
 - `resources/js/layouts/`, `resources/js/components/site/` — layout global & komponen
 - `resources/css/app.css` — token desain Tailwind v4
 - `resources/fonts/` — file font self-host
 - `app/Providers/Filament/AdminPanelProvider.php` — panel admin `/admin`
-- `app/Filament/` — resource & halaman admin (mulai Milestone 2)
+- `app/Filament/Resources/` — resource admin; `app/Filament/Pages/Settings/` — settings per halaman
+- `app/Filament/Forms/` — komponen form reusable (slug + redirect, gambar + alt, galeri, tab SEO, section)
 - `docs/` — brief & referensi desain
 
 ## Deploy ke VPS (ringkas)

@@ -2,10 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Settings\GlobalSettings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -27,12 +29,21 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName(fn (): string => config('site.brand.name'))
+            ->brandName(fn (): string => app(GlobalSettings::class)->section('identity')['brand_name'])
             ->favicon(asset('favicon.svg'))
             ->colors([
                 'primary' => Color::hex('#A94F2A'),
                 'gray' => Color::Stone,
             ])
+            ->navigationGroups([
+                NavigationGroup::make('Properti'),
+                NavigationGroup::make('Konten'),
+                NavigationGroup::make('Artikel'),
+                NavigationGroup::make('Pengaturan Halaman')->collapsed(),
+                NavigationGroup::make('Marketing'),
+                NavigationGroup::make('Sistem')->collapsed(),
+            ])
+            ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

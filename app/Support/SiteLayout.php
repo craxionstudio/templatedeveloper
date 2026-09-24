@@ -2,12 +2,13 @@
 
 namespace App\Support;
 
+use App\Models\Kawasan;
+use App\Settings\GlobalSettings;
+use App\Settings\NavigationSettings;
+
 /**
- * Menyusun data layout global (header, drawer mobile, footer) yang dibagikan
- * ke semua halaman Inertia.
- *
- * Sumber data saat ini config/site.php; di Milestone 2 diganti GlobalSettings
- * + Menu Navigasi tanpa mengubah bentuk array yang dikirim ke React.
+ * Menyusun data layout global (header, drawer mobile, footer) yang dibagikan ke semua
+ * halaman Inertia. Sumber: Pengaturan Global, Menu Navigasi, dan kawasan yang dipublikasikan.
  */
 class SiteLayout
 {
@@ -16,14 +17,20 @@ class SiteLayout
      */
     public static function data(): array
     {
-        $site = config('site');
-        $contact = $site['contact'];
+        $global = app(GlobalSettings::class);
+        $identity = $global->section('identity');
+        $contact = $global->section('contact');
+        $header = $global->section('header');
+        $footer = $global->section('footer');
 
-        $whatsappUrl = self::whatsappUrl($contact['whatsapp'], $contact['whatsapp_message'])
-            ?? $contact['fallback_url'];
+        $whatsappUrl = self::whatsappUrl($contact['whatsapp'], $contact['whatsapp_message']) ?? '/kontak';
 
         return [
-            'brand' => $site['brand'],
+            'brand' => [
+                'name' => $identity['brand_name'],
+                'tagline' => $identity['tagline'],
+                'company' => $identity['company_name'],
+            ],
             'contact' => [
                 'hotline' => $contact['hotline'],
                 'hotlineUrl' => self::telUrl($contact['hotline']),
@@ -34,24 +41,41 @@ class SiteLayout
                 'openingHours' => $contact['opening_hours'],
             ],
             'header' => [
-                'showHotline' => (bool) $site['header']['show_hotline'],
-                'ctaLabel' => $site['header']['cta_label'],
-                'ctaUrl' => $site['header']['cta_url'] ?: $whatsappUrl,
+                'showHotline' => (bool) $header['show_hotline'],
+                'ctaLabel' => $header['cta_label'],
+                'ctaUrl' => $header['cta_url'] ?: $whatsappUrl,
             ],
             'mobile' => [
-                'showWhatsappIcon' => (bool) $site['mobile']['show_whatsapp_icon'],
+                'showWhatsappIcon' => (bool) $global->section('mobile')['show_whatsapp_icon'],
             ],
-            'navigation' => $site['navigation'],
+            'navigation' => array_values(app(NavigationSettings::class)->header_items),
             'footer' => [
-                'description' => $site['footer']['description'],
-                'columns' => $site['footer']['columns'],
-                'socialTitle' => $site['footer']['social_title'],
-                'social' => $site['footer']['social'],
-                'officeTitle' => $site['footer']['office_title'],
-                'copyright' => str_replace('{year}', (string) now()->year, $site['footer']['copyright']),
-                'disclaimer' => $site['footer']['disclaimer'],
+                'description' => $footer['description'],
+                'columns' => [self::propertyColumn($footer['property_title']), ...$footer['columns']],
+                'socialTitle' => $footer['social_title'],
+                'social' => $footer['social'],
+                'officeTitle' => $footer['office_title'],
+                'copyright' => str_replace('{year}', (string) now()->year, $footer['copyright']),
+                'disclaimer' => $footer['disclaimer'],
             ],
-            'labels' => $site['labels'],
+            'labels' => $global->section('labels'),
+        ];
+    }
+
+    /**
+     * Kolom Properti di footer: otomatis berisi kawasan yang tampil di publik
+     * (dipublikasikan dan punya minimal 1 cluster yang dipublikasikan).
+     *
+     * @return array{title: string, links: list<array{label: string, url: string}>}
+     */
+    public static function propertyColumn(string $title): array
+    {
+        return [
+            'title' => $title,
+            'links' => Kawasan::query()->visible()->ordered()->get(['name', 'slug'])
+                ->map(fn (Kawasan $kawasan): array => ['label' => $kawasan->name, 'url' => $kawasan->publicPath()])
+                ->values()
+                ->all(),
         ];
     }
 

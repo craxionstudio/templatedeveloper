@@ -42,6 +42,27 @@ Sekarang: **Kawasan (opsional) → Cluster → Tipe rumah**. Sebagian besar clus
 
 - Belum ada. Kalau menemukan kasus yang tidak tercakup (misalnya kawasan tanpa cluster yang dipublikasikan), tampilkan kawasan itu hanya kalau punya minimal 1 cluster yang dipublikasikan, lalu catat di ringkasan milestone.
 
+### Keputusan
+
+Dikonfirmasi pemilik pada 24 Sep 2026 (opsi A: ikuti desain).
+
+**Alur navigasi properti**
+
+- **Tampilan Cluster:** `/properti` → kartu cluster → Detail Rumah (`/properti/{slug-cluster}`). Detail Rumah berisi tab tipe rumah sebanyak tipe di cluster itu.
+- **Tampilan Kawasan:** `/properti/kawasan` → kartu kawasan + section "Cluster yang berdiri sendiri" → klik kartu kawasan → Detail Kawasan (`/properti/kawasan/{slug}`) → kartu cluster di kawasan itu → Detail Rumah.
+- **Cluster mandiri:** kartunya langsung ke Detail Rumah.
+- **Dropdown kawasan** di tampilan Cluster hanya filter biasa. Halaman tetap di `/properti?kawasan={slug}` (tidak pindah ke Detail Kawasan) dan bisa digabung dengan filter tipe, kamar, harga, dan status. Opsi "Cluster mandiri" juga filter biasa: `?kawasan=mandiri`.
+- **Toggle Cluster/Kawasan** adalah dua link biasa ke dua URL, bukan tab JavaScript. Keduanya ter-render SSR dan terindeks.
+
+**Detail Kawasan wajib bisa dijangkau dari:**
+
+1. Toggle Kawasan (`/properti/kawasan`)
+2. Kartu kawasan
+3. Kolom Properti di footer (otomatis dari kawasan yang dipublikasikan)
+4. Breadcrumb Detail Rumah (dilewati kalau cluster mandiri)
+5. Section "Kawasan lainnya" di Detail Kawasan
+6. Sitemap (`sitemap-properti.xml`)
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

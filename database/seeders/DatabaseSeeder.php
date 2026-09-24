@@ -2,27 +2,22 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Data dummy (teks dalam [...] wajib diganti). Isi awal settings per halaman
+     * dibuat oleh migrasi di database/settings (sumbernya database/settings/defaults).
      */
     public function run(): void
     {
-        // Admin awal untuk panel Filament (/admin). Ganti password setelah login pertama.
-        User::query()->updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Admin',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ],
-        );
+        $this->call([
+            UserSeeder::class,
+            ProfileSeeder::class,
+            PropertySeeder::class,
+            ContentSeeder::class,
+            ArticleSeeder::class,
+        ]);
     }
 }

@@ -13,11 +13,15 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "filament/filament": "^5.8",
+        "filament/spatie-laravel-media-library-plugin": "^5.8",
+        "filament/spatie-laravel-settings-plugin": "^5.8",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "filament/filament": "^5.8"
+        "spatie/laravel-medialibrary": "^11.23",
+        "spatie/laravel-settings": "^3.9"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
