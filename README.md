@@ -97,12 +97,12 @@ endpoint SSR di dev server Vite, jadi tidak perlu proses SSR terpisah selama dev
 >   saat request (submit form jadi sedikit lebih lambat, tapi tidak ada yang tertunda).
 > - **Pakai `database` atau `redis`:** jalankan worker di terminal terpisah (sudah termasuk di `composer dev`):
 >
->   ```bash
->   php artisan queue:work
->   ```
+>     ```bash
+>     php artisan queue:work
+>     ```
 >
->   Tanpa worker, job hanya menumpuk di tabel `jobs`: email tidak terkirim, event CAPI tidak dikirim,
->   dan foto yang diunggah tetap memakai file asli (tanpa AVIF/WebP).
+>     Tanpa worker, job hanya menumpuk di tabel `jobs`: email tidak terkirim, event CAPI tidak dikirim,
+>     dan foto yang diunggah tetap memakai file asli (tanpa AVIF/WebP).
 
 ## Menjalankan Mode Production-like (dengan SSR)
 
