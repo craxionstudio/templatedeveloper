@@ -87,6 +87,14 @@ Dikonfirmasi pemilik pada 24 Sep 2026 (opsi A: ikuti desain).
 - **Notifikasi lead:** email ke satu atau lebih alamat dari Pengaturan Global, lewat queue. Webhook opsional (URL dari settings; kosong = tidak dikirim).
 - **Turnstile:** key dari settings. Key kosong (lokal/dev) = validasi Turnstile dilewati; honeypot dan rate limit tetap jalan.
 
+Keputusan teknis Milestone 4 (menunggu konfirmasi pemilik):
+
+- Tab "Notifikasi lead" (email penerima & webhook) hanya untuk Super Admin, sama seperti tab Tracking, karena webhook bisa dipakai mengirim data lead ke luar dan Admin Konten tidak punya akses Lead.
+- Secret key Turnstile juga disimpan terenkripsi di settings (bukan `.env`), sama seperti access token CAPI. Turnstile aktif hanya kalau site key dan secret key sama-sama terisi.
+- Atribusi: landing page & referrer dari kunjungan pertama; UTM/fbclid/gclid diperbarui kalau pengunjung datang lagi lewat kampanye baru (klik terakhir yang bertanda).
+- Tombol "Jadwalkan Kunjungan/Survey" membuka form singkat (modal); bisa dimatikan di Pengaturan Global → CTA global.
+- Bot yang mengisi honeypot dijawab seolah sukses (redirect ke /terima-kasih) tanpa data disimpan dan tanpa event konversi.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

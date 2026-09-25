@@ -39,6 +39,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'site' => fn () => SiteLayout::data(),
+            'flash' => fn () => [
+                'newsletter' => $request->session()->get('newsletter'),
+            ],
         ];
     }
 }

@@ -64,6 +64,7 @@ export type CtaData = {
     whatsappUrl: string;
     visitLabel: string;
     visitUrl: string;
+    lead: { clusterId: number | null; houseTypeId: number | null };
 } | null;
 
 export type Stat = { value: string; label: string };

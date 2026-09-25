@@ -7,7 +7,9 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KawasanController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PropertyListingController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,3 +31,7 @@ Route::get('/tentang-kami', AboutController::class)->name('tentang');
 Route::get('/kontak', ContactController::class)->name('kontak');
 Route::get('/kebijakan-privasi', [LegalController::class, 'privacy'])->name('privasi');
 Route::get('/terima-kasih', [LegalController::class, 'thankYou'])->name('terima-kasih');
+
+// Form publik (Milestone 4): honeypot + Turnstile di FormRequest, rate limit per IP di sini.
+Route::post('/lead', [LeadController::class, 'store'])->middleware('throttle:leads')->name('lead.store');
+Route::post('/newsletter', [NewsletterController::class, 'store'])->middleware('throttle:newsletter')->name('newsletter.store');

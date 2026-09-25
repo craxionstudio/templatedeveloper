@@ -20,6 +20,7 @@ class NotFoundController extends Controller
 
         // Route yang tidak cocok tidak melewati middleware web, jadi shared prop diisi manual.
         Inertia::share('site', fn () => SiteLayout::data());
+        Inertia::share('flash', ['newsletter' => null]);
 
         return Inertia::render('Errors/NotFound', [
             'meta' => PageMeta::make($content['title'], $content['message'], noindex: true),

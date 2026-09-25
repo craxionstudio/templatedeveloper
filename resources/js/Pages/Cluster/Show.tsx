@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     LeadCard,
     PriceBox,
@@ -15,6 +15,7 @@ import type {
 } from '@/components/cluster/detail-parts';
 import Gallery from '@/components/cluster/gallery';
 import type { GalleryData } from '@/components/cluster/gallery';
+import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
@@ -28,6 +29,7 @@ import {
     ButtonLink,
     SectionHeading,
 } from '@/components/site/ui';
+import { pixel, track } from '@/lib/analytics';
 import type { ClusterCardData, Crumb, CtaData } from '@/types/content';
 import type { PageMeta } from '@/types/site';
 
@@ -35,6 +37,7 @@ type Props = {
     meta: PageMeta;
     breadcrumbs: Crumb[];
     cluster: {
+        id: number;
         name: string;
         url: string;
         kawasan: { name: string; url: string } | null;
@@ -109,8 +112,31 @@ export default function ClusterShow(props: Props) {
     );
     const type = types.find((t) => t.slug === selectedSlug) ?? types[0];
 
+    // Event view_listing + Pixel ViewContent sekali per cluster.
+    useEffect(() => {
+        track('view_listing', {
+            cluster: cluster.name,
+            kawasan: cluster.kawasan?.name,
+        });
+        pixel('ViewContent', {
+            content_name: cluster.name,
+            content_category: cluster.kawasan?.name,
+            content_type: 'product',
+        });
+    }, [cluster.id, cluster.name, cluster.kawasan?.name]);
+
+    const openSurvey = useLeadModalTrigger({
+        clusterId: cluster.id,
+        houseTypeId: type?.id ?? null,
+        position: 'sticky',
+    });
+
     const selectType = (slug: string) => {
         setSelectedSlug(slug);
+        track('select_house_type', {
+            cluster: cluster.name,
+            house_type: types.find((t) => t.slug === slug)?.name,
+        });
         const url = new URL(window.location.href);
         url.searchParams.set('tipe', slug);
         window.history.replaceState(window.history.state, '', url);
@@ -125,6 +151,8 @@ export default function ClusterShow(props: Props) {
                         variant="outline"
                         icon="download"
                         newTab
+                        track="download_brochure"
+                        cluster={cluster.name}
                     >
                         {downloads.brochure}
                     </ButtonLink>
@@ -135,6 +163,8 @@ export default function ClusterShow(props: Props) {
                         variant="outline"
                         icon="download"
                         newTab
+                        track="download_pricelist"
+                        cluster={cluster.name}
                     >
                         {downloads.pricelist}
                     </ButtonLink>
@@ -245,6 +275,10 @@ export default function ClusterShow(props: Props) {
                             form={form}
                             whatsappUrl={type?.whatsappUrl ?? '/kontak'}
                             legality={cluster.legality}
+                            clusterId={cluster.id}
+                            houseTypeId={type?.id ?? null}
+                            clusterName={cluster.name}
+                            position="inline"
                             showButtons={false}
                         />
                     </div>
@@ -257,6 +291,10 @@ export default function ClusterShow(props: Props) {
                             form={form}
                             whatsappUrl={type?.whatsappUrl ?? '/kontak'}
                             legality={cluster.legality}
+                            clusterId={cluster.id}
+                            houseTypeId={type?.id ?? null}
+                            clusterName={cluster.name}
+                            position="sidebar"
                         />
                     </div>
                 </aside>
@@ -309,12 +347,15 @@ export default function ClusterShow(props: Props) {
                             aria-label={mobileBar.whatsappLabel}
                             target="_blank"
                             rel="noopener noreferrer"
+                            data-cluster={cluster.name}
+                            data-position="sticky"
                             className="flex size-12 items-center justify-center rounded-full border-[1.5px] border-ink text-ink"
                         >
                             <Icon name="chat" className="size-5" />
                         </a>
                         <SmartLink
                             href={form.surveyUrl}
+                            onClick={openSurvey}
                             className="flex h-12 items-center rounded-full bg-terracotta px-5 font-semibold text-white no-underline"
                         >
                             {mobileBar.surveyLabel}

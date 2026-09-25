@@ -69,6 +69,11 @@ return [
         'whatsapp_label' => 'Chat via WhatsApp',
         'visit_label' => 'Jadwalkan Kunjungan',
         'visit_url' => '/kontak',
+        // Tombol kunjungan membuka form singkat (modal); visit_url tetap jadi link cadangan tanpa JavaScript.
+        'modal_enabled' => true,
+        'modal_title' => 'Jadwalkan kunjungan',
+        'modal_description' => 'Tinggalkan nama dan nomor WhatsApp, tim marketing kami akan menghubungi kamu untuk mengatur jadwal.',
+        'modal_submit_label' => 'Kirim',
     ],
 
     'mobile' => [
@@ -85,11 +90,33 @@ return [
         'google_verification' => '',
         'bing_verification' => '',
         'turnstile_site_key' => '',
+        // Rahasia disimpan terenkripsi (App\Support\Secret) dan tidak pernah dikirim ke browser.
+        'turnstile_secret_key' => '',
+        'meta_capi_token' => '',
+        // Opsional: kode "Test events" dari Meta Events Manager untuk uji coba CAPI.
+        'meta_test_event_code' => '',
+    ],
+
+    'notifications' => [
+        // Satu atau lebih email penerima notifikasi lead.
+        'emails' => [],
+        // Kosong = webhook tidak dikirim.
+        'webhook_url' => '',
     ],
 
     'labels' => [
         'skip_to_content' => 'Langsung ke konten utama',
         'address' => 'Alamat',
+        'form_name' => 'Nama',
+        'form_name_placeholder' => 'Nama lengkap',
+        'form_whatsapp' => 'WhatsApp',
+        'form_whatsapp_placeholder' => '08xx xxxx xxxx',
+        'form_email' => 'Email',
+        'form_consent' => 'Saya setuju data saya diproses sesuai Kebijakan Privasi.',
+        'form_submit' => 'Kirim',
+        'form_sending' => 'Mengirim…',
+        'form_error' => 'Periksa kembali isian yang ditandai.',
+        'newsletter_success' => 'Terima kasih! Email kamu sudah terdaftar.',
         'privacy_policy' => 'Kebijakan Privasi',
         'main_menu' => 'Menu utama',
         'open_menu' => 'Buka menu',

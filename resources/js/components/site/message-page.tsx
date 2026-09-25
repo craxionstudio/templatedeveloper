@@ -10,12 +10,15 @@ export default function MessagePage({
     message,
     links,
     icon,
+    action,
 }: {
     eyebrow?: string | null;
     title: string;
     message: string | null;
     links: { label: string; url: string }[];
     icon?: ReactNode;
+    /** Tombol utama di atas link lanjutan (mis. lanjut chat WhatsApp). */
+    action?: ReactNode;
 }) {
     return (
         <section className="container-site flex min-h-[60vh] flex-col items-center justify-center gap-5 py-16 text-center xl:py-[120px]">
@@ -29,13 +32,20 @@ export default function MessagePage({
                     {message}
                 </p>
             ) : null}
+            {action ? (
+                <div className="mt-3 w-full md:w-auto [&>a]:w-full">
+                    {action}
+                </div>
+            ) : null}
             {links.length > 0 ? (
                 <div className="mt-3 flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:justify-center">
                     {links.map((link, index) => (
                         <ButtonLink
                             key={link.url}
                             href={link.url}
-                            variant={index === 0 ? 'primary' : 'outline'}
+                            variant={
+                                index === 0 && !action ? 'primary' : 'outline'
+                            }
                         >
                             {link.label}
                         </ButtonLink>

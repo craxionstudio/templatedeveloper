@@ -15,7 +15,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | 1   | Setup: Laravel + React starter kit (Inertia v3, TS) + SSR + Filament 5 + token + font self-host + layout global | ✅ Selesai |
 | 2   | Model & admin (migrasi, seeder dummy, Filament resource, settings per halaman)                                  | ✅ Selesai |
 | 3   | Halaman publik sesuai desain                                                                                    | ✅ Selesai |
-| 4   | Lead & tracking                                                                                                 | Belum      |
+| 4   | Lead & tracking                                                                                                 | ✅ Selesai |
 | 5   | Technical SEO                                                                                                   | Belum      |
 | 6   | Performa                                                                                                        | Belum      |
 | 7   | QA                                                                                                              | Belum      |
@@ -194,12 +194,41 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
 - Foto yang belum diunggah tampil sebagai placeholder bergaris dengan alt text (`components/site/picture.tsx`).
 - Listing, filter, kategori, pagination, dan toggle Cluster/Kawasan adalah link biasa (SSR, bisa di-crawl).
   "Muat lagi" di mobile memakai `Inertia::scroll()`; listing yang difilter diberi `noindex`.
-- Form (Detail Rumah, Kontak, newsletter) baru tampilan; penyimpanan di Milestone 4.
+
+## Lead & Tracking
+
+- **Form lead** (Detail Rumah sidebar/inline, modal "Jadwalkan Kunjungan/Survey", halaman Kontak) → `POST /lead`
+  → redirect `/terima-kasih`. Nomor WA dinormalisasi ke `62…` (`App\Support\Phone`), persetujuan
+  Kebijakan Privasi wajib. Newsletter → `POST /newsletter` (email saja, tanpa duplikat).
+- **Anti-spam:** honeypot (field `website`, bot dijawab "sukses" tanpa disimpan) + rate limit per IP
+  (lead 5/menit & 30/hari, newsletter 5/menit & 20/hari) + Cloudflare Turnstile. Turnstile aktif hanya
+  kalau site key **dan** secret key diisi; kosong (lokal/dev) = dilewati.
+- **Atribusi:** UTM, `fbclid`, `gclid`, landing page pertama, dan referrer ditangkap di kunjungan pertama
+  ke cookie `arunika_attribution` (30 hari) lalu disalin ke lead. Landing page & referrer = kunjungan
+  pertama; UTM & click ID diperbarui kalau pengunjung datang lagi lewat kampanye baru.
+- **Notifikasi:** email ke satu/lebih alamat + webhook opsional (POST JSON), keduanya lewat queue.
+  Pengaturan Global → Notifikasi lead.
+- **Analytics:** GTM **atau** GA4 langsung + Meta Pixel, ID dari Pengaturan Global → Tracking & verifikasi.
+  Script dimuat setelah halaman selesai dimuat & browser idle; antrean event dibuat lebih dulu supaya
+  tidak ada event yang hilang. Event: `generate_lead` (di `/terima-kasih`, dengan cluster, tipe, posisi
+  form, `event_id`), `click_whatsapp`, `click_phone`, `download_brochure`, `download_pricelist`,
+  `view_listing`, `select_house_type`, serta `virtual_page_view` (GTM) / `page_view` (GA4) per navigasi.
+  Pixel: `PageView`, `Lead`, `Contact`, `ViewContent`.
+- **Meta Conversions API:** event `Lead` dari server (job `SendMetaLeadEvent`) dengan `event_id` yang sama
+  dengan Pixel untuk deduplikasi. Nomor WA, email, dan nama di-hash SHA-256 sesuai spesifikasi Meta;
+  `fbp`/`fbc`, IP, dan user agent ikut dikirim untuk pencocokan. Access token disimpan terenkripsi dan
+  tidak ditampilkan ulang; token kosong = CAPI dilewati tanpa error. Uji coba: isi "Test event code".
+- Konversi di `/terima-kasih` hanya dikirim sekali tepat setelah submit (flash session), jadi refresh
+  tidak menghitung dua kali.
 
 ## Struktur Penting
 
 - `routes/web.php` — route halaman publik
 - `app/Http/Controllers/` — controller yang mengirim data halaman ke Inertia
+- `app/Http/Controllers/LeadController.php`, `app/Http/Requests/` — simpan lead & validasi anti-spam
+- `app/Services/{MetaConversions,Turnstile}.php`, `app/Jobs/`, `app/Notifications/` — CAPI, Turnstile, webhook, email lead
+- `app/Support/{Attribution,Tracking,Secret,Phone}.php` — cookie UTM, ID tracking, enkripsi rahasia, normalisasi WA
+- `resources/js/lib/analytics.ts`, `resources/js/components/lead/` — event analytics & form lead
 - `app/Presenters/` — bentuk data kartu (cluster, kawasan, artikel, fasilitas, gambar) untuk React
 - `app/Support/{PageMeta,Breadcrumbs,Cta}.php` — meta halaman, breadcrumb, dan CTA per halaman
 - `app/Http/Middleware/HandleInertiaRequests.php` — shared prop `site` (layout global)

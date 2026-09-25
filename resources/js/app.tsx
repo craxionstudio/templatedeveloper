@@ -1,5 +1,6 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import SiteLayout from '@/layouts/site-layout';
+import { listenForClicks, pageView } from '@/lib/analytics';
 
 void createInertiaApp({
     // Judul lengkap (pola "{Judul} | {Brand}") disusun di server.
@@ -10,3 +11,12 @@ void createInertiaApp({
         color: '#A94F2A',
     },
 });
+
+if (typeof window !== 'undefined') {
+    listenForClicks();
+    pageView();
+    // Navigasi berikutnya (bukan reload): event `navigate` Inertia.
+    router.on('navigate', () => {
+        pageView();
+    });
+}

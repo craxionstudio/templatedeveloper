@@ -4,13 +4,17 @@ namespace App\Filament\Pages\Settings;
 
 use App\Filament\Forms\Fields;
 use App\Settings\GlobalSettings;
+use App\Support\Secret;
 use BackedEnum;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -103,6 +107,11 @@ class ManageGlobalSettings extends PageSettingsPage
                     Fields::textarea('cta.description', 'Deskripsi'),
                     TextInput::make('cta.whatsapp_label')->label('Label tombol WhatsApp')->maxLength(60),
                     Fields::button('cta.visit', 'tombol kunjungan'),
+                    Toggle::make('cta.modal_enabled')->label('Tombol kunjungan membuka form singkat (modal)')
+                        ->helperText('Mati = tombol langsung ke URL tombol kunjungan.'),
+                    Fields::text('cta.modal_title', 'Judul form modal'),
+                    Fields::textarea('cta.modal_description', 'Deskripsi form modal', 2),
+                    TextInput::make('cta.modal_submit_label')->label('Label tombol kirim (modal)')->maxLength(40),
                 ]),
                 Tab::make('Mobile')->schema([
                     Toggle::make('mobile.show_whatsapp_icon')->label('Tampilkan ikon WhatsApp di header mobile'),
@@ -114,16 +123,44 @@ class ManageGlobalSettings extends PageSettingsPage
                 ]),
                 Tab::make('Tracking & verifikasi')->visible(fn (): bool => self::canManageTracking())->schema([
                     Grid::make(3)->schema([
-                        TextInput::make('tracking.gtm_id')->label('Google Tag Manager ID')->placeholder('GTM-XXXXXXX'),
-                        TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX'),
-                        TextInput::make('tracking.meta_pixel_id')->label('Meta Pixel ID'),
+                        TextInput::make('tracking.gtm_id')->label('Google Tag Manager ID')->placeholder('GTM-XXXXXXX')
+                            ->regex('/^GTM-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: GTM-XXXXXXX.']),
+                        TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX')
+                            ->regex('/^G-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: G-XXXXXXXXXX.'])
+                            ->helperText('Isi salah satu: GTM atau GA4 langsung. Kalau GTM diisi, GA4 dipasang lewat GTM.'),
+                        TextInput::make('tracking.meta_pixel_id')->label('Meta Pixel ID')
+                            ->regex('/^\d{5,20}$/')->validationMessages(['regex' => 'Pixel ID hanya angka.']),
                     ]),
-                    Grid::make(3)->schema([
+                    Section::make('Meta Conversions API')
+                        ->description('Event Lead dikirim juga dari server dengan event_id yang sama dengan Pixel (deduplikasi). Token kosong = CAPI dilewati.')
+                        ->schema([
+                            Grid::make(2)->schema([
+                                self::secret('tracking.meta_capi_token', 'Access token Conversions API'),
+                                TextInput::make('tracking.meta_test_event_code')->label('Test event code (opsional)')
+                                    ->helperText('Dari Events Manager → Test events. Kosongkan setelah uji coba selesai.')
+                                    ->maxLength(40),
+                            ]),
+                        ]),
+                    Section::make('Cloudflare Turnstile')
+                        ->description('Isi site key dan secret key untuk mengaktifkan Turnstile di semua form. Salah satu kosong = Turnstile dilewati (honeypot dan rate limit tetap jalan).')
+                        ->schema([
+                            Grid::make(2)->schema([
+                                TextInput::make('tracking.turnstile_site_key')->label('Site key')->maxLength(100),
+                                self::secret('tracking.turnstile_secret_key', 'Secret key'),
+                            ]),
+                        ]),
+                    Grid::make(2)->schema([
                         TextInput::make('tracking.google_verification')->label('Verifikasi Google Search Console'),
                         TextInput::make('tracking.bing_verification')->label('Verifikasi Bing Webmaster'),
-                        TextInput::make('tracking.turnstile_site_key')->label('Cloudflare Turnstile site key')
-                            ->helperText('Secret key disimpan di .env (TURNSTILE_SECRET_KEY).'),
                     ]),
+                ]),
+                Tab::make('Notifikasi lead')->visible(fn (): bool => self::canManageTracking())->schema([
+                    TagsInput::make('notifications.emails')->label('Email penerima notifikasi lead')
+                        ->placeholder('marketing@contoh.com')
+                        ->helperText('Bisa lebih dari satu. Tekan Enter setelah tiap email. Kosong = tidak ada email notifikasi.')
+                        ->nestedRecursiveRules(['email:rfc']),
+                    TextInput::make('notifications.webhook_url')->label('Webhook URL (opsional)')->url()->maxLength(500)
+                        ->helperText('POST JSON setiap ada lead baru (WA gateway, Google Sheet, dsb). Kosong = tidak dikirim.'),
                 ]),
                 Tab::make('Label umum')->schema([
                     Grid::make(3)->schema(collect(GlobalSettings::defaults()['labels'])
@@ -162,7 +199,18 @@ class ManageGlobalSettings extends PageSettingsPage
     }
 
     /**
-     * ID tracking & kode verifikasi tidak dikirim ke browser untuk role selain Super Admin.
+     * Key rahasia di tab Tracking: disimpan terenkripsi, tidak pernah ditampilkan ulang.
+     */
+    public const SECRETS = ['meta_capi_token', 'turnstile_secret_key'];
+
+    /**
+     * Tab yang hanya untuk Super Admin (tracking & tujuan notifikasi lead).
+     */
+    public const RESTRICTED = ['tracking', 'notifications'];
+
+    /**
+     * ID tracking, kode verifikasi, dan tujuan notifikasi tidak dikirim ke browser untuk role
+     * selain Super Admin. Rahasia tidak dikirim ke browser untuk siapa pun.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -170,15 +218,21 @@ class ManageGlobalSettings extends PageSettingsPage
     protected function mutateFormDataBeforeFill(array $data): array
     {
         if (! self::canManageTracking()) {
-            unset($data['tracking']);
+            return array_diff_key($data, array_flip(self::RESTRICTED));
+        }
+
+        foreach (self::SECRETS as $key) {
+            $data['tracking'][$key] = null;
         }
 
         return $data;
     }
 
     /**
-     * Penolakan di sisi server: perubahan tracking dari role lain selalu dibuang,
+     * Penolakan di sisi server: perubahan tracking/notifikasi dari role lain selalu dibuang,
      * walaupun request Livewire dimanipulasi. Nilai tersimpan dipertahankan.
+     *
+     * Rahasia: field kosong = pertahankan nilai lama; centang "hapus" = kosongkan; isi baru = enkripsi.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -186,10 +240,43 @@ class ManageGlobalSettings extends PageSettingsPage
     protected function mutateFormDataBeforeSave(array $data): array
     {
         if (! self::canManageTracking()) {
-            unset($data['tracking']);
+            $data = array_diff_key($data, array_flip(self::RESTRICTED));
+        } elseif (isset($data['tracking']) && is_array($data['tracking'])) {
+            foreach (self::SECRETS as $key) {
+                $clear = (bool) ($data['tracking'][$key.'_clear'] ?? false);
+                $value = trim((string) ($data['tracking'][$key] ?? ''));
+                unset($data['tracking'][$key.'_clear'], $data['tracking'][$key]);
+
+                if ($clear) {
+                    $data['tracking'][$key] = '';
+                } elseif ($value !== '') {
+                    $data['tracking'][$key] = Secret::encrypt($value);
+                }
+            }
         }
 
         return parent::mutateFormDataBeforeSave($data);
+    }
+
+    private static function secret(string $path, string $label): Group
+    {
+        $key = str($path)->after('tracking.')->toString();
+        $stored = fn (): bool => filled(app(GlobalSettings::class)->tracking[$key] ?? null);
+
+        return Group::make([
+            TextInput::make($path)
+                ->label($label)
+                ->password()
+                ->autocomplete('new-password')
+                ->maxLength(500)
+                ->placeholder(fn (): string => $stored() ? '•••••••• (tersimpan)' : 'Belum diisi')
+                ->helperText(fn (): string => $stored()
+                    ? 'Tersimpan terenkripsi dan tidak ditampilkan ulang. Kosongkan untuk mempertahankan, isi untuk mengganti.'
+                    : 'Disimpan terenkripsi dan tidak ditampilkan ulang setelah disimpan.'),
+            Checkbox::make($path.'_clear')
+                ->label('Hapus nilai tersimpan')
+                ->visible($stored),
+        ]);
     }
 
     private static function logo(string $path, string $label): FileUpload

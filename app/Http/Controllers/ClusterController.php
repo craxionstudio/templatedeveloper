@@ -64,6 +64,7 @@ class ClusterController extends Controller
                 [$cluster->name],
             ]))),
             'cluster' => [
+                'id' => $cluster->id,
                 'name' => $cluster->name,
                 'url' => $cluster->publicPath(),
                 'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
@@ -90,6 +91,7 @@ class ClusterController extends Controller
                 'tourUrl' => $cluster->tour_360_url,
             ],
             'types' => $types->map(fn (HouseType $type) => [
+                'id' => $type->id,
                 'slug' => $type->slug,
                 'name' => $type->name,
                 'lotSize' => $type->lot_size,
@@ -150,7 +152,11 @@ class ClusterController extends Controller
                 'surveyLabel' => $mobile['sticky_survey_label'],
             ],
             'others' => $sections['others']['enabled'] ? $this->others($cluster, $sections['others'], $settings->section('others')) : null,
-            'cta' => Cta::resolve($settings->section('cta'), PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $selected?->name])),
+            'cta' => Cta::resolve(
+                $settings->section('cta'),
+                PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $selected?->name]),
+                ['clusterId' => $cluster->id, 'houseTypeId' => $selected?->id],
+            ),
         ]);
     }
 

@@ -1,6 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import NewsletterForm from '@/components/lead/newsletter-form';
 import ArticleCard from '@/components/site/article-card';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import { Icon } from '@/components/site/icons';
@@ -240,32 +241,10 @@ export default function ArtikelIndex({
                                 {newsletter.description}
                             </p>
                         </div>
-                        {/* Penyimpanan newsletter di Milestone 4. */}
-                        <form
-                            onSubmit={(e) => e.preventDefault()}
-                            className="flex flex-col gap-3 md:flex-row"
-                        >
-                            <label
-                                htmlFor="newsletter-email"
-                                className="sr-only"
-                            >
-                                {newsletter.placeholder}
-                            </label>
-                            <input
-                                id="newsletter-email"
-                                type="email"
-                                name="email"
-                                autoComplete="email"
-                                placeholder={newsletter.placeholder}
-                                className="h-[52px] flex-1 rounded-full border-0 bg-white px-5 text-[15px] text-ink"
-                            />
-                            <button
-                                type="submit"
-                                className="h-[52px] rounded-full bg-terracotta px-7 font-semibold text-white hover:bg-terracotta-hover"
-                            >
-                                {newsletter.buttonLabel}
-                            </button>
-                        </form>
+                        <NewsletterForm
+                            placeholder={newsletter.placeholder}
+                            buttonLabel={newsletter.buttonLabel}
+                        />
                     </div>
                 </section>
             ) : null}

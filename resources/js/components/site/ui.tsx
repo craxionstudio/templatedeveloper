@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { Icon } from '@/components/site/icons';
 import type { IconName } from '@/components/site/icons';
 import SmartLink from '@/components/site/smart-link';
@@ -90,6 +90,10 @@ export function ButtonLink({
     size = 'md',
     className,
     newTab,
+    onClick,
+    track,
+    cluster,
+    position,
 }: {
     href: string;
     children: ReactNode;
@@ -98,11 +102,20 @@ export function ButtonLink({
     size?: 'sm' | 'md' | 'lg';
     className?: string;
     newTab?: boolean;
+    onClick?: (event: MouseEvent<Element>) => void;
+    /** data-track untuk event analytics, mis. "download_brochure". */
+    track?: string;
+    cluster?: string;
+    position?: string;
 }) {
     return (
         <SmartLink
             href={href}
             newTab={newTab}
+            onClick={onClick}
+            data-track={track}
+            data-cluster={cluster}
+            data-position={position}
             className={cn(
                 'inline-flex items-center justify-center gap-2.5 rounded-full font-semibold whitespace-nowrap no-underline transition-colors',
                 size === 'sm' && 'h-11 px-5 text-sm',

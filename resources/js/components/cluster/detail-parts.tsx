@@ -1,5 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import LeadForm from '@/components/lead/lead-form';
+import type { LeadPosition } from '@/components/lead/lead-form';
+import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import { ContentIcon, Icon } from '@/components/site/icons';
 import type { IconName } from '@/components/site/icons';
 import Picture from '@/components/site/picture';
@@ -9,6 +11,7 @@ import { cn } from '@/lib/utils';
 import type { ImageData } from '@/types/content';
 
 export type HouseTypeData = {
+    id: number;
     slug: string;
     name: string;
     lotSize: string | null;
@@ -346,25 +349,35 @@ export type LeadFormData = {
 };
 
 /**
- * Kartu marketing + form lead. Penyimpanan lead, anti-spam, dan UTM di Milestone 4.
+ * Kartu marketing + form lead (POST /lead). Tombol Survey membuka form singkat di modal.
  */
 export function LeadCard({
     marketing,
     form,
     whatsappUrl,
     legality,
+    clusterId,
+    houseTypeId,
+    clusterName,
+    position,
     showButtons = true,
 }: {
     marketing: MarketingData;
     form: LeadFormData;
     whatsappUrl: string;
     legality: string | null;
+    clusterId: number;
+    houseTypeId: number | null;
+    clusterName: string;
+    position: LeadPosition;
     showButtons?: boolean;
 }) {
     const { labels } = usePage().props.site;
-    const input =
-        'h-12 w-full rounded-xl border-[1.5px] border-[#CFC7B6] bg-white px-3.5 text-[15px] placeholder:text-caption focus:border-ink focus:outline-none';
-    const onSubmit = (e: FormEvent) => e.preventDefault();
+    const openSurvey = useLeadModalTrigger({
+        clusterId,
+        houseTypeId,
+        position: 'modal',
+    });
 
     return (
         <div className="flex flex-col gap-3">
@@ -382,35 +395,18 @@ export function LeadCard({
                         </p>
                     </div>
                 </div>
-                <form onSubmit={onSubmit} className="flex flex-col gap-3">
-                    <label className="flex flex-col gap-1.5 text-sm font-semibold">
-                        {form.nameLabel}
-                        <input
-                            type="text"
-                            name="name"
-                            autoComplete="name"
-                            placeholder={form.namePlaceholder}
-                            className={input}
-                        />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-semibold">
-                        {form.whatsappLabel}
-                        <input
-                            type="tel"
-                            name="whatsapp"
-                            autoComplete="tel"
-                            inputMode="tel"
-                            placeholder={form.whatsappPlaceholder}
-                            className={input}
-                        />
-                    </label>
-                    <button
-                        type="submit"
-                        className="mt-1 flex h-[52px] items-center justify-center rounded-full bg-terracotta font-semibold text-white hover:bg-terracotta-hover"
-                    >
-                        {form.submitLabel}
-                    </button>
-                </form>
+                <LeadForm
+                    position={position}
+                    clusterId={clusterId}
+                    houseTypeId={houseTypeId}
+                    labels={{
+                        name: form.nameLabel,
+                        namePlaceholder: form.namePlaceholder,
+                        whatsapp: form.whatsappLabel,
+                        whatsappPlaceholder: form.whatsappPlaceholder,
+                        submit: form.submitLabel,
+                    }}
+                />
                 {showButtons ? (
                     <div className="grid grid-cols-2 gap-2">
                         <ButtonLink
@@ -419,6 +415,8 @@ export function LeadCard({
                             icon="chat"
                             size="sm"
                             newTab
+                            cluster={clusterName}
+                            position={position}
                         >
                             {form.whatsappButtonLabel}
                         </ButtonLink>
@@ -427,6 +425,7 @@ export function LeadCard({
                             variant="outline"
                             icon="calendar"
                             size="sm"
+                            onClick={openSurvey}
                         >
                             {form.surveyButtonLabel}
                         </ButtonLink>

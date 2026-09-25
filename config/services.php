@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Meta Conversions API (Pixel ID & access token diisi dari Pengaturan Global → Tracking).
+    'meta' => [
+        'graph_version' => env('META_GRAPH_VERSION', 'v21.0'),
+    ],
+
 ];

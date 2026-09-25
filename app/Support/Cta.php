@@ -11,9 +11,10 @@ class Cta
 {
     /**
      * @param  array<string, mixed>  $section  section "cta" dari settings halaman
-     * @return array<string, string>|null null = section dimatikan
+     * @param  array{clusterId?: ?int, houseTypeId?: ?int}  $lead  konteks lead untuk form modal
+     * @return array<string, mixed>|null null = section dimatikan
      */
-    public static function resolve(array $section, ?string $whatsappMessage = null): ?array
+    public static function resolve(array $section, ?string $whatsappMessage = null, array $lead = []): ?array
     {
         if (! ($section['enabled'] ?? true)) {
             return null;
@@ -34,6 +35,11 @@ class Cta
             'whatsappUrl' => SiteLayout::whatsappUrl($contact['whatsapp'], $whatsappMessage ?? $contact['whatsapp_message']) ?? '/kontak',
             'visitLabel' => $cta['visit_label'],
             'visitUrl' => $cta['visit_url'],
+            // Konteks form lead di modal tombol kunjungan (cluster/tipe di Detail Rumah).
+            'lead' => [
+                'clusterId' => $lead['clusterId'] ?? null,
+                'houseTypeId' => $lead['houseTypeId'] ?? null,
+            ],
         ];
     }
 }

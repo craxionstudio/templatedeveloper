@@ -1,12 +1,16 @@
 import { Link } from '@inertiajs/react';
-import type { AriaAttributes, ReactNode } from 'react';
+import type { AriaAttributes, MouseEvent, ReactNode } from 'react';
 import { isExternalUrl } from '@/lib/url';
 
 type SmartLinkProps = {
     href: string;
     newTab?: boolean;
     className?: string;
-    onClick?: () => void;
+    onClick?: (event: MouseEvent<Element>) => void;
+    /** Penanda event analytics (lihat resources/js/lib/analytics.ts). */
+    'data-track'?: string;
+    'data-cluster'?: string;
+    'data-position'?: string;
     'aria-label'?: string;
     'aria-current'?: AriaAttributes['aria-current'];
     children: ReactNode;

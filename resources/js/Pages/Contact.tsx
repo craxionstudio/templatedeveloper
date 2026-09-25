@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import LeadForm from '@/components/lead/lead-form';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
@@ -108,35 +109,6 @@ function MapFacade({ map }: { map: NonNullable<Props['map']> }) {
     );
 }
 
-/**
- * Teks persetujuan: frasa "Kebijakan Privasi" di dalamnya dijadikan link. Kalau frasa tidak ada,
- * link ditambahkan di belakang.
- */
-function linkPrivacy(text: string, phrase: string, url: string): ReactNode {
-    const link = (
-        <SmartLink href={url} className="font-semibold">
-            {phrase}
-        </SmartLink>
-    );
-    const index = text.indexOf(phrase);
-
-    if (index === -1) {
-        return (
-            <>
-                {text} {link}
-            </>
-        );
-    }
-
-    return (
-        <>
-            {text.slice(0, index)}
-            {link}
-            {text.slice(index + phrase.length)}
-        </>
-    );
-}
-
 export default function Contact({
     meta,
     breadcrumbs,
@@ -147,11 +119,6 @@ export default function Contact({
     cta,
 }: Props) {
     const { labels } = usePage().props.site;
-    const input =
-        'h-12 w-full rounded-xl border-[1.5px] border-[#CFC7B6] bg-white px-3.5 text-[15px] font-normal placeholder:text-caption focus:border-ink focus:outline-none';
-    const field = 'flex flex-col gap-1.5 text-sm font-semibold';
-    // Penyimpanan lead, validasi server, dan anti-spam di Milestone 4.
-    const onSubmit = (e: FormEvent) => e.preventDefault();
 
     return (
         <>
@@ -256,107 +223,28 @@ export default function Contact({
                         <h2 className="font-display text-2xl font-semibold xl:text-[28px]">
                             {form.title}
                         </h2>
-                        <form
-                            onSubmit={onSubmit}
-                            className="grid gap-4 md:grid-cols-2"
-                        >
-                            <label className={field}>
-                                {form.name_label}
-                                <input
-                                    type="text"
-                                    name="name"
-                                    autoComplete="name"
-                                    required
-                                    className={input}
-                                />
-                            </label>
-                            <label className={field}>
-                                {form.whatsapp_label}
-                                <input
-                                    type="tel"
-                                    name="whatsapp"
-                                    autoComplete="tel"
-                                    inputMode="tel"
-                                    required
-                                    className={input}
-                                />
-                            </label>
-                            <label className={`${field} md:col-span-2`}>
-                                {form.email_label}
-                                <input
-                                    type="email"
-                                    name="email"
-                                    autoComplete="email"
-                                    className={input}
-                                />
-                            </label>
-                            <label className={field}>
-                                {form.interest_label}
-                                <select
-                                    name="cluster_id"
-                                    className={input}
-                                    defaultValue=""
-                                >
-                                    <option value="">
-                                        {form.interest_placeholder}
-                                    </option>
-                                    {form.clusters.map((cluster) => (
-                                        <option
-                                            key={cluster.value}
-                                            value={cluster.value}
-                                        >
-                                            {cluster.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            {form.payment_options.length > 0 ? (
-                                <label className={field}>
-                                    {form.payment_label}
-                                    <select
-                                        name="payment_plan"
-                                        className={input}
-                                        defaultValue=""
-                                    >
-                                        <option value="">-</option>
-                                        {form.payment_options.map((option) => (
-                                            <option key={option} value={option}>
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            ) : null}
-                            <label className={`${field} md:col-span-2`}>
-                                {form.message_label}
-                                <textarea
-                                    name="message"
-                                    rows={4}
-                                    className={`${input} h-auto py-3`}
-                                />
-                            </label>
-                            <label className="flex items-start gap-3 text-sm leading-[1.5] text-body md:col-span-2">
-                                <input
-                                    type="checkbox"
-                                    name="consent"
-                                    required
-                                    className="mt-0.5 size-5 shrink-0 accent-terracotta"
-                                />
-                                <span>
-                                    {linkPrivacy(
-                                        form.consent_label,
-                                        labels.privacy_policy,
-                                        form.privacyUrl,
-                                    )}
-                                </span>
-                            </label>
-                            <button
-                                type="submit"
-                                className="flex h-[52px] items-center justify-center rounded-full bg-terracotta font-semibold text-white hover:bg-terracotta-hover md:col-span-2"
-                            >
-                                {form.submit_label}
-                            </button>
-                        </form>
+                        <LeadForm
+                            position="kontak"
+                            layout="grid"
+                            privacyUrl={form.privacyUrl}
+                            labels={{
+                                name: form.name_label,
+                                whatsapp: form.whatsapp_label,
+                                consent: form.consent_label,
+                                submit: form.submit_label,
+                            }}
+                            email={{ label: form.email_label }}
+                            interest={{
+                                label: form.interest_label,
+                                placeholder: form.interest_placeholder,
+                                options: form.clusters,
+                            }}
+                            payment={{
+                                label: form.payment_label,
+                                options: form.payment_options,
+                            }}
+                            message={{ label: form.message_label }}
+                        />
                     </div>
                 ) : null}
             </section>

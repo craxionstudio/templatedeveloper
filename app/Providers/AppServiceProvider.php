@@ -9,9 +9,12 @@ use Carbon\CarbonImmutable;
 use Closure;
 use Filament\Forms\Components\Field;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -35,6 +38,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(fn (User $user, string $ability, array $arguments) => AdminAccess::check($user, $ability, $arguments));
 
         $this->registerFilamentMacros();
+
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Rate limit form publik per IP (anti-spam, brief 9).
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('leads', fn (Request $request) => [
+            Limit::perMinute(5)->by('lead-min:'.$request->ip()),
+            Limit::perDay(30)->by('lead-day:'.$request->ip()),
+        ]);
+
+        RateLimiter::for('newsletter', fn (Request $request) => [
+            Limit::perMinute(5)->by('newsletter-min:'.$request->ip()),
+            Limit::perDay(20)->by('newsletter-day:'.$request->ip()),
+        ]);
     }
 
     /**

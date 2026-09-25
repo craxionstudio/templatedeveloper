@@ -1,7 +1,14 @@
+import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import { ButtonLink } from '@/components/site/ui';
 import type { CtaData } from '@/types/content';
 
 export default function CtaSection({ cta }: { cta: CtaData }) {
+    const openModal = useLeadModalTrigger({
+        clusterId: cta?.lead.clusterId,
+        houseTypeId: cta?.lead.houseTypeId,
+        position: 'modal',
+    });
+
     if (!cta) {
         return null;
     }
@@ -26,6 +33,7 @@ export default function CtaSection({ cta }: { cta: CtaData }) {
                         variant="white"
                         icon="chat"
                         size="lg"
+                        position="cta"
                     >
                         {cta.whatsappLabel}
                     </ButtonLink>
@@ -34,6 +42,7 @@ export default function CtaSection({ cta }: { cta: CtaData }) {
                         variant="outlineLight"
                         icon="calendar"
                         size="lg"
+                        onClick={openModal}
                     >
                         {cta.visitLabel}
                     </ButtonLink>

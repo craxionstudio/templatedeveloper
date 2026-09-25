@@ -21,6 +21,8 @@ class GlobalSettings extends PageSettings
 
     public array $tracking;
 
+    public array $notifications;
+
     public array $labels;
 
     public array $not_found;

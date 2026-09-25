@@ -54,6 +54,17 @@ export type SiteLayoutData = {
         call_hotline: string;
         home: string;
     };
+    leadModal: {
+        title: string;
+        description: string;
+        submitLabel: string;
+    } | null;
+    tracking: {
+        gtmId: string | null;
+        ga4Id: string | null;
+        pixelId: string | null;
+        turnstileSiteKey: string | null;
+    };
 };
 
 export type PageMeta = {

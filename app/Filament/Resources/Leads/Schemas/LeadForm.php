@@ -54,6 +54,7 @@ class LeadForm
                         self::info('fbclid / gclid', fn (Lead $r) => trim($r->fbclid.' '.$r->gclid)),
                         self::info('Landing page pertama', fn (Lead $r) => $r->landing_page),
                         self::info('Referrer', fn (Lead $r) => $r->referrer),
+                        self::info('Event ID (Pixel/CAPI)', fn (Lead $r) => $r->event_id),
                     ]),
                 ]),
             ]);
