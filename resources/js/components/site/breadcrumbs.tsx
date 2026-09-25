@@ -1,8 +1,19 @@
 import { usePage } from '@inertiajs/react';
 import SmartLink from '@/components/site/smart-link';
+import { cn } from '@/lib/utils';
 import type { Crumb } from '@/types/content';
 
-export default function Breadcrumbs({ items }: { items: Crumb[] }) {
+/**
+ * compact = versi ringkas satu baris di mobile (font kecil, scroll horizontal kalau panjang);
+ * mulai tablet tampil normal.
+ */
+export default function Breadcrumbs({
+    items,
+    compact = false,
+}: {
+    items: Crumb[];
+    compact?: boolean;
+}) {
     const { site } = usePage().props;
 
     if (items.length === 0) {
@@ -10,8 +21,18 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
     }
 
     return (
-        <nav aria-label={site.labels.breadcrumb} className="text-sm">
-            <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+        <nav
+            aria-label={site.labels.breadcrumb}
+            className={compact ? '-mx-5 md:mx-0' : undefined}
+        >
+            <ol
+                className={cn(
+                    'flex items-center gap-x-2.5 gap-y-1',
+                    compact
+                        ? '[scrollbar-width:none] overflow-x-auto px-5 py-1 text-[13px] whitespace-nowrap md:flex-wrap md:px-0 md:py-0 md:text-sm md:whitespace-normal [&::-webkit-scrollbar]:hidden'
+                        : 'flex-wrap text-sm',
+                )}
+            >
                 {items.map((item, index) => {
                     const last = index === items.length - 1;
 

@@ -146,10 +146,8 @@ export default function ClusterShow(props: Props) {
         <>
             <PageHead meta={meta} />
 
-            <div className="container-site flex flex-col gap-4 pt-0 md:pt-4 xl:gap-6 xl:pt-6">
-                <div className="hidden md:block">
-                    <Breadcrumbs items={breadcrumbs} />
-                </div>
+            <div className="container-site flex flex-col gap-3 pt-3 md:gap-4 md:pt-4 xl:gap-6 xl:pt-6">
+                <Breadcrumbs items={breadcrumbs} compact />
                 <Gallery
                     gallery={gallery}
                     floorplan={type?.floorplan ?? null}

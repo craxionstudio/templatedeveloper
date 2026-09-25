@@ -71,6 +71,22 @@ Dikonfirmasi pemilik pada 24 Sep 2026 (opsi A: ikuti desain).
 4. Kategori fasilitas "Ibadah" ditambahkan (dipakai kartu Rumah Ibadah di desain).
 5. Data dummy yang dikarang (tidak ada di desain) dicatat di `docs/DATA-DUMMY.md`. Field terkait di admin menampilkan penanda "Data dummy" selama nilainya belum diganti.
 
+**Keputusan setelah Milestone 3** (dikonfirmasi pemilik 25 Sep 2026)
+
+1. Halaman tanpa desain (Tentang Kami, Kontak, Kebijakan Privasi, Terima Kasih, 404) diterima sementara; pemilik me-review setelah pull.
+2. Breadcrumb Detail Rumah **tampil di mobile**, versi ringkas satu baris (font kecil, scroll horizontal kalau panjang). Ini jalan balik ke halaman kawasan (brief 8.7).
+3. Meta title yang diisi di admin menggantikan pola judul otomatis.
+4. Waktu baca artikel dihitung otomatis dari jumlah kata.
+5. Foto pendukung di isi artikel seeder tidak perlu ditambahkan.
+6. Tombol WhatsApp di halaman Kontak hanya muncul kalau nomor WA di Pengaturan Global valid.
+
+**Keputusan untuk Milestone 4** (lead & tracking, dikonfirmasi pemilik 25 Sep 2026)
+
+- **Meta Conversions API:** event `Lead` dikirim dari server dengan `event_id` yang sama dengan Pixel (deduplikasi). Pixel ID dan access token diisi di Pengaturan Global → tab Tracking (hanya Super Admin). Access token disimpan terenkripsi dan tidak ditampilkan ulang setelah disimpan. Token kosong = CAPI dilewati tanpa error.
+- Nomor WA dan email dinormalisasi lalu di-hash SHA-256 sesuai spesifikasi Meta sebelum dikirim.
+- **Notifikasi lead:** email ke satu atau lebih alamat dari Pengaturan Global, lewat queue. Webhook opsional (URL dari settings; kosong = tidak dikirim).
+- **Turnstile:** key dari settings. Key kosong (lokal/dev) = validasi Turnstile dilewati; honeypot dan rate limit tetap jalan.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd
