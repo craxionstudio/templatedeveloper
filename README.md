@@ -90,6 +90,20 @@ Buka:
 Saat `npm run dev` jalan, **SSR sudah aktif otomatis**: plugin `@inertiajs/vite` menyediakan
 endpoint SSR di dev server Vite, jadi tidak perlu proses SSR terpisah selama development.
 
+> **Queue — penting.** Email notifikasi lead, Meta Conversions API, webhook, dan pembuatan varian gambar
+> (AVIF/WebP) berjalan lewat queue. `.env.example` memakai `QUEUE_CONNECTION=database`, jadi:
+>
+> - **Tes lokal tanpa worker:** set `QUEUE_CONNECTION=sync` di `.env` — semua job langsung dijalankan
+>   saat request (submit form jadi sedikit lebih lambat, tapi tidak ada yang tertunda).
+> - **Pakai `database` atau `redis`:** jalankan worker di terminal terpisah (sudah termasuk di `composer dev`):
+>
+>   ```bash
+>   php artisan queue:work
+>   ```
+>
+>   Tanpa worker, job hanya menumpuk di tabel `jobs`: email tidak terkirim, event CAPI tidak dikirim,
+>   dan foto yang diunggah tetap memakai file asli (tanpa AVIF/WebP).
+
 ## Menjalankan Mode Production-like (dengan SSR)
 
 Simulasi paling mendekati production:

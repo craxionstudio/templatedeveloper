@@ -118,13 +118,13 @@ Dikonfirmasi pemilik 25 Sep 2026:
 
 Catatan teknis lain: Detail Rumah memakai `Residence` (cluster) berisi tiap tipe sebagai entitas ganda `Product` + `SingleFamilyResidence` supaya `Offer` valid bersama `floorSize`/`numberOfRooms`. Konten yang dihapus (soft delete) → 410 Gone, kecuali ada redirect di Redirect Manager.
 
-**Keputusan teknis Milestone 6** (menunggu konfirmasi pemilik)
+**Keputusan Milestone 6** (dikonfirmasi pemilik 25 Sep 2026)
 
-- **Warna terracotta digelapkan sedikit:** `#A94F2A` (desain) → `#9A4524`. Teks terracotta kecil di latar sand (4,32:1) dan teks merah muda di CTA terracotta (4,44:1) tidak lolos kontras WCAG AA 4,5:1; dengan `#9A4524` semua kombinasi ≥ 5:1 dan Lighthouse Accessibility jadi 100. Perbedaannya ±6% (hampir tidak terlihat). Warna hover tetap `#7E3A1E`.
-- **Cache halaman publik di aplikasi** (HTML awal untuk tamu), dibuang otomatis saat konten/media/settings berubah, TTL 1 jam sebagai pengaman konten terjadwal. Default aktif hanya di production.
-- **Varian gambar** AVIF + WebP di 480/960/1600 px (tidak diperbesar), dibuat lewat queue — queue worker wajib jalan di server.
-- Judul `h2` tersembunyi (sr-only) "Daftar fasilitas" dan "Daftar kawasan" ditambahkan supaya urutan heading benar (h1 → h2 → h3 kartu).
-- Dampak GTM/Pixel tidak bisa diukur di lingkungan build (akses keluar ke Google/Facebook diblok). Script dimuat setelah `load` + idle sehingga tidak memengaruhi FCP/LCP; ukur ulang dengan PageSpeed Insights setelah deploy dan ID tracking diisi.
+1. **Token warna terakota:** `#A94F2A` (desain) → **`#9A4524`**, hover tetap `#7E3A1E` (lebih gelap dari warna baru). Dengan warna desain, teks terakota kecil di latar sand (4,32:1) dan teks merah muda di CTA terakota (4,44:1) tidak lolos kontras WCAG AA 4,5:1; dengan `#9A4524` semua kombinasi ≥ 5:1 dan Lighthouse Accessibility 100. Brief bagian 6 sudah diperbarui; file HTML di `docs/design/` tetap memakai warna lama sebagai referensi tata letak.
+2. **Cache halaman publik** di aplikasi (HTML awal untuk tamu), hanya di production, TTL maksimal 1 jam; dibuang otomatis saat konten/media/settings berubah.
+3. **Queue worker wajib** di server (email notifikasi, CAPI, webhook, varian gambar). Untuk tes lokal tanpa worker: `QUEUE_CONNECTION=sync` (catatan di README bagian "Menjalankan di Lokal").
+
+Catatan teknis lain: varian gambar AVIF + WebP di 480/960/1600 px (tidak diperbesar); judul `h2` tersembunyi (sr-only) "Daftar fasilitas" dan "Daftar kawasan" untuk urutan heading; dampak GTM/Pixel belum bisa diukur di lingkungan build (akses keluar ke Google/Facebook diblok) — ukur ulang dengan PageSpeed Insights setelah deploy dan ID tracking diisi.
 
 ---
 

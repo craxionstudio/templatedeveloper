@@ -106,12 +106,12 @@ Semua tabel konten punya `is_published`, `published_at`, `sort_order` bila relev
 
 ## 6. Desain & Token
 
-- Warna: ground `#F4F1EA`, sand `#EAE4D7`, ink `#1E2B24`, hijau gelap `#23392E` / `#2C4538`, teks sekunder `#4A5650`, caption `#55605A`, garis `#DDD6C8`, aksen terakota `#A94F2A` (hover `#7E3A1E`), peach di latar gelap `#E9A07F`.
+- Warna: ground `#F4F1EA`, sand `#EAE4D7`, ink `#1E2B24`, hijau gelap `#23392E` / `#2C4538`, teks sekunder `#4A5650`, caption `#55605A`, garis `#DDD6C8`, aksen terakota `#9A4524` (hover `#7E3A1E`, lebih gelap; lihat catatan kontras di bawah), peach di latar gelap `#E9A07F`.
 - Font: **Fraunces** (display/judul, 500–600) + **Plus Jakarta Sans** (body, 400–700). **Self-host** file woff2 (subset latin), `font-display: swap`, preload 2 file terpenting — jangan load dari Google Fonts saat runtime.
 - Radius: kartu 20–24px, section besar 32px, tombol pill 999px. Touch target minimal 44px.
 - Breakpoint: mobile < 768, tablet 768–1279, desktop ≥ 1280 (container 1280 + padding 80px; mobile padding 20px).
 - Ikon: SVG stroke inline (lucide-react boleh), tanpa emoji.
-- Kontras teks minimal 4.5:1. Semua tombol pakai `<button>`/`<a>` asli.
+- Kontras teks minimal 4.5:1. Terakota di desain HTML masih `#A94F2A`; di kode dipakai `#9A4524` supaya teks terakota kecil di latar sand dan teks terang di CTA terakota lolos 4.5:1 (keputusan pemilik setelah Milestone 6, lihat `docs/CHANGES.md`). Semua tombol pakai `<button>`/`<a>` asli.
 - Carousel (promo, listing mobile, fasilitas mobile): CSS scroll-snap, tanpa library berat; konten tetap ada di HTML SSR.
 
 ## 7. Filament Admin
