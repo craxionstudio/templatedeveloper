@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublishing;
+use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use Database\Factories\KawasanFactory;
@@ -22,7 +23,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Kawasan extends Model implements HasMedia
 {
     /** @use HasFactory<KawasanFactory> */
-    use HasFactory, HasPublishing, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes;
+    use HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     protected $fillable = [
         'name', 'slug', 'summary', 'about_title', 'description', 'area_ha', 'hero_alt', 'facilities',
@@ -74,6 +77,14 @@ class Kawasan extends Model implements HasMedia
     public function publicPath(?string $slug = null): string
     {
         return '/properti/kawasan/'.($slug ?? $this->slug);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['hero'];
     }
 
     public function registerMediaCollections(): void

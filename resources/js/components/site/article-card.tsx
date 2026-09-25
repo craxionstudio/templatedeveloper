@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { cn } from '@/lib/utils';
 import type { ArticleCardData } from '@/types/content';
@@ -40,6 +40,7 @@ export default function ArticleCard({
                 )}
             >
                 <Picture
+                    sizes={IMAGE_SIZES.thumb}
                     image={article.image}
                     label={labels.gallery_photo}
                     className="aspect-square rounded-[14px] text-[11px] md:aspect-[4/3]"
@@ -71,6 +72,7 @@ export default function ArticleCard({
             className={cn('group relative flex flex-col gap-3', className)}
         >
             <Picture
+                sizes={IMAGE_SIZES.card3}
                 image={article.image}
                 className="aspect-[16/10] rounded-[20px]"
             />

@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\NotFoundController;
+use App\Http\Middleware\CachePublicPages;
 use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\NoIndexOutsideProduction;
 use App\Http\Middleware\RedirectManager;
+use App\Http\Middleware\StrictTransportSecurity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Sebelum routing: URL kanonik, trailing slash/kapital, Redirect Manager; noindex di non-production.
-        $middleware->append([NoIndexOutsideProduction::class, RedirectManager::class]);
+        $middleware->append([StrictTransportSecurity::class, NoIndexOutsideProduction::class, RedirectManager::class]);
 
         // Cookie Meta Pixel (_fbp, _fbc) dibuat di browser, jadi tidak dienkripsi Laravel.
         $middleware->encryptCookies(except: ['_fbp', '_fbc']);
@@ -29,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             CaptureAttribution::class,
             HandleInertiaRequests::class,
+            // Cache HTML halaman publik untuk tamu (setelah session & atribusi; header Link preload ikut tersimpan).
+            CachePublicPages::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
     })

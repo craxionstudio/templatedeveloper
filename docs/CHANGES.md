@@ -118,6 +118,14 @@ Dikonfirmasi pemilik 25 Sep 2026:
 
 Catatan teknis lain: Detail Rumah memakai `Residence` (cluster) berisi tiap tipe sebagai entitas ganda `Product` + `SingleFamilyResidence` supaya `Offer` valid bersama `floorSize`/`numberOfRooms`. Konten yang dihapus (soft delete) → 410 Gone, kecuali ada redirect di Redirect Manager.
 
+**Keputusan teknis Milestone 6** (menunggu konfirmasi pemilik)
+
+- **Warna terracotta digelapkan sedikit:** `#A94F2A` (desain) → `#9A4524`. Teks terracotta kecil di latar sand (4,32:1) dan teks merah muda di CTA terracotta (4,44:1) tidak lolos kontras WCAG AA 4,5:1; dengan `#9A4524` semua kombinasi ≥ 5:1 dan Lighthouse Accessibility jadi 100. Perbedaannya ±6% (hampir tidak terlihat). Warna hover tetap `#7E3A1E`.
+- **Cache halaman publik di aplikasi** (HTML awal untuk tamu), dibuang otomatis saat konten/media/settings berubah, TTL 1 jam sebagai pengaman konten terjadwal. Default aktif hanya di production.
+- **Varian gambar** AVIF + WebP di 480/960/1600 px (tidak diperbesar), dibuat lewat queue — queue worker wajib jalan di server.
+- Judul `h2` tersembunyi (sr-only) "Daftar fasilitas" dan "Daftar kawasan" ditambahkan supaya urutan heading benar (h1 → h2 → h3 kartu).
+- Dampak GTM/Pixel tidak bisa diukur di lingkungan build (akses keluar ke Google/Facebook diblok). Script dimuat setelah `load` + idle sehingga tidak memengaruhi FCP/LCP; ukur ulang dengan PageSpeed Insights setelah deploy dan ID tracking diisi.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

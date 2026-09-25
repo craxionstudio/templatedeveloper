@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublishing;
+use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use App\Support\RichText;
@@ -18,7 +19,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Article extends Model implements HasMedia
 {
     /** @use HasFactory<ArticleFactory> */
-    use HasFactory, HasPublishing, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes;
+    use HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     protected $fillable = [
         'article_category_id', 'author_id', 'title', 'slug', 'excerpt', 'body', 'cover_alt',
@@ -61,6 +64,14 @@ class Article extends Model implements HasMedia
     public function publicPath(?string $slug = null): string
     {
         return '/artikel/'.($slug ?? $this->slug);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['cover'];
     }
 
     public function registerMediaCollections(): void

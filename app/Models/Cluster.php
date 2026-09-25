@@ -6,6 +6,7 @@ use App\Enums\ClusterBadge;
 use App\Enums\ClusterStatus;
 use App\Enums\PropertyType;
 use App\Models\Concerns\HasPublishing;
+use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use Database\Factories\ClusterFactory;
@@ -28,7 +29,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Cluster extends Model implements HasMedia
 {
     /** @use HasFactory<ClusterFactory> */
-    use HasFactory, HasPublishing, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes;
+    use HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     /**
      * Slug yang bentrok dengan route /properti/{...} lain.
@@ -153,6 +156,14 @@ class Cluster extends Model implements HasMedia
     public function publicPath(?string $slug = null): string
     {
         return '/properti/'.($slug ?? $this->slug);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['marketing_photo'];
     }
 
     public function registerMediaCollections(): void

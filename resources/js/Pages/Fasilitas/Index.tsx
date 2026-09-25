@@ -1,10 +1,10 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import CtaSection from '@/components/site/cta-section';
 import FacilityCard from '@/components/site/facility-card';
 import { ContentIcon } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { Eyebrow } from '@/components/site/ui';
 import { cn } from '@/lib/utils';
@@ -50,6 +50,7 @@ export default function FasilitasIndex({
     facilities,
     cta,
 }: Props) {
+    const { labels } = usePage().props.site;
     const query = (next: {
         kategori?: string | null;
         kawasan?: string | null;
@@ -114,12 +115,14 @@ export default function FasilitasIndex({
                 {main ? (
                     <div className="grid grid-cols-2 gap-3 xl:grid-cols-[2fr_1fr] xl:grid-rows-2 xl:gap-4">
                         <Picture
+                            sizes={IMAGE_SIZES.half}
                             image={main}
                             priority
                             className="col-span-2 h-[240px] rounded-card xl:col-span-1 xl:row-span-2 xl:h-[440px]"
                         />
                         {side.map((image, index) => (
                             <Picture
+                                sizes={IMAGE_SIZES.quarter}
                                 key={index}
                                 image={image}
                                 className="h-[130px] rounded-card-sm xl:h-auto xl:rounded-card"
@@ -196,6 +199,8 @@ export default function FasilitasIndex({
                         </label>
                     ) : null}
                 </div>
+                {/* Judul section untuk urutan heading (h1 → h2 → h3 kartu). */}
+                <h2 className="sr-only">{labels.facility_list}</h2>
                 <div className="grid gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
                     {facilities.map((facility) => (
                         <FacilityCard key={facility.id} facility={facility} />

@@ -1,7 +1,7 @@
 import ArticleCard from '@/components/site/article-card';
 import ClusterCard from '@/components/site/cluster-card';
 import { ContentIcon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import {
     ArrowLink,
     Badge,
@@ -105,6 +105,7 @@ export function RegionSection({ region }: { region: RegionData }) {
                 </ul>
             </div>
             <Picture
+                sizes={IMAGE_SIZES.half}
                 image={region.map}
                 className="aspect-[4/3] rounded-card xl:order-1 xl:aspect-auto xl:h-[520px] xl:rounded-section"
             >
@@ -192,6 +193,7 @@ export function FacilitiesSection({
                             className="flex w-[72%] shrink-0 snap-start flex-col gap-4 md:w-[40%] xl:w-auto"
                         >
                             <Picture
+                                sizes={IMAGE_SIZES.card3}
                                 image={facility.image}
                                 tone="dark"
                                 className="aspect-[4/3] rounded-card-sm xl:aspect-auto xl:h-[260px]"
@@ -290,6 +292,7 @@ export function DevelopmentsSection({
                         </div>
                         <div className="hidden xl:block">
                             <Picture
+                                sizes={IMAGE_SIZES.card3}
                                 image={item.image}
                                 className="aspect-[3/2] rounded-card-sm text-[11px]"
                             />

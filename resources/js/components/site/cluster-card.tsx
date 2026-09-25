@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { Icon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { Badge } from '@/components/site/ui';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,7 @@ export default function ClusterCard({
             )}
         >
             <Picture
+                sizes={IMAGE_SIZES.card3}
                 image={cluster.image}
                 className="aspect-[16/10] xl:aspect-auto xl:h-60"
             >

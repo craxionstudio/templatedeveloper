@@ -1,7 +1,18 @@
 /**
  * Bentuk data dari presenter PHP (app/Presenters).
  */
-export type ImageData = { url: string | null; alt: string };
+export type ImageSource = { type: string; srcset: string };
+
+/**
+ * Gambar dari App\Presenters\Image. `sources` = varian AVIF/WebP responsif yang sudah dibuat.
+ */
+export type ImageData = {
+    url: string | null;
+    alt: string;
+    width?: number | null;
+    height?: number | null;
+    sources?: ImageSource[];
+};
 
 export type LinkData = { label: string; url: string };
 

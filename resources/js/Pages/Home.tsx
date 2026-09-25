@@ -19,7 +19,7 @@ import type {
 } from '@/components/home/sections';
 import CtaSection from '@/components/site/cta-section';
 import PageHead from '@/components/site/page-head';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import { ButtonLink } from '@/components/site/ui';
 import type { CtaData, ImageData } from '@/types/content';
 import type { PageMeta } from '@/types/site';
@@ -68,6 +68,7 @@ export default function Home({
                 <section className="container-site pt-4 xl:pt-6">
                     <div className="grid">
                         <Picture
+                            sizes={IMAGE_SIZES.container}
                             image={hero.image}
                             tone="dark"
                             priority

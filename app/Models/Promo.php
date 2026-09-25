@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PromoPlacement;
+use App\Models\Concerns\HasResponsiveImages;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,7 +13,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Promo extends Model implements HasMedia
 {
-    use InteractsWithMedia, SoftDeletes;
+    use HasResponsiveImages, InteractsWithMedia, SoftDeletes {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     protected $fillable = [
         'title', 'label', 'description', 'items', 'starts_at', 'ends_at', 'period_label', 'placement',
@@ -49,6 +52,14 @@ class Promo extends Model implements HasMedia
     public function scopePlacement(Builder $query, PromoPlacement $placement): Builder
     {
         return $query->where('placement', $placement->value);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['image_desktop', 'image_mobile'];
     }
 
     public function registerMediaCollections(): void

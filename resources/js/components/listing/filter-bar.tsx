@@ -173,6 +173,7 @@ export function SortSelect({
                 {filters.text.sort}
             </label>
             <select
+                aria-label={filters.text.sort}
                 id="sort"
                 name="urut"
                 defaultValue={filters.sort}

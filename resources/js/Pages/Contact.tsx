@@ -7,7 +7,7 @@ import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
 import type { IconName } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { ButtonLink, Eyebrow } from '@/components/site/ui';
 import type { Crumb, CtaData, ImageData } from '@/types/content';
@@ -63,10 +63,10 @@ function InfoRow({
                 <Icon name={icon} className="size-5" />
             </span>
             <div className="flex flex-col gap-0.5">
-                <dt className="text-[13px] text-caption">{label}</dt>
-                <dd className="text-[15px] leading-[1.6] font-semibold xl:text-base">
+                <p className="text-[13px] text-caption">{label}</p>
+                <p className="text-[15px] leading-[1.6] font-semibold xl:text-base">
                     {children}
-                </dd>
+                </p>
             </div>
         </div>
     );
@@ -92,6 +92,7 @@ function MapFacade({ map }: { map: NonNullable<Props['map']> }) {
 
     return (
         <Picture
+            sizes={IMAGE_SIZES.half}
             image={map.image}
             className="h-[260px] rounded-card-sm xl:h-[360px] xl:rounded-card"
         >
@@ -146,7 +147,7 @@ export default function Contact({
                                 <h2 className="font-display text-2xl font-semibold xl:text-[28px]">
                                     {info.title}
                                 </h2>
-                                <dl className="flex flex-col gap-5">
+                                <div className="flex flex-col gap-5">
                                     {info.address ? (
                                         <InfoRow
                                             icon="pin"
@@ -197,7 +198,7 @@ export default function Contact({
                                             )}
                                         </InfoRow>
                                     ) : null}
-                                </dl>
+                                </div>
                                 {info.whatsapp.url ? (
                                     <ButtonLink
                                         href={info.whatsapp.url}

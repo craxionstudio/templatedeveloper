@@ -2,7 +2,7 @@ import Breadcrumbs from '@/components/site/breadcrumbs';
 import CtaSection from '@/components/site/cta-section';
 import { ContentIcon } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import RichText from '@/components/site/rich-text';
 import { Eyebrow } from '@/components/site/ui';
 import type { Crumb, CtaData, ImageData, Stat } from '@/types/content';
@@ -82,6 +82,7 @@ export default function About({
                     ) : null}
                 </div>
                 <Picture
+                    sizes={IMAGE_SIZES.container}
                     image={hero.image}
                     priority
                     labelCorner
@@ -108,6 +109,7 @@ export default function About({
                         <RichText html={history.body} />
                     </div>
                     <Picture
+                        sizes={IMAGE_SIZES.half}
                         image={history.image}
                         className="h-[240px] rounded-card-sm xl:order-first xl:h-[440px] xl:rounded-card"
                     />
@@ -216,6 +218,7 @@ export default function About({
                                 className="flex flex-col gap-3"
                             >
                                 <Picture
+                                    sizes={IMAGE_SIZES.quarter}
                                     image={member.photo}
                                     label="Foto"
                                     className="aspect-[4/5] rounded-card-sm text-[11px]"

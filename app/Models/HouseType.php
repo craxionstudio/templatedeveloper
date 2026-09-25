@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasResponsiveImages;
 use Database\Factories\HouseTypeFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class HouseType extends Model implements HasMedia
 {
     /** @use HasFactory<HouseTypeFactory> */
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, HasResponsiveImages, InteractsWithMedia {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     protected $fillable = [
         'cluster_id', 'name', 'slug', 'lot_size', 'land_area', 'building_area', 'bedrooms', 'extra_bedrooms',
@@ -76,6 +79,14 @@ class HouseType extends Model implements HasMedia
     public function bedroomsSortValue(): float
     {
         return $this->bedrooms + ($this->extra_bedrooms > 0 ? 0.5 : 0);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['floorplan'];
     }
 
     public function registerMediaCollections(): void

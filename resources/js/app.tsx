@@ -8,7 +8,7 @@ void createInertiaApp({
     layout: () => SiteLayout,
     strictMode: true,
     progress: {
-        color: '#A94F2A',
+        color: '#9A4524',
     },
 });
 

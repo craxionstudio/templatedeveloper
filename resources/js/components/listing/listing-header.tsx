@@ -1,6 +1,6 @@
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import { Icon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { cn } from '@/lib/utils';
 import type { Crumb, ImageData, Stat } from '@/types/content';
@@ -56,6 +56,7 @@ export function ListingHeader({
             <Breadcrumbs items={breadcrumbs} />
             <div className="grid">
                 <Picture
+                    sizes={IMAGE_SIZES.container}
                     image={header.image}
                     tone="dark"
                     priority

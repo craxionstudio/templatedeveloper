@@ -38,10 +38,7 @@ class ClusterCard
             'bedrooms' => self::bedrooms($types),
             'price' => Rupiah::range($types->min('price_from'), $types->max('price_from')),
             'installment' => Rupiah::short($types->min('installment_from')),
-            'image' => [
-                'url' => $cover?->getFirstMediaUrl('image') ?: null,
-                'alt' => $cover?->alt ?: 'Foto cluster '.$cluster->name,
-            ],
+            'image' => Image::media($cover, 'image', $cover?->alt, 'Foto cluster '.$cluster->name),
         ];
     }
 

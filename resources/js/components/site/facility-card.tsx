@@ -1,5 +1,5 @@
 import { ContentIcon, Icon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import type { FacilityCardData } from '@/types/content';
 
 /**
@@ -13,6 +13,7 @@ export default function FacilityCard({
     return (
         <article className="grid grid-cols-[112px_1fr] gap-4 overflow-hidden rounded-card bg-white p-3 md:flex md:flex-col md:gap-0 md:p-0">
             <Picture
+                sizes={IMAGE_SIZES.card3}
                 image={facility.image}
                 className="aspect-square rounded-[14px] text-[11px] md:aspect-auto md:h-[260px] md:rounded-none md:text-[13px]"
             >

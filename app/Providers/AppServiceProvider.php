@@ -2,16 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\Article;
-use App\Models\ArticleCategory;
-use App\Models\Cluster;
-use App\Models\GalleryItem;
-use App\Models\HouseType;
-use App\Models\Kawasan;
-use App\Models\SeoMeta;
+use App\Jobs\GenerateImageVariants;
 use App\Models\User;
 use App\Support\AdminAccess;
 use App\Support\DummyData;
+use App\Support\PageCache;
 use App\Support\Sitemaps;
 use Carbon\CarbonImmutable;
 use Closure;
@@ -27,6 +22,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Spatie\LaravelSettings\Events\SettingsSaved;
+use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -51,20 +48,36 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureRateLimiting();
 
-        $this->flushSitemapOnChange();
+        $this->flushCachesOnChange();
     }
 
     /**
-     * Sitemap di-cache; dibuang setiap konten publik atau settings halaman berubah (brief 8.4 & 7A).
+     * Sitemap dan cache halaman publik dibuang setiap konten, media, atau settings berubah
+     * (brief 8.4, 8.6 & 7A).
      */
-    protected function flushSitemapOnChange(): void
+    protected function flushCachesOnChange(): void
     {
-        foreach ([Article::class, ArticleCategory::class, Cluster::class, GalleryItem::class, HouseType::class, Kawasan::class, SeoMeta::class] as $model) {
-            $model::saved(fn () => Sitemaps::flush());
-            $model::deleted(fn () => Sitemaps::flush());
+        $flush = function (): void {
+            Sitemaps::flush();
+            PageCache::flush();
+        };
+
+        foreach ([...AdminAccess::CONTENT_MODELS, Media::class] as $model) {
+            $model::saved($flush);
+            $model::deleted($flush);
         }
 
-        Event::listen(SettingsSaved::class, fn () => Sitemaps::flush());
+        // Varian gambar baru selesai → srcset berubah.
+        Event::listen(ConversionHasBeenCompletedEvent::class, $flush);
+
+        Event::listen(SettingsSaved::class, function (SettingsSaved $event) use ($flush): void {
+            $flush();
+
+            // Varian WebP/AVIF untuk gambar yang diunggah lewat settings halaman.
+            if ($paths = GenerateImageVariants::pathsIn($event->settings->toArray())) {
+                GenerateImageVariants::dispatch($paths);
+            }
+        });
     }
 
     /**

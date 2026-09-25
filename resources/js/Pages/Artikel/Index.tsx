@@ -7,7 +7,7 @@ import Breadcrumbs from '@/components/site/breadcrumbs';
 import { Icon } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
 import Pagination from '@/components/site/pagination';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { Badge, Eyebrow } from '@/components/site/ui';
 import { cn } from '@/lib/utils';
@@ -126,6 +126,7 @@ export default function ArtikelIndex({
                 {highlight ? (
                     <article className="group relative grid overflow-hidden rounded-card bg-white xl:grid-cols-[1.35fr_1fr]">
                         <Picture
+                            sizes={IMAGE_SIZES.half}
                             image={highlight.image}
                             priority
                             className="h-[210px] xl:h-[460px]"

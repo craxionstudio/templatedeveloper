@@ -109,6 +109,8 @@ return [
     'labels' => [
         'skip_to_content' => 'Langsung ke konten utama',
         'address' => 'Alamat',
+        'facility_list' => 'Daftar fasilitas',
+        'kawasan_list' => 'Daftar kawasan',
         'preview_notice' => 'Pratinjau: hanya terlihat oleh admin dan tidak diindeks mesin pencari.',
         'form_name' => 'Nama',
         'form_name_placeholder' => 'Nama lengkap',

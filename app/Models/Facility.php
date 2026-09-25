@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublishing;
+use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Facility extends Model implements HasMedia
 {
-    use HasPublishing, HasSeoMeta, InteractsWithMedia, SoftDeletes;
+    use HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, SoftDeletes {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     protected $fillable = [
         'facility_category_id', 'kawasan_id', 'name', 'slug', 'icon', 'description', 'photo_alt',
@@ -45,6 +48,14 @@ class Facility extends Model implements HasMedia
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy($this->qualifyColumn('sort_order'))->orderBy($this->qualifyColumn('name'));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['photo'];
     }
 
     public function registerMediaCollections(): void

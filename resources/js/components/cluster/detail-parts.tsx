@@ -4,7 +4,7 @@ import type { LeadPosition } from '@/components/lead/lead-form';
 import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import { ContentIcon, Icon } from '@/components/site/icons';
 import type { IconName } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { ButtonLink } from '@/components/site/ui';
 import { cn } from '@/lib/utils';
@@ -283,6 +283,7 @@ export function TypeTabs({
                 className="grid gap-5 rounded-card-sm bg-white p-4 md:grid-cols-2 md:p-5"
             >
                 <Picture
+                    sizes={IMAGE_SIZES.half}
                     image={selected.floorplan}
                     className="aspect-square rounded-2xl md:aspect-auto md:min-h-[300px]"
                 />
@@ -384,6 +385,7 @@ export function LeadCard({
             <div className="flex flex-col gap-4 rounded-card-sm bg-white p-5 shadow-[0_18px_40px_-24px_rgba(30,43,36,0.35)] md:p-6">
                 <div className="flex items-center gap-3">
                     <Picture
+                        sizes={IMAGE_SIZES.avatar}
                         image={marketing.photo}
                         label={labels.gallery_photo}
                         className="size-14 shrink-0 rounded-full p-0! text-[9px]"

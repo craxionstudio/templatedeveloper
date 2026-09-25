@@ -17,6 +17,19 @@ class SiteLayout
      */
     public static function data(): array
     {
+        // Sama untuk semua pengunjung; di-cache per versi konten (dibuang saat konten/settings berubah).
+        return PageCache::store()->remember(
+            'site-layout:'.PageCache::store()->get(PageCache::VERSION_KEY, 0),
+            3600,
+            fn (): array => self::build(),
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function build(): array
+    {
         $global = app(GlobalSettings::class);
         $identity = $global->section('identity');
         $contact = $global->section('contact');

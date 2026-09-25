@@ -1,5 +1,5 @@
 import { ContentIcon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import { ArrowLink, Eyebrow } from '@/components/site/ui';
 import type { ImageData, Stat } from '@/types/content';
 
@@ -19,10 +19,12 @@ export default function AboutSection({ about }: { about: AboutData }) {
     const photos = (
         <div className="grid grid-cols-2 gap-3 xl:gap-4">
             <Picture
+                sizes={IMAGE_SIZES.quarter}
                 image={about.photo}
                 className="row-span-2 min-h-[240px] rounded-card-sm text-[11px] xl:min-h-[520px] xl:text-[13px]"
             />
             <Picture
+                sizes={IMAGE_SIZES.quarter}
                 image={about.secondaryPhoto}
                 className="min-h-[114px] rounded-card-sm text-[11px] xl:min-h-[252px] xl:text-[13px]"
             />

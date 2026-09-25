@@ -17,7 +17,7 @@
     --color-body: #4a5650; /* teks sekunder */
     --color-caption: #55605a;
     --color-line: #ddd6c8;
-    --color-terracotta: #a94f2a;
+    --color-terracotta: #9a4524; /* #a94f2a di desain, digelapkan ±6% supaya teks kecil lolos WCAG AA (≥ 4,5:1) */
     --color-terracotta-hover: #7e3a1e;
     --color-peach: #e9a07f; /* aksen di latar gelap */
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasResponsiveImages;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -12,7 +13,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  */
 class Area extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasResponsiveImages, InteractsWithMedia {
+        HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+    }
 
     protected $fillable = [
         'name', 'location', 'description', 'area_ha', 'hero_alt', 'map_embed_url',
@@ -32,6 +35,14 @@ class Area extends Model implements HasMedia
     public static function current(): self
     {
         return static::query()->firstOrCreate([], ['name' => config('app.name')]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function responsiveImageCollections(): array
+    {
+        return ['hero', 'map'];
     }
 
     public function registerMediaCollections(): void

@@ -66,6 +66,7 @@ export default function PropertiKawasan({
                     </strong>{' '}
                     {rest.slice(1).join(' ')}
                 </p>
+                <h2 className="sr-only">{labels.kawasan_list}</h2>
                 <div className="grid gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
                     {kawasans.map((kawasan) => (
                         <KawasanCard

@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { Icon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
 import { Badge } from '@/components/site/ui';
 import type { KawasanCardData } from '@/types/content';
@@ -25,6 +25,7 @@ export function KawasanCard({
             className="group flex flex-col overflow-hidden rounded-card bg-white text-ink no-underline transition-shadow hover:shadow-[0_12px_32px_-16px_rgba(30,43,36,0.35)]"
         >
             <Picture
+                sizes={IMAGE_SIZES.card3}
                 image={kawasan.image}
                 className="aspect-[16/10] xl:aspect-auto xl:h-[300px]"
             >
@@ -85,6 +86,7 @@ export function KawasanCardCompact({ kawasan }: { kawasan: KawasanCardData }) {
             className="group grid grid-cols-[120px_1fr] overflow-hidden rounded-card bg-white text-ink no-underline md:grid-cols-[220px_1fr]"
         >
             <Picture
+                sizes={IMAGE_SIZES.thumb}
                 image={kawasan.image}
                 className="min-h-[140px] text-[11px]"
             />

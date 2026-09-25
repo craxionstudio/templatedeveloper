@@ -5,7 +5,7 @@ import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
 import PreviewBanner from '@/components/site/preview-banner';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import RichText from '@/components/site/rich-text';
 import SmartLink from '@/components/site/smart-link';
 import { ArrowLink } from '@/components/site/ui';
@@ -93,15 +93,7 @@ export default function ArtikelShow({
     return (
         <>
             <PageHead meta={meta} />
-            {preview ? (
-                <p
-                    role="status"
-                    className="sticky top-0 z-40 bg-ink px-5 py-2.5 text-center text-sm font-semibold text-ground"
-                >
-                    Pratinjau — hanya terlihat oleh admin, tidak diindeks mesin
-                    pencari.
-                </p>
-            ) : null}
+            <PreviewBanner show={preview} />
             <article className="container-site flex flex-col gap-5 pt-4 pb-12 xl:items-center xl:gap-12 xl:pt-6 xl:pb-24">
                 <div className="w-full">
                     <Breadcrumbs items={breadcrumbs} />
@@ -122,6 +114,7 @@ export default function ArtikelShow({
                     <div className="flex items-center gap-2.5 text-[13px] text-caption xl:gap-5 xl:text-[15px]">
                         {article.author ? (
                             <Picture
+                                sizes={IMAGE_SIZES.avatar}
                                 image={article.author.photo}
                                 label="Foto"
                                 className="size-9 shrink-0 rounded-full p-0! text-[8px] xl:size-10 xl:text-[9px]"
@@ -162,6 +155,7 @@ export default function ArtikelShow({
                 </header>
 
                 <Picture
+                    sizes={IMAGE_SIZES.container}
                     image={article.image}
                     priority
                     label={article.image.url ? undefined : article.image.alt}

@@ -17,7 +17,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | 3   | Halaman publik sesuai desain                                                                                    | ✅ Selesai |
 | 4   | Lead & tracking                                                                                                 | ✅ Selesai |
 | 5   | Technical SEO                                                                                                   | ✅ Selesai |
-| 6   | Performa                                                                                                        | Belum      |
+| 6   | Performa                                                                                                        | ✅ Selesai |
 | 7   | QA                                                                                                              | Belum      |
 
 ## Requirement
@@ -195,6 +195,32 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
 - Listing, filter, kategori, pagination, dan toggle Cluster/Kawasan adalah link biasa (SSR, bisa di-crawl).
   "Muat lagi" di mobile memakai `Inertia::scroll()`; listing yang difilter diberi `noindex`.
 
+## Performa
+
+Hasil audit Lighthouse **mobile** (Lighthouse 12, simulasi 4G lambat, `APP_ENV=production`, gzip/brotli
+seperti nginx, foto masih placeholder) untuk 10 halaman utama: **Performance 94–97, Accessibility 100,
+Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
+
+- **Gambar:** setiap koleksi gambar punya konversi **AVIF + WebP** lebar 480/960/1600 px (tidak pernah diperbesar,
+  lewat queue). Gambar dari settings halaman dibuatkan varian yang sama di `storage/app/public/_variants`
+  setelah settings disimpan. Frontend (`components/site/picture.tsx`) merender `<picture>` dengan `srcset`/`sizes`,
+  `width`/`height` asli, `loading="lazy"`; gambar LCP (hero, cover, foto galeri pertama) memakai
+  `fetchpriority="high"`, `loading="eager"`, dan di-preload. Selama varian belum jadi, gambar asli dipakai.
+  Untuk membuat varian yang terlewat (mis. setelah impor): `php artisan images:variants`.
+- **Peta:** facade (gambar/placeholder + tombol "Buka peta"), iframe Google Maps baru dimuat saat diklik.
+  Video galeri berupa link (tidak ada video autoplay).
+- **JavaScript:** satu chunk per halaman (import dinamis dari resolver Inertia); chunk bersama = React + Inertia.
+  GTM/GA4/Pixel dimuat setelah `load` + browser idle.
+- **Cache halaman publik** (`App\Http\Middleware\CachePublicPages`): HTML awal hasil SSR untuk tamu di-cache
+  (default aktif di production, `PAGE_CACHE_ENABLED`, TTL `PAGE_CACHE_TTL` = 3600 dtk). Dibuang otomatis setiap
+  konten, media, atau settings berubah (versi konten naik), dan setiap build aset baru. Tidak di-cache: request
+  Inertia (JSON), admin, pratinjau, `/terima-kasih`, user login, dan request yang membawa error/flash form.
+  Cookie per pengunjung (session, XSRF, atribusi UTM) tetap dikirim. Header `X-Page-Cache: HIT|MISS` untuk cek.
+  Data layout global (header/footer) juga di-cache per versi konten. Kalau mengubah data langsung di database
+  (bukan lewat admin): `php artisan cache:clear`.
+- **Header:** HSTS (`max-age=31536000`) di production lewat HTTPS. Aset `/build/*` ber-hash → cache 1 tahun
+  `immutable` (sudah ada aturan di `public/.htaccess` untuk Apache; nginx lihat bagian Deploy).
+
 ## Technical SEO
 
 - **Head per halaman** (`App\Support\PageMeta` → `components/site/page-head.tsx`, ikut di HTML SSR): title
@@ -316,6 +342,31 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
     Setelah deploy ulang: `php artisan inertia:stop-ssr` (Supervisor menyalakannya lagi dengan
     bundle baru) dan `php artisan queue:restart`.
 
-7. Scheduler: cron `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
+7. **nginx** (HTTP/2, kompresi, cache aset). Contoh di dalam blok `server { listen 443 ssl http2; … }`:
+
+    ```nginx
+    gzip on;
+    gzip_types text/plain text/css text/xml application/javascript application/json application/xml application/rss+xml image/svg+xml;
+    # brotli on; brotli_types …;   # kalau modul ngx_brotli terpasang
+
+    location /build/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    location ~ ^/(storage|og|fonts)/ {
+        add_header Cache-Control "public, max-age=2592000";
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    ```
+
+    Di belakang Cloudflare: aktifkan Brotli, HTTP/3, "Always Use HTTPS"; jangan cache HTML di edge tanpa
+    aturan bypass cookie (halaman sudah di-cache di aplikasi).
+
+8. Scheduler: cron `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
    (antara lain `sitemap:refresh` harian pukul 03.00)
-8. Setup SSL (Let's Encrypt) + HTTPS redirect.
+9. Setup SSL (Let's Encrypt) + HTTPS redirect.

@@ -1,7 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import { cn } from '@/lib/utils';
 import type { ImageData } from '@/types/content';
 
@@ -125,6 +125,7 @@ export default function Gallery({
                                 className="w-full shrink-0 snap-start"
                             >
                                 <Picture
+                                    sizes={IMAGE_SIZES.full}
                                     image={photo.image}
                                     priority={index === 0}
                                     className="h-[300px]"
@@ -172,6 +173,7 @@ export default function Gallery({
                         )}
                     >
                         <Picture
+                            sizes={IMAGE_SIZES.gallery}
                             image={photo.image}
                             priority={index === 0}
                             className="size-full transition-transform duration-300 hover:scale-[1.02]"
@@ -279,6 +281,7 @@ function Lightbox({
                         />
                     ) : (
                         <Picture
+                            sizes={IMAGE_SIZES.full}
                             image={photo.image}
                             className="min-h-0 flex-1 rounded-card"
                         />

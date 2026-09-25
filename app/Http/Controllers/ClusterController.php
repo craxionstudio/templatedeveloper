@@ -116,8 +116,7 @@ class ClusterController extends Controller
             ],
             'gallery' => [
                 'items' => $cluster->galleryItems->map(fn (GalleryItem $item) => [
-                    'url' => $item->getFirstMediaUrl('image') ?: null,
-                    'alt' => $item->alt,
+                    ...Image::media($item, 'image', $item->alt, $cluster->name),
                     'caption' => $item->caption,
                 ])->values()->all(),
                 // Placeholder selama galeri belum diunggah (label dari desain 03).

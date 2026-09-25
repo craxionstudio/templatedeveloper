@@ -1,7 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/site/icons';
-import Picture from '@/components/site/picture';
+import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import { ButtonLink } from '@/components/site/ui';
 import { cn } from '@/lib/utils';
 import type { ImageData } from '@/types/content';
@@ -109,6 +109,7 @@ export default function PromoSlider({ promos }: { promos: PromoData }) {
                             ) : null}
                         </div>
                         <Picture
+                            sizes={IMAGE_SIZES.half}
                             image={promo.image}
                             tone="dark"
                             className="order-1 min-h-[190px] xl:order-2 xl:min-h-[400px]"
