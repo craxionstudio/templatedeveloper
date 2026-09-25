@@ -9,6 +9,7 @@ use App\Settings\PrivacyPageSettings;
 use App\Settings\ThankYouPageSettings;
 use App\Support\Breadcrumbs;
 use App\Support\PageMeta;
+use App\Support\RichText;
 use App\Support\SiteLayout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -29,7 +30,7 @@ class LegalController extends Controller
             'breadcrumbs' => $crumbs,
             'content' => [
                 'title' => $content['title'],
-                'body' => $content['body'],
+                'body' => RichText::sanitize($content['body']),
                 'effective' => $content['effective_date']
                     ? trim($content['effective_label'].' '.Carbon::parse($content['effective_date'])->translatedFormat('j F Y'))
                     : null,

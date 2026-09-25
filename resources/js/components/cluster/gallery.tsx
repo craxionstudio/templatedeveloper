@@ -216,6 +216,7 @@ function Lightbox({
     const { labels } = usePage().props.site;
     const [index, setIndex] = useState(start);
     const closeRef = useRef<HTMLButtonElement>(null);
+    const dialogRef = useRef<HTMLDivElement>(null);
     const go = useCallback(
         (step: number) =>
             setIndex((i) => (i + step + photos.length) % photos.length),
@@ -223,6 +224,11 @@ function Lightbox({
     );
 
     useEffect(() => {
+        // Fokus masuk ke lightbox, dan kembali ke tombol pembuka saat ditutup.
+        const opener =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
         closeRef.current?.focus();
         const previous = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
@@ -231,12 +237,32 @@ function Lightbox({
             if (e.key === 'Escape') onClose();
             if (e.key === 'ArrowRight') go(1);
             if (e.key === 'ArrowLeft') go(-1);
+
+            // Fokus tetap di dalam lightbox (Tab / Shift+Tab berputar).
+            if (e.key === 'Tab' && dialogRef.current) {
+                const focusable = Array.from(
+                    dialogRef.current.querySelectorAll<HTMLElement>(
+                        'button, a[href]',
+                    ),
+                ).filter((el) => el.offsetParent !== null);
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last?.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first?.focus();
+                }
+            }
         };
         document.addEventListener('keydown', onKey);
 
         return () => {
             document.body.style.overflow = previous;
             document.removeEventListener('keydown', onKey);
+            opener?.focus();
         };
     }, [go, onClose]);
 
@@ -244,6 +270,7 @@ function Lightbox({
 
     return (
         <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label={labels.gallery_photo}

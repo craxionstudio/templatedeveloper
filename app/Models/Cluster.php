@@ -9,6 +9,7 @@ use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
+use App\Support\RichText;
 use Database\Factories\ClusterFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -78,6 +79,8 @@ class Cluster extends Model implements HasMedia
             if (in_array($cluster->slug, self::RESERVED_SLUGS, true)) {
                 throw new InvalidArgumentException("Slug cluster \"{$cluster->slug}\" dipakai sistem, pilih slug lain.");
             }
+
+            $cluster->description = RichText::sanitize($cluster->description);
         });
     }
 

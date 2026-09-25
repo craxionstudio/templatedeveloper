@@ -6,6 +6,7 @@ use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
+use App\Support\RichText;
 use Database\Factories\KawasanFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,6 +49,12 @@ class Kawasan extends Model implements HasMedia
     public function clusters(): HasMany
     {
         return $this->hasMany(Cluster::class);
+    }
+
+    protected static function booted(): void
+    {
+        // Rich text dari admin: hanya tag yang diizinkan (brief 10).
+        static::saving(fn (self $kawasan) => $kawasan->description = RichText::sanitize($kawasan->description));
     }
 
     public function publishedClusters(): HasMany

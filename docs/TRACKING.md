@@ -162,6 +162,10 @@ Meta menggabungkan event browser dan server yang punya **nama event sama (`Lead`
 
 Data pribadi yang dikirim CAPI (nomor WA, email, nama) dinormalisasi lalu di-hash SHA-256. `fbp` (cookie `_fbp`), `fbc` (cookie `_fbc`, atau dibentuk dari `fbclid`), IP, dan user agent ikut dikirim untuk pencocokan.
 
+## Content-Security-Policy
+
+Halaman publik memakai CSP dengan nonce + `'strict-dynamic'`. GTM dimuat oleh script bertanda nonce, jadi tag yang disisipkan GTM (termasuk Custom HTML Pixel di atas) ikut dipercaya. Pengecualiannya: tag yang memakai **`document.write`** (opsi "Support document.write" di GTM) akan diblok. Jangan aktifkan opsi itu. Kalau ada tag pihak ketiga yang error di Console dengan pesan *Content Security Policy*, catat pesannya untuk disesuaikan (sementara bisa `CSP_ENABLED=false`).
+
 ## Cara menguji
 
 1. **GTM Preview (Tag Assistant).** Buka situs lewat Preview, isi form di Detail Rumah, lalu cek event `generate_lead` di halaman terima kasih beserta `event_id`-nya.

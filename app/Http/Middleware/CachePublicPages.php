@@ -6,6 +6,7 @@ use App\Support\PageCache;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -30,7 +31,14 @@ class CachePublicPages
         $cached = PageCache::store()->get($key);
 
         if (is_array($cached)) {
-            return new IlluminateResponse($cached['content'], 200, [...$cached['headers'], 'X-Page-Cache' => 'HIT']);
+            $content = $cached['content'];
+
+            // Nonce CSP harus baru di setiap respons: ganti nonce lama di HTML cache.
+            if (($cached['nonce'] ?? null) && Vite::cspNonce()) {
+                $content = str_replace('nonce="'.$cached['nonce'].'"', 'nonce="'.Vite::cspNonce().'"', $content);
+            }
+
+            return new IlluminateResponse($content, 200, [...$cached['headers'], 'X-Page-Cache' => 'HIT']);
         }
 
         $response = $next($request);
@@ -38,6 +46,7 @@ class CachePublicPages
         if ($response->getStatusCode() === 200 && str_contains((string) $response->headers->get('Content-Type'), 'text/html') && ! $response->headers->getCookies()) {
             PageCache::store()->put($key, [
                 'content' => $response->getContent(),
+                'nonce' => Vite::cspNonce(),
                 'headers' => array_filter([
                     'Content-Type' => $response->headers->get('Content-Type'),
                     'Vary' => $response->headers->get('Vary'),

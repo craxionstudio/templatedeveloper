@@ -8,6 +8,7 @@ use App\Settings\AboutPageSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
+use App\Support\RichText;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,7 +50,7 @@ class AboutController extends Controller
             ],
             'history' => $history['enabled'] ? [
                 'title' => $history['title'],
-                'body' => $history['body'] ?: $profile->history,
+                'body' => RichText::sanitize($history['body'] ?: $profile->history),
                 'image' => Image::media($profile, 'secondary_photo', $profile->secondary_photo_alt, 'Foto tim'),
             ] : null,
             'vision' => $vision['enabled'] ? [

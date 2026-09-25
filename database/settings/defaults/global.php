@@ -111,6 +111,7 @@ return [
         'address' => 'Alamat',
         'facility_list' => 'Daftar fasilitas',
         'kawasan_list' => 'Daftar kawasan',
+        'article_list' => 'Daftar artikel',
         'preview_notice' => 'Pratinjau: hanya terlihat oleh admin dan tidak diindeks mesin pencari.',
         'form_name' => 'Nama',
         'form_name_placeholder' => 'Nama lengkap',

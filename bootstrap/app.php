@@ -6,6 +6,7 @@ use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\NoIndexOutsideProduction;
 use App\Http\Middleware\RedirectManager;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\StrictTransportSecurity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,7 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Sebelum routing: URL kanonik, trailing slash/kapital, Redirect Manager; noindex di non-production.
-        $middleware->append([StrictTransportSecurity::class, NoIndexOutsideProduction::class, RedirectManager::class]);
+        // SecurityHeaders global supaya admin Filament juga dapat header; nonce CSP dibuat sebelum view dirender.
+        $middleware->append([SecurityHeaders::class, StrictTransportSecurity::class, NoIndexOutsideProduction::class, RedirectManager::class]);
 
         // Cookie Meta Pixel (_fbp, _fbc) dibuat di browser, jadi tidak dienkripsi Laravel.
         $middleware->encryptCookies(except: ['_fbp', '_fbc']);

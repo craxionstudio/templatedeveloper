@@ -126,6 +126,14 @@ Catatan teknis lain: Detail Rumah memakai `Residence` (cluster) berisi tiap tipe
 
 Catatan teknis lain: varian gambar AVIF + WebP di 480/960/1600 px (tidak diperbesar); judul `h2` tersembunyi (sr-only) "Daftar fasilitas" dan "Daftar kawasan" untuk urutan heading; dampak GTM/Pixel belum bisa diukur di lingkungan build (akses keluar ke Google/Facebook diblok) — ukur ulang dengan PageSpeed Insights setelah deploy dan ID tracking diisi.
 
+**Keputusan teknis Milestone 7** (menunggu konfirmasi pemilik)
+
+- **CSP** (nonce + `'strict-dynamic'`) hanya untuk halaman publik; admin Filament tidak diberi CSP karena Alpine/Livewire membutuhkan `unsafe-eval`. Header keamanan lain (nosniff, X-Frame-Options, Referrer-Policy, Permissions-Policy) di semua respons termasuk admin. Tag GTM dengan `document.write` akan diblok CSP.
+- **Akun seeder di production:** password dari `SEED_ADMIN_PASSWORD` atau acak (dicetak sekali), bukan `password`. Seeder tidak lagi me-reset password akun yang sudah ada.
+- **Backup** hanya database + file unggahan (`storage/app/public`, tanpa varian AVIF/WebP yang bisa dibuat ulang); kode ada di Git. Default disimpan di server (`local`); disarankan tambah penyimpanan luar server (`BACKUP_DISKS=local,s3`).
+- Rich text disanitasi dua kali: saat disimpan dan saat dikirim ke browser (termasuk teks rich di Pengaturan Halaman).
+- Perbaikan aksesibilitas dari audit axe-core: judul `h2` tersembunyi "Daftar artikel", region carousel fasilitas Beranda bisa difokus, fokus lightbox galeri terkunci & kembali ke foto.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

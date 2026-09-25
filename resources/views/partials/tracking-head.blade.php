@@ -7,9 +7,9 @@
     Page view per navigasi Inertia dikirim dari resources/js/lib/analytics.ts.
 --}}
 @php($tracking = \App\Support\Tracking::browser())
-<script>window.dataLayer = window.dataLayer || [];</script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">window.dataLayer = window.dataLayer || [];</script>
 @if ($tracking['gtmId'] || $tracking['ga4Id'] || $tracking['pixelId'])
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         (function (w, d) {
             var scripts = [];
             @if ($tracking['gtmId'])

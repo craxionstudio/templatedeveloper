@@ -13,6 +13,7 @@ use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
+use App\Support\RichText;
 use App\Support\StructuredData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -100,7 +101,7 @@ class ArticleController extends Controller
             'breadcrumbs' => $crumbs,
             'article' => [
                 ...ArticleCard::make($article),
-                'body' => $article->body,
+                'body' => RichText::sanitize($article->body),
                 'author' => $display['show_author'] && $article->author ? [
                     'name' => $article->author->name,
                     'photo' => Image::media($article->author, 'photo', $article->author->photo_alt, 'Foto '.$article->author->name),

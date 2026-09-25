@@ -14,6 +14,7 @@ use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\DataSource;
 use App\Support\PageMeta;
+use App\Support\RichText;
 use App\Support\Rupiah;
 use App\Support\SiteLayout;
 use App\Support\StructuredData;
@@ -107,7 +108,7 @@ class ClusterController extends Controller
                 'badge' => $cluster->badge?->getLabel(),
                 'status' => $cluster->status->getLabel(),
                 'address' => $cluster->address,
-                'description' => $cluster->description,
+                'description' => RichText::sanitize($cluster->description),
                 'legality' => $cluster->legality,
                 'bookingFee' => Rupiah::short($cluster->booking_fee),
                 'brochure' => $cluster->getFirstMediaUrl('brochure') ?: null,

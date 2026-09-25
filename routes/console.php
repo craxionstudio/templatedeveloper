@@ -19,6 +19,11 @@ Artisan::command('sitemap:refresh', function () {
 
 Schedule::command('sitemap:refresh')->dailyAt('03:00');
 
+// Backup database + file unggahan (spatie/laravel-backup, brief 10). Email hanya kalau gagal.
+Schedule::command('backup:clean')->dailyAt('01:00');
+Schedule::command('backup:run')->dailyAt('01:30');
+Schedule::command('backup:monitor')->dailyAt('09:00');
+
 Artisan::command('images:variants', function () {
     // Settings halaman: varian di storage/app/public/_variants.
     $paths = collect(DB::table('settings')->pluck('payload'))

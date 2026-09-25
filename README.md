@@ -18,7 +18,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | 4   | Lead & tracking                                                                                                 | ✅ Selesai |
 | 5   | Technical SEO                                                                                                   | ✅ Selesai |
 | 6   | Performa                                                                                                        | ✅ Selesai |
-| 7   | QA                                                                                                              | Belum      |
+| 7   | QA                                                                                                              | ✅ Selesai |
 
 ## Requirement
 
@@ -38,7 +38,8 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-Seeder membuat 3 akun admin (password semua **password**, ganti setelah login pertama):
+Seeder membuat 3 akun admin (lokal: password semua **password**; di production password diambil dari
+`SEED_ADMIN_PASSWORD` atau dibuat acak dan dicetak sekali di terminal). Ganti email & password setelah login pertama:
 
 | Email                 | Role         | Akses                                                                            |
 | --------------------- | ------------ | -------------------------------------------------------------------------------- |
@@ -290,12 +291,37 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 - Konversi di `/terima-kasih` hanya dikirim sekali tepat setelah submit (flash session), jadi refresh
   tidak menghitung dua kali.
 
+## Keamanan & QA
+
+- **Security headers** di semua respons (termasuk admin): `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN`,
+  `Referrer-Policy`, `Permissions-Policy`; HSTS di production lewat HTTPS.
+- **CSP** halaman publik (`App\Http\Middleware\SecurityHeaders`): nonce per request + `'strict-dynamic'`, jadi hanya
+  bundle Vite dan loader tracking (bertanda nonce) yang boleh jalan, dan script yang mereka muat (GTM, Pixel,
+  Turnstile, chunk halaman) ikut dipercaya. Default aktif di semua environment selain `local` (`CSP_ENABLED`).
+  Admin Filament tidak diberi CSP. Tag GTM Custom HTML jangan memakai "Support document.write".
+- **Rich text** disanitasi saat disimpan dan saat dikirim ke browser (`App\Support\RichText`, hanya tag yang diizinkan).
+- **Backup** harian database + file unggahan (`spatie/laravel-backup`): `backup:run` 01.30, `backup:clean` 01.00,
+  `backup:monitor` 09.00. Tujuan `BACKUP_DISKS` (default `local` → `storage/app/private`), email hanya kalau gagal
+  (`BACKUP_NOTIFICATION_EMAIL`). MySQL butuh `mysqldump` di server.
+- **Cek SSR semua URL sitemap** (status, satu H1, canonical, robots, og:image, JSON-LD valid):
+
+    ```bash
+    php artisan qa:pages                          # memakai APP_URL
+    php artisan qa:pages --base=https://domain-anda.com
+    ```
+
+- Laporan QA lengkap (test, SSR, structured data, aksesibilitas, Lighthouse, keamanan): **`docs/QA.md`**.
+- Checklist sebelum go-live: **`docs/CHECKLIST-LAUNCH.md`**.
+
 ## Struktur Penting
 
 - `routes/web.php` — route halaman publik
 - `app/Http/Controllers/` — controller yang mengirim data halaman ke Inertia
 - `app/Http/Controllers/LeadController.php`, `app/Http/Requests/` — simpan lead & validasi anti-spam
 - `app/Services/{MetaConversions,Turnstile}.php`, `app/Jobs/`, `app/Notifications/` — CAPI, Turnstile, webhook, email lead
+- `app/Http/Middleware/{SecurityHeaders,CachePublicPages}.php` — security headers/CSP & cache halaman publik
+- `app/Console/Commands/CheckPages.php` — `php artisan qa:pages` (cek SSR semua URL sitemap)
+- `docs/` — brief, perubahan (`CHANGES.md`), data dummy, tracking, QA, checklist go-live
 - `app/Support/{PageMeta,StructuredData,Sitemaps}.php`, `app/Http/Middleware/RedirectManager.php`, `app/Http/Controllers/SeoFileController.php` — meta/OG/canonical, JSON-LD, sitemap, redirect, robots, RSS
 - `app/Support/{Attribution,Tracking,Secret,Phone}.php` — cookie UTM, ID tracking, enkripsi rahasia, normalisasi WA
 - `resources/js/lib/analytics.ts`, `resources/js/components/lead/` — event analytics & form lead
@@ -329,7 +355,8 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     > (mis. `https://arunikaland.co.id` atau `https://www.arunikaland.co.id`), tanpa garis miring di akhir.
     > Di production semua request http atau varian www/non-www yang lain di-301 ke `APP_URL`, dan nilai ini dipakai
     > untuk canonical, `og:url`, sitemap, RSS, dan JSON-LD. Salah isi = seluruh URL kanonik salah.
-4. `php artisan migrate --force`
+4. `php artisan migrate --force`; deploy **pertama** saja: `php artisan db:seed --force` (isi awal settings, contoh
+   konten, 3 akun admin; catat password yang dicetak, atau set `SEED_ADMIN_PASSWORD` dulu)
 5. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
 6. Jalankan proses SSR dan queue worker tetap hidup pakai **Supervisor**. Keduanya proses
    terpisah dari PHP-FPM, jangan lupa masuk checklist deployment. Contoh

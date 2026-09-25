@@ -10,4 +10,12 @@ return [
         'ttl' => (int) env('PAGE_CACHE_TTL', 3600),
         'store' => env('PAGE_CACHE_STORE'),
     ],
+
+    /*
+    | Content-Security-Policy halaman publik (nonce + strict-dynamic). Default mati di lokal
+    | supaya dev server Vite (HMR) tidak terblok.
+    */
+    'csp' => [
+        'enabled' => (bool) env('CSP_ENABLED', env('APP_ENV') !== 'local'),
+    ],
 ];

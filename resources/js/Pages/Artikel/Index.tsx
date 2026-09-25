@@ -202,6 +202,8 @@ export default function ArtikelIndex({
                 </div>
                 <p className="text-[15px] text-body">{count}</p>
 
+                {/* Judul section untuk urutan heading (h1 → h2 → h3 kartu). */}
+                <h2 className="sr-only">{labels.article_list}</h2>
                 {articles.data.length === 0 ? (
                     <p className="rounded-card bg-white p-10 text-center text-body">
                         {emptyText}

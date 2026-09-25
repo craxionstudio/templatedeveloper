@@ -181,7 +181,11 @@ export function FacilitiesSection({
                         </ArrowLink>
                     }
                 />
+                {/* Kartu tanpa link: region bisa difokus supaya bisa digulir dengan keyboard. */}
                 <div
+                    role="region"
+                    aria-label={facilities.title}
+                    tabIndex={0}
                     className={cn(
                         carousel,
                         'xl:grid xl:grid-cols-4 xl:gap-6 xl:overflow-visible',

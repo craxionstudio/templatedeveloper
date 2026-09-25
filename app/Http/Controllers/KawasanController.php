@@ -12,6 +12,7 @@ use App\Settings\ListingPageSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
+use App\Support\RichText;
 use App\Support\Rupiah;
 use App\Support\StructuredData;
 use Inertia\Inertia;
@@ -94,7 +95,7 @@ class KawasanController extends Controller
             'about' => $about['enabled'] ? [
                 'eyebrow' => $about['eyebrow'],
                 'title' => $kawasan->about_title ?: $kawasan->name,
-                'description' => $kawasan->description,
+                'description' => RichText::sanitize($kawasan->description),
                 'brochure' => $kawasan->getFirstMediaUrl('brochure') ?: null,
                 'brochureLabel' => $about['brochure_label'],
                 'mapUrl' => $kawasan->map_embed_url ?: ($kawasan->latitude ? "https://www.google.com/maps?q={$kawasan->latitude},{$kawasan->longitude}" : null),
