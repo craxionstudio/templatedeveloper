@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Pages\Settings\ManageGlobalSettings;
+use App\Filament\Resources\Leads\Tables\LeadsTable;
 use App\Jobs\SendLeadWebhook;
 use App\Jobs\SendMetaLeadEvent;
 use App\Models\Cluster;
@@ -349,4 +350,112 @@ it('memasang GTM dan Pixel dari settings di head', function () {
         ->toContain('GTM-ABC123')
         ->toContain("fbq('init', '1234567890')")
         ->toContain('ns.html?id=GTM-ABC123');
+});
+
+it('menyimpan first-touch UTM terpisah dari UTM terakhir', function () {
+    $first = $this->get('/?utm_source=google&utm_medium=cpc&utm_campaign=brand');
+    $cookie = collect($first->headers->getCookies())->first(fn ($c) => $c->getName() === Attribution::COOKIE);
+    $value = explode('|', decrypt($cookie->getValue(), false), 2)[1];
+
+    // Kunjungan kedua lewat kampanye lain: UTM terakhir berubah, first-touch tetap.
+    $second = $this->withCookie(Attribution::COOKIE, $value)->get('/properti?utm_source=facebook&utm_medium=paid_social&utm_campaign=open-house');
+    $cookie = collect($second->headers->getCookies())->first(fn ($c) => $c->getName() === Attribution::COOKIE);
+    $value = explode('|', decrypt($cookie->getValue(), false), 2)[1];
+
+    expect(json_decode($value, true))->toMatchArray([
+        'utm_source' => 'facebook', 'utm_medium' => 'paid_social', 'utm_campaign' => 'open-house',
+        'first_utm_source' => 'google', 'first_utm_medium' => 'cpc', 'first_utm_campaign' => 'brand',
+        'landing_page' => url('/').'/?utm_campaign=brand&utm_medium=cpc&utm_source=google',
+    ]);
+
+    $this->withCookie(Attribution::COOKIE, $value)->post('/lead', leadInput())->assertRedirect('/terima-kasih');
+
+    expect(Lead::query()->sole())
+        ->utm_source->toBe('facebook')
+        ->utm_campaign->toBe('open-house')
+        ->first_utm_source->toBe('google')
+        ->first_utm_medium->toBe('cpc')
+        ->first_utm_campaign->toBe('brand');
+});
+
+it('mengisi first-touch dari kampanye pertama walaupun kunjungan pertama tanpa UTM', function () {
+    $direct = $this->get('/');
+    $value = explode('|', decrypt(collect($direct->headers->getCookies())->first(fn ($c) => $c->getName() === Attribution::COOKIE)->getValue(), false), 2)[1];
+
+    $campaign = $this->withCookie(Attribution::COOKIE, $value)->get('/?utm_source=instagram&utm_campaign=reels');
+    $data = json_decode(explode('|', decrypt(collect($campaign->headers->getCookies())->first(fn ($c) => $c->getName() === Attribution::COOKIE)->getValue(), false), 2)[1], true);
+
+    expect($data)->toMatchArray(['first_utm_source' => 'instagram', 'first_utm_campaign' => 'reels', 'landing_page' => url('/')]);
+});
+
+it('menampilkan UTM terakhir dan pertama di detail lead dan ekspor', function () {
+    $lead = Lead::query()->create([
+        'name' => 'Budi', 'whatsapp' => '6281234567890',
+        'utm_source' => 'facebook', 'utm_campaign' => 'open-house',
+        'first_utm_source' => 'google', 'first_utm_medium' => 'cpc', 'first_utm_campaign' => 'brand',
+    ]);
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    $this->get('/admin/leads/'.$lead->id.'/edit')
+        ->assertOk()
+        ->assertSee('UTM terakhir: campaign: open-house')
+        ->assertSee('UTM pertama: source / medium: google / cpc')
+        ->assertSee('UTM pertama: campaign: brand');
+
+    $columns = LeadsTable::exportColumns();
+    expect(array_keys($columns))->toContain('utm_source', 'first_utm_source', 'first_utm_medium', 'first_utm_campaign')
+        ->and($columns['first_utm_campaign']($lead))->toBe('brand');
+});
+
+it('membatasi maksimal 3 lead per nomor WA per hari', function () {
+    foreach (range(1, 3) as $i) {
+        $this->post('/lead', leadInput(['whatsapp' => '0812 7777 8888']))->assertSessionHasNoErrors();
+    }
+
+    // Format berbeda, nomor sama.
+    $this->post('/lead', leadInput(['whatsapp' => '+62 812-7777-8888']))->assertSessionHasErrors('whatsapp');
+    // Nomor lain dari IP yang sama tetap bisa.
+    $this->post('/lead', leadInput(['whatsapp' => '0812 7777 9999']))->assertSessionHasNoErrors();
+
+    expect(Lead::query()->where('whatsapp', '6281277778888')->count())->toBe(3);
+
+    // Setelah 24 jam, nomor itu bisa mengirim lagi.
+    $this->travel(25)->hours();
+    $this->post('/lead', leadInput(['whatsapp' => '081277778888']))->assertSessionHasNoErrors();
+});
+
+it('mengizinkan lebih dari 30 lead per hari dari satu IP (open house), tetap 5 per menit', function () {
+    foreach (range(1, 40) as $i) {
+        if ($i > 1 && $i % 5 === 1) {
+            $this->travel(61)->seconds();
+        }
+
+        $this->post('/lead', leadInput(['whatsapp' => '0813'.str_pad((string) $i, 8, '0', STR_PAD_LEFT)]))->assertSessionHasNoErrors();
+    }
+
+    expect(Lead::query()->count())->toBe(40);
+});
+
+it('memakai Pixel ID khusus CAPI kalau Pixel dipasang lewat GTM', function () {
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1])]);
+    configureTracking(['gtm_id' => 'GTM-ABC123', 'meta_pixel_id' => '', 'meta_capi_pixel_id' => '9876543210', 'meta_capi_token' => Secret::encrypt('TOKEN')]);
+
+    $this->post('/lead', leadInput());
+
+    Http::assertSent(fn (HttpRequest $request) => str_starts_with($request->url(), 'https://graph.facebook.com/v21.0/9876543210/events')
+        && $request['data'][0]['event_id'] === Lead::query()->sole()->event_id);
+
+    // Pixel tidak dipasang langsung (hanya lewat GTM), dataLayer selalu ada.
+    expect($this->get('/')->getContent())
+        ->toContain('window.dataLayer = window.dataLayer || []')
+        ->not->toContain('fbevents.js');
+});
+
+it('memperingatkan dobel hitung kalau GA4/Pixel langsung diisi bersama GTM', function () {
+    configureTracking(['gtm_id' => 'GTM-ABC123', 'meta_pixel_id' => '1234567890']);
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    Livewire::test(ManageGlobalSettings::class)
+        ->assertSee('Kosongkan jika Pixel/GA4 sudah dipasang lewat GTM, supaya event tidak terhitung dua kali.')
+        ->assertSee('GTM juga terisi');
 });

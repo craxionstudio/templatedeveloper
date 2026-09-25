@@ -201,14 +201,17 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
   → redirect `/terima-kasih`. Nomor WA dinormalisasi ke `62…` (`App\Support\Phone`), persetujuan
   Kebijakan Privasi wajib. Newsletter → `POST /newsletter` (email saja, tanpa duplikat).
 - **Anti-spam:** honeypot (field `website`, bot dijawab "sukses" tanpa disimpan) + rate limit per IP
-  (lead 5/menit & 30/hari, newsletter 5/menit & 20/hari) + Cloudflare Turnstile. Turnstile aktif hanya
+  (lead 5/menit & 100/hari per IP + maksimal 3 lead per nomor WA per 24 jam; newsletter 5/menit & 20/hari) + Cloudflare Turnstile. Turnstile aktif hanya
   kalau site key **dan** secret key diisi; kosong (lokal/dev) = dilewati.
 - **Atribusi:** UTM, `fbclid`, `gclid`, landing page pertama, dan referrer ditangkap di kunjungan pertama
   ke cookie `arunika_attribution` (30 hari) lalu disalin ke lead. Landing page & referrer = kunjungan
-  pertama; UTM & click ID diperbarui kalau pengunjung datang lagi lewat kampanye baru.
+  pertama; `utm_*` & click ID = kampanye terakhir; `first_utm_source/medium/campaign` = kampanye pertama
+  (tidak pernah ditimpa). Keduanya tampil di detail lead dan ekspor CSV/XLSX.
 - **Notifikasi:** email ke satu/lebih alamat + webhook opsional (POST JSON), keduanya lewat queue.
   Pengaturan Global → Notifikasi lead.
-- **Analytics:** GTM **atau** GA4 langsung + Meta Pixel, ID dari Pengaturan Global → Tracking & verifikasi.
+- **Analytics (GTM-first):** semua event di-push ke `dataLayer`; tag GA4 & Meta Pixel diatur di GTM.
+  Panduan event, parameter, dan contoh tag/trigger GTM: **`docs/TRACKING.md`**. GA4 & Pixel langsung
+  tetap bisa diisi (opsional) di Pengaturan Global → Tracking & verifikasi.
   Script dimuat setelah halaman selesai dimuat & browser idle; antrean event dibuat lebih dulu supaya
   tidak ada event yang hilang. Event: `generate_lead` (di `/terima-kasih`, dengan cluster, tipe, posisi
   form, `event_id`), `click_whatsapp`, `click_phone`, `download_brochure`, `download_pricelist`,

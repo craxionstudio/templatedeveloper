@@ -95,6 +95,12 @@ Keputusan teknis Milestone 4 (menunggu konfirmasi pemilik):
 - Tombol "Jadwalkan Kunjungan/Survey" membuka form singkat (modal); bisa dimatikan di Pengaturan Global → CTA global.
 - Bot yang mengisi honeypot dijawab seolah sukses (redirect ke /terima-kasih) tanpa data disimpan dan tanpa event konversi.
 
+**Tambahan setelah Milestone 4** (dikonfirmasi pemilik 25 Sep 2026)
+
+1. **Tracking GTM-first.** Semua event di-push ke `dataLayer` dengan nama dan parameter sesuai brief 8.8; `generate_lead` membawa `event_id`. Kolom GA4 dan Meta Pixel ID di admin tetap opsional dengan peringatan "Kosongkan jika Pixel/GA4 sudah dipasang lewat GTM, supaya event tidak terhitung dua kali." (plus tanda "GTM juga terisi" kalau keduanya diisi). Conversions API memakai `event_id` yang sama dengan di dataLayer. Karena Pixel boleh hanya dipasang lewat GTM, ada kolom baru **Pixel ID untuk Conversions API** (kosong = pakai Meta Pixel ID). Panduan lengkap: `docs/TRACKING.md`.
+2. **Rate limit lead:** 5 per menit per IP (tetap), batas harian per IP naik dari 30 ke **100** (open house, banyak orang dari WiFi yang sama), dan **maksimal 3 lead per nomor WA per 24 jam**. Batas per nomor hanya menghitung lead yang tersimpan, jadi salah isi form tidak ikut terhitung; nomor ditulis dalam format apa pun (08…/+62…) dianggap sama.
+3. **First-touch UTM:** lead menyimpan `first_utm_source/medium/campaign` (kampanye pertama yang membawa UTM, tidak pernah ditimpa) selain UTM terakhir yang sudah ada. Keduanya tampil di detail lead (admin) dan ikut di ekspor CSV/XLSX serta webhook.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

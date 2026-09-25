@@ -17,16 +17,16 @@ use Illuminate\Support\Str;
 class MetaConversions
 {
     /**
-     * CAPI dilewati tanpa error kalau Pixel ID atau access token kosong.
+     * CAPI dilewati tanpa error kalau Pixel ID (CAPI atau langsung) atau access token kosong.
      */
     public static function enabled(): bool
     {
-        return Tracking::pixelId() !== null && Tracking::capiToken() !== null;
+        return Tracking::capiPixelId() !== null && Tracking::capiToken() !== null;
     }
 
     public static function endpoint(): string
     {
-        return sprintf('https://graph.facebook.com/%s/%s/events', config('services.meta.graph_version'), Tracking::pixelId());
+        return sprintf('https://graph.facebook.com/%s/%s/events', config('services.meta.graph_version'), Tracking::capiPixelId());
     }
 
     /**

@@ -44,6 +44,12 @@ trait GuardsAgainstSpam
                     return;
                 }
 
+                if (method_exists($this, 'exceedsNumberLimit') && $this->exceedsNumberLimit()) {
+                    $validator->errors()->add('whatsapp', 'Nomor ini sudah mengirim beberapa permintaan hari ini. Tim kami akan segera menghubungi kamu, atau chat langsung lewat WhatsApp.');
+
+                    return;
+                }
+
                 if (! Turnstile::verify($this->input('turnstile_token'), $this->ip())) {
                     $validator->errors()->add('turnstile_token', 'Verifikasi keamanan gagal. Muat ulang halaman lalu coba lagi.');
                 }

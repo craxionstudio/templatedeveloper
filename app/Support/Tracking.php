@@ -33,6 +33,15 @@ class Tracking
         return self::match(self::settings()['meta_pixel_id'], '/^\d{5,20}$/');
     }
 
+    /**
+     * Pixel ID tujuan Conversions API. Bisa diisi terpisah, karena Pixel di browser boleh
+     * dipasang lewat GTM (kolom Meta Pixel ID langsung dikosongkan).
+     */
+    public static function capiPixelId(): ?string
+    {
+        return self::match(self::settings()['meta_capi_pixel_id'] ?? null, '/^\d{5,20}$/') ?? self::pixelId();
+    }
+
     public static function capiToken(): ?string
     {
         return Secret::decrypt(self::settings()['meta_capi_token'] ?? null);

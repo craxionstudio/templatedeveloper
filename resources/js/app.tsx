@@ -16,7 +16,10 @@ if (typeof window !== 'undefined') {
     listenForClicks();
     pageView();
     // Navigasi berikutnya (bukan reload): event `navigate` Inertia.
-    router.on('navigate', () => {
-        pageView();
+    router.on('navigate', (event) => {
+        const meta = event.detail.page.props.meta as
+            | { title?: string }
+            | undefined;
+        pageView(meta?.title);
     });
 }

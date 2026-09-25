@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
@@ -124,17 +125,31 @@ class ManageGlobalSettings extends PageSettingsPage
                 Tab::make('Tracking & verifikasi')->visible(fn (): bool => self::canManageTracking())->schema([
                     Grid::make(3)->schema([
                         TextInput::make('tracking.gtm_id')->label('Google Tag Manager ID')->placeholder('GTM-XXXXXXX')
-                            ->regex('/^GTM-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: GTM-XXXXXXX.']),
-                        TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX')
+                            ->regex('/^GTM-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: GTM-XXXXXXX.'])
+                            ->live(onBlur: true)
+                            ->helperText('Disarankan. Semua event dikirim ke dataLayer; atur tag GA4 & Meta Pixel di GTM (docs/TRACKING.md).'),
+                        TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID (opsional)')->placeholder('G-XXXXXXXXXX')
                             ->regex('/^G-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: G-XXXXXXXXXX.'])
-                            ->helperText('Isi salah satu: GTM atau GA4 langsung. Kalau GTM diisi, GA4 dipasang lewat GTM.'),
-                        TextInput::make('tracking.meta_pixel_id')->label('Meta Pixel ID')
-                            ->regex('/^\d{5,20}$/')->validationMessages(['regex' => 'Pixel ID hanya angka.']),
+                            ->helperText(self::DOUBLE_COUNT_WARNING)
+                            ->hint(fn (Get $get): ?string => filled($get('tracking.gtm_id')) && filled($get('tracking.ga4_id')) ? 'GTM juga terisi' : null)
+                            ->hintColor('warning')
+                            ->hintIcon(fn (Get $get) => filled($get('tracking.gtm_id')) && filled($get('tracking.ga4_id')) ? Heroicon::OutlinedExclamationTriangle : null)
+                            ->live(onBlur: true),
+                        TextInput::make('tracking.meta_pixel_id')->label('Meta Pixel ID (opsional)')
+                            ->regex('/^\d{5,20}$/')->validationMessages(['regex' => 'Pixel ID hanya angka.'])
+                            ->helperText(self::DOUBLE_COUNT_WARNING)
+                            ->hint(fn (Get $get): ?string => filled($get('tracking.gtm_id')) && filled($get('tracking.meta_pixel_id')) ? 'GTM juga terisi' : null)
+                            ->hintColor('warning')
+                            ->hintIcon(fn (Get $get) => filled($get('tracking.gtm_id')) && filled($get('tracking.meta_pixel_id')) ? Heroicon::OutlinedExclamationTriangle : null)
+                            ->live(onBlur: true),
                     ]),
                     Section::make('Meta Conversions API')
                         ->description('Event Lead dikirim juga dari server dengan event_id yang sama dengan Pixel (deduplikasi). Token kosong = CAPI dilewati.')
                         ->schema([
-                            Grid::make(2)->schema([
+                            Grid::make(3)->schema([
+                                TextInput::make('tracking.meta_capi_pixel_id')->label('Pixel ID untuk Conversions API')
+                                    ->regex('/^\d{5,20}$/')->validationMessages(['regex' => 'Pixel ID hanya angka.'])
+                                    ->helperText('Pixel yang sama dengan di GTM. Kosong = pakai Meta Pixel ID di atas.'),
                                 self::secret('tracking.meta_capi_token', 'Access token Conversions API'),
                                 TextInput::make('tracking.meta_test_event_code')->label('Test event code (opsional)')
                                     ->helperText('Dari Events Manager → Test events. Kosongkan setelah uji coba selesai.')
@@ -202,6 +217,8 @@ class ManageGlobalSettings extends PageSettingsPage
      * Key rahasia di tab Tracking: disimpan terenkripsi, tidak pernah ditampilkan ulang.
      */
     public const SECRETS = ['meta_capi_token', 'turnstile_secret_key'];
+
+    public const DOUBLE_COUNT_WARNING = 'Kosongkan jika Pixel/GA4 sudah dipasang lewat GTM, supaya event tidak terhitung dua kali.';
 
     /**
      * Tab yang hanya untuk Super Admin (tracking & tujuan notifikasi lead).

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Http\Requests\Concerns\GuardsAgainstSpam;
 use App\Models\Cluster;
 use App\Models\HouseType;
+use App\Models\Lead;
 use App\Support\Phone;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,6 +16,11 @@ class StoreLeadRequest extends FormRequest
     use GuardsAgainstSpam;
 
     public const POSITIONS = ['sidebar', 'inline', 'modal', 'kontak', 'sticky'];
+
+    /**
+     * Maksimal lead tersimpan per nomor WA dalam 24 jam terakhir.
+     */
+    public const MAX_PER_NUMBER_PER_DAY = 3;
 
     public function authorize(): bool
     {
@@ -61,6 +67,18 @@ class StoreLeadRequest extends FormRequest
             'message.max' => 'Pesan maksimal 2.000 karakter.',
             'consent.accepted' => 'Centang persetujuan Kebijakan Privasi untuk melanjutkan.',
         ];
+    }
+
+    /**
+     * Dicek setelah validasi lolos (lihat GuardsAgainstSpam::after), jadi salah isi form
+     * tidak ikut terhitung. Hanya lead yang benar-benar tersimpan yang dihitung.
+     */
+    public function exceedsNumberLimit(): bool
+    {
+        return Lead::query()
+            ->where('whatsapp', $this->normalizedWhatsapp())
+            ->where('created_at', '>=', now()->subDay())
+            ->count() >= self::MAX_PER_NUMBER_PER_DAY;
     }
 
     public function normalizedWhatsapp(): string

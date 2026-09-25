@@ -92,6 +92,8 @@ return [
         'turnstile_site_key' => '',
         // Rahasia disimpan terenkripsi (App\Support\Secret) dan tidak pernah dikirim ke browser.
         'turnstile_secret_key' => '',
+        // Kosong = pakai meta_pixel_id (Pixel yang dipasang langsung).
+        'meta_capi_pixel_id' => '',
         'meta_capi_token' => '',
         // Opsional: kode "Test events" dari Meta Events Manager untuk uji coba CAPI.
         'meta_test_event_code' => '',

@@ -95,7 +95,6 @@ export default function LeadForm({
         whatsapp: '',
         email: '',
         cluster_id: clusterId ? String(clusterId) : '',
-        house_type_id: houseTypeId ? String(houseTypeId) : '',
         payment_plan: '',
         message: '',
         consent: false,
@@ -109,10 +108,12 @@ export default function LeadForm({
         event.preventDefault();
         form.transform((data) => ({
             ...data,
-            // Tipe hanya relevan kalau cluster tidak diganti.
+            // Tipe = tab yang sedang dipilih (prop terbaru), hanya kalau cluster tidak diganti.
             house_type_id:
-                data.cluster_id === String(clusterId ?? '')
-                    ? data.house_type_id
+                clusterId &&
+                houseTypeId &&
+                data.cluster_id === String(clusterId)
+                    ? String(houseTypeId)
                     : '',
             source_page: window.location.pathname + window.location.search,
         }));

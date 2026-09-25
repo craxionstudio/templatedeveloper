@@ -28,7 +28,7 @@ class LeadController extends Controller
 
         $lead = Lead::query()->create([
             ...$request->safe()->only(['name', 'email', 'cluster_id', 'house_type_id', 'payment_plan', 'message', 'source_position']),
-            ...array_intersect_key(Attribution::read($request), array_flip([...Attribution::CAMPAIGN_KEYS, 'landing_page', 'referrer'])),
+            ...array_intersect_key(Attribution::read($request), array_flip(Attribution::LEAD_KEYS)),
             'event_id' => (string) Str::uuid(),
             'name' => Str::squish($request->string('name')->toString()),
             'whatsapp' => $request->normalizedWhatsapp(),

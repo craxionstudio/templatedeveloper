@@ -1,7 +1,7 @@
 /**
- * Event analytics (brief 8.8). Dikirim ke GTM (dataLayer) atau GA4 langsung (gtag), plus
- * Meta Pixel. Antrean dibuat di resources/views/partials/tracking-head.blade.php; kalau
- * tracking belum diatur di admin, semua fungsi di sini diam saja.
+ * Event analytics (brief 8.8), GTM-first: SEMUA event di-push ke dataLayer dengan nama &
+ * parameter di docs/TRACKING.md. GA4 (gtag) dan Meta Pixel (fbq) langsung hanya dikirim kalau
+ * ID-nya diisi di admin — kosongkan kalau GA4/Pixel sudah dipasang lewat GTM.
  */
 type Params = Record<string, string | number | boolean | null | undefined>;
 
@@ -32,11 +32,11 @@ export function track(event: AnalyticsEvent, params: Params = {}): void {
 
     const data = clean(params);
 
-    if (window.gtag) {
-        window.gtag('event', event, data);
-    } else if (window.dataLayer) {
-        window.dataLayer.push({ event, ...data });
-    }
+    window.dataLayer = window.dataLayer ?? [];
+    window.dataLayer.push({ event, ...data });
+
+    // GA4 langsung (opsional, tanpa GTM).
+    window.gtag?.('event', event, data);
 }
 
 /**
@@ -67,7 +67,7 @@ let lastPageView: string | null = null;
  * GTM sudah menghitung halaman pertama sendiri (gtm.js), jadi hanya navigasi berikutnya yang
  * dikirim sebagai `virtual_page_view`.
  */
-export function pageView(): void {
+export function pageView(title?: string | null): void {
     if (typeof window === 'undefined') {
         return;
     }
@@ -86,19 +86,20 @@ export function pageView(): void {
     const isFirst = firstPageView;
     firstPageView = false;
 
-    // Tunggu <title> diperbarui oleh <Head>.
+    // Judul dari props halaman baru (event `navigate` muncul sebelum <Head> mengganti <title>).
     window.setTimeout(() => {
         const page = {
             page_location: window.location.href,
             page_path: window.location.pathname + window.location.search,
-            page_title: document.title,
+            page_title: title ?? document.title,
         };
 
-        if (window.gtag) {
-            window.gtag('event', 'page_view', page);
-        } else if (window.dataLayer && !isFirst) {
+        if (!isFirst) {
+            window.dataLayer = window.dataLayer ?? [];
             window.dataLayer.push({ event: 'virtual_page_view', ...page });
         }
+
+        window.gtag?.('event', 'page_view', page);
 
         window.fbq?.('track', 'PageView');
     }, 0);
@@ -127,13 +128,14 @@ export function listenForClicks(): void {
                 page_path: window.location.pathname,
                 link_position: link.dataset.position,
                 cluster: link.dataset.cluster,
+                link_url: href,
             };
 
             if (
                 link.dataset.track === 'download_brochure' ||
                 link.dataset.track === 'download_pricelist'
             ) {
-                track(link.dataset.track, context);
+                track(link.dataset.track, { ...context, file_url: href });
             } else if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(href)) {
                 track('click_whatsapp', context);
                 pixel('Contact', {

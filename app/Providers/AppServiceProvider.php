@@ -43,13 +43,15 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Rate limit form publik per IP (anti-spam, brief 9).
+     * Rate limit form publik per IP (anti-spam, brief 9). Batas harian lead per IP longgar (100)
+     * karena saat open house banyak pengunjung submit dari WiFi yang sama; pembatas utamanya
+     * adalah maksimal 3 lead per nomor WA per hari (StoreLeadRequest::MAX_PER_NUMBER_PER_DAY).
      */
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('leads', fn (Request $request) => [
             Limit::perMinute(5)->by('lead-min:'.$request->ip()),
-            Limit::perDay(30)->by('lead-day:'.$request->ip()),
+            Limit::perDay(100)->by('lead-day:'.$request->ip()),
         ]);
 
         RateLimiter::for('newsletter', fn (Request $request) => [
