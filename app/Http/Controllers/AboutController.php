@@ -27,14 +27,24 @@ class AboutController extends Controller
         $title = $hero['title'] ?: $profile->headline;
         $description = $hero['description'] ?: $profile->description;
 
+        $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/tentang-kami', $hero['eyebrow'])]]);
+        $heroImage = $hero['image'] ? Image::path($hero['image'], $hero['image_alt']) : Image::media($profile, 'photo', $profile->photo_alt, $hero['image_alt']);
+
         return Inertia::render('About', [
-            'meta' => PageMeta::make($settings->section('seo')['meta_title'] ?: $hero['eyebrow'], $description, $settings->section('seo')),
-            'breadcrumbs' => Breadcrumbs::make([[Breadcrumbs::nav('/tentang-kami', $hero['eyebrow'])]]),
+            'meta' => PageMeta::make(
+                $settings->section('seo')['meta_title'] ?: $hero['eyebrow'],
+                $description,
+                $settings->section('seo'),
+                image: $heroImage['url'],
+                section: 'tentang',
+                breadcrumbs: $crumbs,
+            ),
+            'breadcrumbs' => $crumbs,
             'hero' => [
                 'eyebrow' => $hero['eyebrow'],
                 'title' => $title,
                 'description' => $description,
-                'image' => $hero['image'] ? Image::path($hero['image'], $hero['image_alt']) : Image::media($profile, 'photo', $profile->photo_alt, $hero['image_alt']),
+                'image' => $heroImage,
                 'quote' => $profile->vision_quote,
             ],
             'history' => $history['enabled'] ? [

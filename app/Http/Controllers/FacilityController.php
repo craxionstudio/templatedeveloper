@@ -40,9 +40,12 @@ class FacilityController extends Controller
             ->when($kawasan, fn (Builder $q) => $q->where(fn (Builder $q) => $q->whereNull('kawasan_id')->orWhere('kawasan_id', $kawasan->id)))
             ->get();
 
+        $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/fasilitas', 'Fasilitas')]]);
+
         return Inertia::render('Fasilitas/Index', [
-            'meta' => PageMeta::make($header['title'], $header['description'], $settings->section('seo'), noindex: $category !== null || $kawasan !== null),
-            'breadcrumbs' => Breadcrumbs::make([[Breadcrumbs::nav('/fasilitas', 'Fasilitas')]]),
+            // Filter kategori/kawasan = noindex, follow; canonical ke /fasilitas.
+            'meta' => PageMeta::make($header['title'], $header['description'], $settings->section('seo'), noindex: $category !== null || $kawasan !== null, section: 'fasilitas', breadcrumbs: $crumbs),
+            'breadcrumbs' => $crumbs,
             'header' => [
                 'eyebrow' => $header['eyebrow'],
                 'title' => $header['title'],

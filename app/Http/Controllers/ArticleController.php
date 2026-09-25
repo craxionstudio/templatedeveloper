@@ -13,6 +13,7 @@ use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
+use App\Support\StructuredData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -38,7 +39,29 @@ class ArticleController extends Controller
     {
         $article = Article::query()->published()->where('slug', $slug)
             ->with(['category', 'author.media', 'tags', 'seo', 'media'])
-            ->firstOrFail();
+            ->first();
+
+        // Artikel yang sudah dihapus → 410 Gone (kecuali ada redirect di Redirect Manager).
+        abort_if(! $article && Article::onlyTrashed()->where('slug', $slug)->exists(), 410);
+        abort_unless($article, 404);
+
+        return $this->detail($article, $settings, $global);
+    }
+
+    /**
+     * Pratinjau draft untuk admin (URL bertanda tangan, berlaku sementara, selalu noindex).
+     */
+    public function preview(Article $article, ArticleDetailPageSettings $settings, GlobalSettings $global): Response
+    {
+        abort_unless(auth()->user()?->canManageContent(), 403);
+
+        $article->load(['category', 'author.media', 'tags', 'seo', 'media']);
+
+        return $this->detail($article, $settings, $global, preview: true);
+    }
+
+    private function detail(Article $article, ArticleDetailPageSettings $settings, GlobalSettings $global, bool $preview = false): Response
+    {
 
         $display = $settings->section('display');
         $related = $settings->section('related');
@@ -49,12 +72,32 @@ class ArticleController extends Controller
         $updated = $article->updated_at && $article->published_at && $article->updated_at->diffInHours($article->published_at, true) > 24
             ? $article->updated_at : null;
 
+        $crumbs = Breadcrumbs::make(array_values(array_filter([
+            [Breadcrumbs::nav('/artikel', 'Artikel'), '/artikel'],
+            $article->category ? [$article->category->name, $article->category->publicPath()] : null,
+        ])));
+        $image = $article->getFirstMediaUrl('cover') ?: null;
+        $canonical = PageMeta::canonical($article->seo?->canonical_url ?: $article->publicPath());
+
         return Inertia::render('Artikel/Show', [
-            'meta' => PageMeta::make(PageMeta::fill($seoPattern['title_pattern'], $values), PageMeta::fill($seoPattern['description_pattern'], $values), $article->seo?->toArray() ?? []),
-            'breadcrumbs' => Breadcrumbs::make(array_values(array_filter([
-                [Breadcrumbs::nav('/artikel', 'Artikel'), '/artikel'],
-                $article->category ? [$article->category->name, $article->category->publicPath()] : null,
-            ]))),
+            'meta' => PageMeta::make(
+                PageMeta::fill($seoPattern['title_pattern'], $values),
+                PageMeta::fill($seoPattern['description_pattern'], $values),
+                [...($article->seo?->toArray() ?? []), 'canonical_url' => $canonical],
+                noindex: $preview,
+                image: $image,
+                section: 'artikel',
+                breadcrumbs: $crumbs,
+                schema: [StructuredData::article($article, $canonical, $image)],
+                ogType: 'article',
+                article: [
+                    'publishedTime' => ($article->published_at ?? $article->created_at)?->toIso8601String(),
+                    'modifiedTime' => $article->updated_at?->toIso8601String(),
+                    'section' => $article->category?->name,
+                ],
+            ),
+            'preview' => $preview,
+            'breadcrumbs' => $crumbs,
             'article' => [
                 ...ArticleCard::make($article),
                 'body' => $article->body,
@@ -113,17 +156,22 @@ class ArticleController extends Controller
 
         $title = $category ? $category->name : $header['title'];
 
+        $crumbs = Breadcrumbs::make(array_values(array_filter([
+            [Breadcrumbs::nav('/artikel', 'Artikel'), $category ? '/artikel' : null],
+            $category ? [$category->name] : null,
+        ])));
+
         return Inertia::render('Artikel/Index', [
+            // Hasil pencarian = noindex, follow; canonical tanpa ?q=.
             'meta' => PageMeta::make(
                 $title,
                 $category ? ($category->description ?: $header['description']) : $header['description'],
                 $category ? ($category->seo?->toArray() ?? []) : $settings->section('seo'),
                 noindex: $search !== '',
+                section: 'artikel',
+                breadcrumbs: $crumbs,
             ),
-            'breadcrumbs' => Breadcrumbs::make(array_values(array_filter([
-                [Breadcrumbs::nav('/artikel', 'Artikel'), $category ? '/artikel' : null],
-                $category ? [$category->name] : null,
-            ]))),
+            'breadcrumbs' => $crumbs,
             'header' => [
                 'eyebrow' => $header['eyebrow'],
                 'title' => $title,

@@ -22,9 +22,11 @@ class LegalController extends Controller
     {
         $content = $settings->section('content');
 
+        $crumbs = Breadcrumbs::make([[$content['title']]]);
+
         return Inertia::render('Privacy', [
-            'meta' => PageMeta::make($content['title'], strip_tags((string) $content['body']), $settings->section('seo')),
-            'breadcrumbs' => Breadcrumbs::make([[$content['title']]]),
+            'meta' => PageMeta::make($content['title'], strip_tags((string) $content['body']), $settings->section('seo'), breadcrumbs: $crumbs),
+            'breadcrumbs' => $crumbs,
             'content' => [
                 'title' => $content['title'],
                 'body' => $content['body'],

@@ -15,6 +15,7 @@ use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
 use App\Support\Rupiah;
+use App\Support\StructuredData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,9 +45,20 @@ class PropertyListingController extends Controller
 
         $header = $settings->section('header');
 
+        $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti')]]);
+
         return Inertia::render('Properti/Index', [
-            'meta' => PageMeta::make($header['title'], $header['description'], $settings->section('seo_cluster'), noindex: $filters !== [] || $request->filled('urut')),
-            'breadcrumbs' => Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti')]]),
+            // Filter/urut = noindex, follow; canonical ke /properti (page ≥ 2 self-canonical).
+            'meta' => PageMeta::make(
+                $header['title'],
+                $header['description'],
+                $settings->section('seo_cluster'),
+                noindex: $filters !== [] || $request->filled('urut'),
+                section: 'properti',
+                breadcrumbs: $crumbs,
+                schema: [StructuredData::itemList($header['title'], collect($paginator->items())->map(fn (Cluster $c) => ['name' => $c->name, 'url' => $c->publicPath()]))],
+            ),
+            'breadcrumbs' => $crumbs,
             ...$this->shared($settings, 'cluster'),
             'filters' => [
                 'active' => $filters,
@@ -80,9 +92,21 @@ class PropertyListingController extends Controller
         $standalone = Cluster::query()->published()->standalone()->ordered()->with(ClusterCard::with())->get();
         $header = $settings->section('header');
 
+        $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti'), '/properti'], [$settings->section('toggle')['kawasan_label']]]);
+        $title = $settings->section('toggle')['kawasan_label'].' — '.$header['title'];
+
         return Inertia::render('Properti/Kawasan', [
-            'meta' => PageMeta::make($settings->section('toggle')['kawasan_label'].' — '.$header['title'], $header['description'], $settings->section('seo_kawasan')),
-            'breadcrumbs' => Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti'), '/properti'], [$settings->section('toggle')['kawasan_label']]]),
+            'meta' => PageMeta::make(
+                $title,
+                $header['description'],
+                $settings->section('seo_kawasan'),
+                section: 'kawasan',
+                breadcrumbs: $crumbs,
+                // Kawasan + cluster mandiri.
+                schema: [StructuredData::itemList($title, $kawasans->map(fn (Kawasan $k) => ['name' => $k->name, 'url' => $k->publicPath()])
+                    ->concat($standalone->map(fn (Cluster $c) => ['name' => $c->name, 'url' => $c->publicPath()])))],
+            ),
+            'breadcrumbs' => $crumbs,
             ...$this->shared($settings, 'kawasan'),
             'summary' => PageMeta::fill($view['summary_template'], [
                 'kawasan' => $kawasans->count(),

@@ -101,6 +101,22 @@ Keputusan teknis Milestone 4 (menunggu konfirmasi pemilik):
 2. **Rate limit lead:** 5 per menit per IP (tetap), batas harian per IP naik dari 30 ke **100** (open house, banyak orang dari WiFi yang sama), dan **maksimal 3 lead per nomor WA per 24 jam**. Batas per nomor hanya menghitung lead yang tersimpan, jadi salah isi form tidak ikut terhitung; nomor ditulis dalam format apa pun (08…/+62…) dianggap sama.
 3. **First-touch UTM:** lead menyimpan `first_utm_source/medium/campaign` (kampanye pertama yang membawa UTM, tidak pernah ditimpa) selain UTM terakhir yang sudah ada. Keduanya tampil di detail lead (admin) dan ikut di ekspor CSV/XLSX serta webhook.
 
+Dikonfirmasi pemilik 25 Sep 2026:
+
+- Batas per nomor WA memakai **24 jam terakhir** (rolling), bukan reset tengah malam, supaya tidak bisa diakali dengan submit menjelang pukul 00.00.
+- First-touch diambil dari **kunjungan pertama yang membawa UTM**. Kunjungan pertama yang sebenarnya (termasuk tanpa UTM) tetap tercatat di `landing_page`.
+
+**Keputusan teknis Milestone 5** (menunggu konfirmasi pemilik)
+
+- Sitemap dibangun dinamis dari database dan di-cache (bukan file statis). Cache dibuang otomatis setiap konten/settings berubah dan dibangun ulang harian (`sitemap:refresh`), jadi hasilnya sama dengan "regenerasi via observer + scheduler" di brief tanpa file yang bisa basi.
+- robots.txt production memblok URL berparameter filter (`?kawasan=`, `?tipe=`, `?kamar=`, `?harga=`, `?status=`, `?urut=`, `?kategori=`, `?q=`) sesuai brief 8.4. Halaman itu juga `noindex, follow`; karena diblok, Google umumnya tidak akan merayapinya sama sekali (yang memang tujuannya).
+- OG image default per tipe halaman berupa gambar statis bergaya brand di `public/og/` (Beranda, Properti, Kawasan, Detail Rumah, Fasilitas, Artikel, Tentang, Kontak, umum). Nama "Arunika Land" tertulis di gambar; kalau nama brand berubah, unggah OG default baru di Pengaturan Global → SEO default (menggantikan semua gambar bawaan) atau ganti file di `public/og/`.
+- Detail Rumah: `Residence` (cluster) berisi tiap tipe sebagai entitas ganda `Product` + `SingleFamilyResidence`, supaya `Offer` (harga mulai, IDR, ketersediaan) valid bersama `floorSize`/`numberOfRooms`.
+- `Organization` + `WebSite` dipasang di semua halaman; `RealEstateAgent` (kantor pemasaran) di Beranda dan Kontak.
+- Host kanonik diambil dari `APP_URL`: di production semua request http atau www/non-www yang berbeda di-301 ke sana.
+- Konten yang dihapus (soft delete) → 410 Gone, kecuali ada redirect di Redirect Manager.
+- Pratinjau draft baru untuk artikel (tombol "Pratinjau" di form artikel, URL bertanda tangan 1 jam, hanya Super Admin/Admin Konten, noindex). IndexNow (opsional di brief) belum dipasang.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

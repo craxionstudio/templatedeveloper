@@ -18,6 +18,8 @@ import type { PageMeta } from '@/types/site';
 
 type Props = {
     meta: PageMeta;
+    /** Pratinjau admin (draft boleh), noindex. */
+    preview?: boolean;
     breadcrumbs: Crumb[];
     article: ArticleCardData & {
         body: string | null;
@@ -75,6 +77,7 @@ function ShareButton({ label, title }: { label: string; title: string }) {
 
 export default function ArtikelShow({
     meta,
+    preview = false,
     breadcrumbs,
     article,
     display,
@@ -89,6 +92,15 @@ export default function ArtikelShow({
     return (
         <>
             <PageHead meta={meta} />
+            {preview ? (
+                <p
+                    role="status"
+                    className="sticky top-0 z-40 bg-ink px-5 py-2.5 text-center text-sm font-semibold text-ground"
+                >
+                    Pratinjau — hanya terlihat oleh admin, tidak diindeks mesin
+                    pencari.
+                </p>
+            ) : null}
             <article className="container-site flex flex-col gap-5 pt-4 pb-12 xl:items-center xl:gap-12 xl:pt-6 xl:pb-24">
                 <div className="w-full">
                     <Breadcrumbs items={breadcrumbs} />

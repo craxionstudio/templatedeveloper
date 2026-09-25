@@ -32,8 +32,9 @@ it('memakai lang="id" dan font self-host yang dipreload', function () {
 });
 
 it('memasang noindex di environment non-production', function () {
-    expect($this->get('/')->getContent())
-        ->toContain('<meta name="robots" content="noindex, nofollow">');
+    $this->get('/')
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+        ->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, nofollow'));
 });
 
 it('tidak menyediakan login atau registrasi pengunjung', function (string $path) {

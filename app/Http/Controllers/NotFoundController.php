@@ -14,7 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class NotFoundController extends Controller
 {
-    public static function render(Request $request): Response
+    /**
+     * 404 (tidak ada) atau 410 (sudah dihapus permanen) dengan status code asli.
+     */
+    public static function render(Request $request, int $status = 404): Response
     {
         $content = app(GlobalSettings::class)->section('not_found');
 
@@ -25,11 +28,11 @@ class NotFoundController extends Controller
         return Inertia::render('Errors/NotFound', [
             'meta' => PageMeta::make($content['title'], $content['message'], noindex: true),
             'content' => [
-                'eyebrow' => $content['eyebrow'],
+                'eyebrow' => $status === 410 ? '410' : $content['eyebrow'],
                 'title' => $content['title'],
                 'message' => $content['message'],
                 'links' => array_values($content['links'] ?? []),
             ],
-        ])->toResponse($request)->setStatusCode(404);
+        ])->toResponse($request)->setStatusCode($status);
     }
 }

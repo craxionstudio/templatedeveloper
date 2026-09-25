@@ -16,7 +16,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | 2   | Model & admin (migrasi, seeder dummy, Filament resource, settings per halaman)                                  | ✅ Selesai |
 | 3   | Halaman publik sesuai desain                                                                                    | ✅ Selesai |
 | 4   | Lead & tracking                                                                                                 | ✅ Selesai |
-| 5   | Technical SEO                                                                                                   | Belum      |
+| 5   | Technical SEO                                                                                                   | ✅ Selesai |
 | 6   | Performa                                                                                                        | Belum      |
 | 7   | QA                                                                                                              | Belum      |
 
@@ -195,6 +195,30 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
 - Listing, filter, kategori, pagination, dan toggle Cluster/Kawasan adalah link biasa (SSR, bisa di-crawl).
   "Muat lagi" di mobile memakai `Inertia::scroll()`; listing yang difilter diberi `noindex`.
 
+## Technical SEO
+
+- **Head per halaman** (`App\Support\PageMeta` → `components/site/page-head.tsx`, ikut di HTML SSR): title
+  (pola `{Judul} | {Brand}`, bisa di-override admin), description (±155 karakter), `robots`, canonical absolut,
+  Open Graph + Twitter Card, dan JSON-LD. Cek tanpa JavaScript: `curl -s http://localhost:8000/properti/vega-garden`.
+- **Canonical & robots:** canonical selalu tanpa query (`?tipe=`, filter, urut, pencarian), kecuali pagination
+  (`?page=2` self-canonical). Filter/urut/pencarian, `/terima-kasih`, dan pratinjau = `noindex, follow`.
+  Non-production: `noindex, nofollow` + header `X-Robots-Tag`, dan robots.txt `Disallow: /`.
+- **OG image:** gambar dari tab SEO > foto konten (galeri cluster, hero kawasan, cover artikel) > OG default di
+  Pengaturan Global → SEO default > gambar default per tipe halaman di `public/og/*.png` (1200×630).
+- **JSON-LD** (`App\Support\StructuredData`, spatie/schema-org): `Organization` + `WebSite` di semua halaman,
+  `RealEstateAgent` (kantor pemasaran, jam buka) di Beranda & Kontak, `BreadcrumbList` di semua halaman selain
+  Beranda, `ItemList` di kedua tampilan listing & Detail Kawasan, `Place` di Detail Kawasan, `Residence` berisi
+  tiap tipe (`Product` + `SingleFamilyResidence`, luas, kamar, `Offer` IDR) di Detail Rumah, `BlogPosting` di artikel.
+- **Sitemap:** `/sitemap.xml` (index) → `sitemap-pages.xml`, `sitemap-properti.xml`, `sitemap-artikel.xml`, dengan
+  `lastmod` dan image sitemap. Hanya konten yang dipublikasikan dan tidak `noindex`. XML di-cache dan dibuang otomatis
+  saat konten/settings berubah; `php artisan sitemap:refresh` jalan harian (scheduler).
+- **robots.txt** dinamis (production: blok `/admin`, `/livewire`, `/terima-kasih`, `/pratinjau`, URL berparameter
+  filter; cantumkan sitemap). **RSS:** `/artikel/feed.xml` (+ `<link rel="alternate">` di head).
+- **URL & status code** (`App\Http\Middleware\RedirectManager`, sebelum routing): http→https dan www ↔ non-www
+  mengikuti `APP_URL` (production), trailing slash & huruf kapital → 301, Redirect Manager (Sistem → Redirect: 301/302/410,
+  hit counter), slug lama → 301 otomatis. Konten dihapus → 410, tidak ada → 404 custom (status asli).
+- **Pratinjau draft artikel:** tombol "Pratinjau" di form artikel (URL bertanda tangan 1 jam, hanya admin konten, noindex).
+
 ## Lead & Tracking
 
 - **Form lead** (Detail Rumah sidebar/inline, modal "Jadwalkan Kunjungan/Survey", halaman Kontak) → `POST /lead`
@@ -230,6 +254,7 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
 - `app/Http/Controllers/` — controller yang mengirim data halaman ke Inertia
 - `app/Http/Controllers/LeadController.php`, `app/Http/Requests/` — simpan lead & validasi anti-spam
 - `app/Services/{MetaConversions,Turnstile}.php`, `app/Jobs/`, `app/Notifications/` — CAPI, Turnstile, webhook, email lead
+- `app/Support/{PageMeta,StructuredData,Sitemaps}.php`, `app/Http/Middleware/RedirectManager.php`, `app/Http/Controllers/SeoFileController.php` — meta/OG/canonical, JSON-LD, sitemap, redirect, robots, RSS
 - `app/Support/{Attribution,Tracking,Secret,Phone}.php` — cookie UTM, ID tracking, enkripsi rahasia, normalisasi WA
 - `resources/js/lib/analytics.ts`, `resources/js/components/lead/` — event analytics & form lead
 - `app/Presenters/` — bentuk data kartu (cluster, kawasan, artikel, fasilitas, gambar) untuk React
@@ -255,7 +280,8 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
 
 1. `composer install --no-dev --optimize-autoloader`
 2. `npm ci && npm run build`
-3. `.env` production: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://…`, lalu aktifkan
+3. `.env` production: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://…` (host kanonik: semua request
+   http atau www/non-www lain di-301 ke sini, jadi tulis persis domain yang dipilih), lalu aktifkan
    blok MySQL (`DB_CONNECTION=mysql` + kredensial) dan Redis (`CACHE_STORE`, `SESSION_DRIVER`,
    `QUEUE_CONNECTION`) yang sudah disiapkan di `.env.example`
 4. `php artisan migrate --force`
@@ -286,4 +312,5 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
     bundle baru) dan `php artisan queue:restart`.
 
 7. Scheduler: cron `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
+   (antara lain `sitemap:refresh` harian pukul 03.00)
 8. Setup SSL (Let's Encrypt) + HTTPS redirect.

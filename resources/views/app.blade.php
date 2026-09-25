@@ -5,9 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#F4F1EA">
 
-        @unless (app()->isProduction())
-            <meta name="robots" content="noindex, nofollow">
-        @endunless
+        {{-- robots, canonical, Open Graph, dan JSON-LD per halaman: resources/js/components/site/page-head.tsx --}}
+        <link rel="alternate" type="application/rss+xml" title="{{ app(\App\Settings\GlobalSettings::class)->section('identity')['brand_name'] }} — Artikel" href="{{ url('/artikel/feed.xml') }}">
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

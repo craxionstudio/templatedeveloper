@@ -133,3 +133,22 @@ it('tidak merender section listing yang dimatikan', function () {
 
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page->where('cta', null));
 });
+
+it('merender H1, canonical, dan JSON-LD di HTML awal lewat SSR (tanpa JavaScript)', function (string $path) {
+    $ssr = parse_url((string) config('inertia.ssr.url', 'http://127.0.0.1:13714'));
+    $socket = @fsockopen($ssr['host'] ?? '127.0.0.1', $ssr['port'] ?? 13714, $errno, $errstr, 0.5);
+
+    if (! $socket) {
+        $this->markTestSkipped('Server SSR tidak berjalan (php artisan inertia:start-ssr).');
+    }
+
+    fclose($socket);
+    $html = $this->get($path)->assertOk()->getContent();
+    $head = explode('</head>', $html)[0];
+
+    expect(substr_count($html, '<h1'))->toBe(1)
+        ->and($head)->toContain('rel="canonical"')
+        ->and($head)->toContain('application/ld+json')
+        ->and($head)->toContain('property="og:image"')
+        ->and($html)->toMatch('/<a [^>]*href="\/properti/');
+})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/arunika-garden', '/properti/vega-garden', '/fasilitas', '/artikel', '/artikel/5-hal-yang-perlu-dicek-sebelum-mengajukan-kpr-rumah-pertama', '/tentang-kami', '/kontak']);

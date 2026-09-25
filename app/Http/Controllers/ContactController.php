@@ -10,6 +10,7 @@ use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
 use App\Support\SiteLayout;
+use App\Support\StructuredData;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,9 +27,18 @@ class ContactController extends Controller
         $form = $settings->section('form');
         $contact = $global->section('contact');
 
+        $crumbs = Breadcrumbs::make([[$header['eyebrow']]]);
+
         return Inertia::render('Contact', [
-            'meta' => PageMeta::make($settings->section('seo')['meta_title'] ?: $header['eyebrow'], $header['description'], $settings->section('seo')),
-            'breadcrumbs' => Breadcrumbs::make([[$header['eyebrow']]]),
+            'meta' => PageMeta::make(
+                $settings->section('seo')['meta_title'] ?: $header['eyebrow'],
+                $header['description'],
+                $settings->section('seo'),
+                section: 'kontak',
+                breadcrumbs: $crumbs,
+                schema: [StructuredData::marketingOffice()],
+            ),
+            'breadcrumbs' => $crumbs,
             'header' => $header,
             'info' => $info['enabled'] ? [
                 'title' => $info['title'],

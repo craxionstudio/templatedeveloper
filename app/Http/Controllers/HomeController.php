@@ -18,6 +18,7 @@ use App\Settings\HomePageSettings;
 use App\Support\Cta;
 use App\Support\DataSource;
 use App\Support\PageMeta;
+use App\Support\StructuredData;
 use Illuminate\Database\Eloquent\Builder;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -29,7 +30,15 @@ class HomeController extends Controller
         $hero = $settings->section('hero');
 
         return Inertia::render('Home', [
-            'meta' => PageMeta::make($hero['title'], $settings->section('seo')['meta_description'], $settings->section('seo'), isHome: true),
+            'meta' => PageMeta::make(
+                $hero['title'],
+                $settings->section('seo')['meta_description'],
+                $settings->section('seo'),
+                isHome: true,
+                image: Image::path($hero['image'], null)['url'],
+                section: 'home',
+                schema: [StructuredData::marketingOffice()],
+            ),
             'hero' => $hero['enabled'] ? [
                 'eyebrow' => $hero['eyebrow'],
                 'title' => $hero['title'],

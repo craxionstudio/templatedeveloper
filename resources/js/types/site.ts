@@ -71,4 +71,23 @@ export type PageMeta = {
     title: string;
     description?: string | null;
     noindex?: boolean;
+    robots?: string;
+    canonical?: string;
+    og?: {
+        type: string;
+        title: string;
+        description: string | null;
+        url: string;
+        siteName: string;
+        locale: string;
+        image: string;
+        imageWidth: number | null;
+        imageHeight: number | null;
+    };
+    article?: {
+        publishedTime?: string;
+        modifiedTime?: string;
+        section?: string;
+    } | null;
+    jsonLd?: Record<string, unknown>[];
 };

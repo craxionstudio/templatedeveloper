@@ -16,6 +16,7 @@ use App\Support\DataSource;
 use App\Support\PageMeta;
 use App\Support\Rupiah;
 use App\Support\SiteLayout;
+use App\Support\StructuredData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,7 +31,11 @@ class ClusterController extends Controller
     {
         $cluster = Cluster::query()->published()->where('slug', $slug)
             ->with(['kawasan', 'seo', 'media', 'galleryItems.media', 'publishedHouseTypes.media'])
-            ->firstOrFail();
+            ->first();
+
+        // Cluster yang sudah dihapus → 410 Gone (kecuali ada redirect di Redirect Manager).
+        abort_if(! $cluster && Cluster::onlyTrashed()->where('slug', $slug)->exists(), 410);
+        abort_unless($cluster, 404);
 
         $types = $cluster->publishedHouseTypes;
         $selected = $types->firstWhere('slug', (string) $request->query('tipe')) ?? $types->first();
@@ -52,17 +57,25 @@ class ClusterController extends Controller
         $marketingWhatsapp = $cluster->marketing_whatsapp ?: ($form['marketing_whatsapp'] ?: $contact['whatsapp']);
         $whatsappTemplate = $form['whatsapp_message'];
 
+        $crumbs = Breadcrumbs::make(array_values(array_filter([
+            [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
+            $cluster->kawasan ? [$cluster->kawasan->name, $cluster->kawasan->publicPath()] : null,
+            [$cluster->name],
+        ])));
+        $images = $cluster->galleryItems->map(fn (GalleryItem $item) => $item->getFirstMediaUrl('image'))->filter()->values()->all();
+
         return Inertia::render('Cluster/Show', [
+            // ?tipe= tidak mengubah canonical (tetap /properti/{slug}).
             'meta' => PageMeta::make(
                 PageMeta::fill($seoPattern['title_pattern'], $values),
                 PageMeta::fill($seoPattern['description_pattern'], $values) ?: strip_tags((string) $cluster->description),
                 $cluster->seo?->toArray() ?? [],
+                image: $images[0] ?? null,
+                section: 'rumah',
+                breadcrumbs: $crumbs,
+                schema: [StructuredData::cluster($cluster, $types, $images)],
             ),
-            'breadcrumbs' => Breadcrumbs::make(array_values(array_filter([
-                [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
-                $cluster->kawasan ? [$cluster->kawasan->name, $cluster->kawasan->publicPath()] : null,
-                [$cluster->name],
-            ]))),
+            'breadcrumbs' => $crumbs,
             'cluster' => [
                 'id' => $cluster->id,
                 'name' => $cluster->name,

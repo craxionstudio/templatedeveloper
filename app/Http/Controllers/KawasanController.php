@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Presenters\ClusterCard;
 use App\Presenters\Image;
@@ -12,6 +13,7 @@ use App\Support\Breadcrumbs;
 use App\Support\Cta;
 use App\Support\PageMeta;
 use App\Support\Rupiah;
+use App\Support\StructuredData;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,7 +22,11 @@ class KawasanController extends Controller
     public function show(string $slug, KawasanDetailPageSettings $settings, ListingPageSettings $listing): Response
     {
         // Tidak dipublikasikan / tanpa cluster publik → 404.
-        $kawasan = Kawasan::query()->visible()->where('slug', $slug)->with(['seo', 'media', 'galleryItems.media'])->firstOrFail();
+        $kawasan = Kawasan::query()->visible()->where('slug', $slug)->with(['seo', 'media', 'galleryItems.media'])->first();
+
+        // Kawasan yang sudah dihapus → 410 Gone.
+        abort_if(! $kawasan && Kawasan::onlyTrashed()->where('slug', $slug)->exists(), 410);
+        abort_unless($kawasan, 404);
         $clusters = $kawasan->publishedClusters()->with(ClusterCard::with())->get();
         $typesCount = $clusters->sum('house_types_count');
 
@@ -31,17 +37,27 @@ class KawasanController extends Controller
         $seoPattern = $settings->section('seo');
         $values = ['name' => $kawasan->name, 'kawasan' => $kawasan->name, 'summary' => $kawasan->summary, 'clusters' => $clusters->count(), 'types' => $typesCount];
 
+        $crumbs = Breadcrumbs::make([
+            [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
+            [$listing->section('toggle')['kawasan_label'], '/properti/kawasan'],
+            [$kawasan->name],
+        ]);
+        $image = $kawasan->getFirstMediaUrl('hero') ?: null;
+
         return Inertia::render('Kawasan/Show', [
             'meta' => PageMeta::make(
                 PageMeta::fill($seoPattern['title_pattern'], $values),
                 PageMeta::fill($seoPattern['description_pattern'], $values),
                 $kawasan->seo?->toArray() ?? [],
+                image: $image,
+                section: 'kawasan',
+                breadcrumbs: $crumbs,
+                schema: [
+                    StructuredData::kawasan($kawasan, $image),
+                    StructuredData::itemList('Cluster di '.$kawasan->name, $clusters->map(fn (Cluster $c) => ['name' => $c->name, 'url' => $c->publicPath()])),
+                ],
             ),
-            'breadcrumbs' => Breadcrumbs::make([
-                [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
-                [$listing->section('toggle')['kawasan_label'], '/properti/kawasan'],
-                [$kawasan->name],
-            ]),
+            'breadcrumbs' => $crumbs,
             'kawasan' => [
                 'name' => $kawasan->name,
                 'summary' => $kawasan->summary,

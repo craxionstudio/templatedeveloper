@@ -2,9 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\Article;
+use App\Models\ArticleCategory;
+use App\Models\Cluster;
+use App\Models\GalleryItem;
+use App\Models\HouseType;
+use App\Models\Kawasan;
+use App\Models\SeoMeta;
 use App\Models\User;
 use App\Support\AdminAccess;
 use App\Support\DummyData;
+use App\Support\Sitemaps;
 use Carbon\CarbonImmutable;
 use Closure;
 use Filament\Forms\Components\Field;
@@ -13,10 +21,12 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Spatie\LaravelSettings\Events\SettingsSaved;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +50,21 @@ class AppServiceProvider extends ServiceProvider
         $this->registerFilamentMacros();
 
         $this->configureRateLimiting();
+
+        $this->flushSitemapOnChange();
+    }
+
+    /**
+     * Sitemap di-cache; dibuang setiap konten publik atau settings halaman berubah (brief 8.4 & 7A).
+     */
+    protected function flushSitemapOnChange(): void
+    {
+        foreach ([Article::class, ArticleCategory::class, Cluster::class, GalleryItem::class, HouseType::class, Kawasan::class, SeoMeta::class] as $model) {
+            $model::saved(fn () => Sitemaps::flush());
+            $model::deleted(fn () => Sitemaps::flush());
+        }
+
+        Event::listen(SettingsSaved::class, fn () => Sitemaps::flush());
     }
 
     /**
