@@ -4,6 +4,7 @@ import Breadcrumbs from '@/components/site/breadcrumbs';
 import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
+import PreviewBanner from '@/components/site/preview-banner';
 import Picture from '@/components/site/picture';
 import RichText from '@/components/site/rich-text';
 import SmartLink from '@/components/site/smart-link';

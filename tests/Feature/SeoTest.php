@@ -234,10 +234,12 @@ it('membedakan robots.txt production dan non-production', function () {
         ->toContain('Disallow: /admin')
         ->toContain('Disallow: /livewire')
         ->toContain('Disallow: /terima-kasih')
-        ->toContain('Disallow: /*?kawasan=')
-        ->toContain('Disallow: /*?urut=')
         ->toContain('Sitemap: '.url('/sitemap.xml'))
-        ->not->toContain("Disallow: /\n");
+        ->not->toContain("Disallow: /\n")
+        // URL filter/urutan/pencarian tidak diblok, supaya noindex + canonical-nya terbaca.
+        ->not->toContain('?')
+        ->not->toContain('kawasan=')
+        ->not->toContain('urut=');
 });
 
 it('menyediakan RSS artikel yang valid dan tertaut dari head', function () {
@@ -336,4 +338,46 @@ it('menyusun title dari pola settings dan override meta title admin', function (
 
     $settings = app(GlobalSettings::class);
     expect($settings->section('seo')['title_pattern'])->toContain('{title}');
+});
+
+it('menampilkan pratinjau cluster & kawasan yang belum dipublikasikan untuk admin', function (string $route, string $parameter, Closure $record, string $component, string $publicPath) {
+    $model = $record();
+    $model->update(['is_published' => false]);
+    $url = URL::temporarySignedRoute($route, now()->addHour(), [$parameter => $model]);
+
+    $this->get($publicPath)->assertNotFound();
+    $this->get($url)->assertForbidden();
+
+    $this->actingAs(User::query()->where('email', 'konten@example.com')->firstOrFail());
+    $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->component($component)
+        ->where('preview', true)
+        ->where('meta.noindex', true)
+        ->where('meta.canonical', url($publicPath)));
+
+    // Tanpa tanda tangan atau sudah kedaluwarsa: ditolak.
+    $this->get(route($route, [$parameter => $model]))->assertForbidden();
+    $this->travel(61)->minutes();
+    $this->get($url)->assertForbidden();
+})->with([
+    'cluster' => ['cluster.preview', 'cluster', fn () => Cluster::query()->where('slug', 'vega-garden')->firstOrFail(), 'Cluster/Show', '/properti/vega-garden'],
+    'kawasan' => ['kawasan.preview', 'kawasan', fn () => Kawasan::query()->where('slug', 'arunika-hills')->firstOrFail(), 'Kawasan/Show', '/properti/kawasan/arunika-hills'],
+]);
+
+it('menampilkan tipe yang belum dipublikasikan di pratinjau cluster', function () {
+    $cluster = Cluster::query()->where('slug', 'vega-garden')->firstOrFail();
+    $cluster->houseTypes()->where('slug', 'rigel')->update(['is_published' => false]);
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page->has('types', 2));
+    $this->get(URL::temporarySignedRoute('cluster.preview', now()->addHour(), ['cluster' => $cluster]))
+        ->assertInertia(fn (Assert $page) => $page->has('types', 3));
+});
+
+it('menampilkan tombol Pratinjau di form admin artikel, cluster, dan kawasan', function () {
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    $this->get('/admin/clusters/'.Cluster::query()->value('id').'/edit')->assertOk()->assertSee('Pratinjau')->assertSee('/pratinjau/properti/', false);
+    $this->get('/admin/kawasans/'.Kawasan::query()->value('id').'/edit')->assertOk()->assertSee('/pratinjau/kawasan/', false);
+    $this->get('/admin/articles/'.Article::query()->value('id').'/edit')->assertOk()->assertSee('/pratinjau/artikel/', false);
 });

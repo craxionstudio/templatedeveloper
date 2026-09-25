@@ -39,8 +39,12 @@ Route::get('/kontak', ContactController::class)->name('kontak');
 Route::get('/kebijakan-privasi', [LegalController::class, 'privacy'])->name('privasi');
 Route::get('/terima-kasih', [LegalController::class, 'thankYou'])->name('terima-kasih');
 
-// Pratinjau draft artikel untuk admin: URL bertanda tangan (sementara), selalu noindex.
-Route::get('/pratinjau/artikel/{article}', [ArticleController::class, 'preview'])->middleware('signed')->name('artikel.preview');
+// Pratinjau draft untuk admin: URL bertanda tangan (1 jam, dari tombol "Pratinjau" di form admin), selalu noindex.
+Route::middleware('signed')->prefix('pratinjau')->group(function () {
+    Route::get('/artikel/{article}', [ArticleController::class, 'preview'])->name('artikel.preview');
+    Route::get('/properti/{cluster}', [ClusterController::class, 'preview'])->name('cluster.preview');
+    Route::get('/kawasan/{kawasan}', [KawasanController::class, 'preview'])->name('kawasan.preview');
+});
 
 // Form publik (Milestone 4): honeypot + Turnstile di FormRequest, rate limit per IP di sini.
 Route::post('/lead', [LeadController::class, 'store'])->middleware('throttle:leads')->name('lead.store');

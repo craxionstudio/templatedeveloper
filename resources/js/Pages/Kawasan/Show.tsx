@@ -3,6 +3,7 @@ import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
 import { ContentIcon } from '@/components/site/icons';
 import { KawasanCardCompact } from '@/components/site/kawasan-card';
+import PreviewBanner from '@/components/site/preview-banner';
 import PageHead from '@/components/site/page-head';
 import RichText from '@/components/site/rich-text';
 import {
@@ -23,6 +24,8 @@ import type { PageMeta } from '@/types/site';
 
 type Props = {
     meta: PageMeta;
+    /** Pratinjau admin (boleh belum dipublikasikan), noindex. */
+    preview?: boolean;
     breadcrumbs: Crumb[];
     kawasan: { name: string; summary: string | null; image: ImageData };
     hero: { eyebrow: string; stats: Stat[] };
@@ -64,6 +67,7 @@ export default function KawasanShow({
     clusters,
     others,
     cta,
+    preview = false,
 }: Props) {
     const buttons =
         about && (about.brochure || about.mapUrl) ? (
@@ -94,6 +98,7 @@ export default function KawasanShow({
     return (
         <>
             <PageHead meta={meta} />
+            <PreviewBanner show={preview} />
             <ListingHeader
                 breadcrumbs={breadcrumbs}
                 header={{

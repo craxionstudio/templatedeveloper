@@ -106,16 +106,17 @@ Dikonfirmasi pemilik 25 Sep 2026:
 - Batas per nomor WA memakai **24 jam terakhir** (rolling), bukan reset tengah malam, supaya tidak bisa diakali dengan submit menjelang pukul 00.00.
 - First-touch diambil dari **kunjungan pertama yang membawa UTM**. Kunjungan pertama yang sebenarnya (termasuk tanpa UTM) tetap tercatat di `landing_page`.
 
-**Keputusan teknis Milestone 5** (menunggu konfirmasi pemilik)
+**Keputusan Milestone 5** (dikonfirmasi pemilik 25 Sep 2026)
 
-- Sitemap dibangun dinamis dari database dan di-cache (bukan file statis). Cache dibuang otomatis setiap konten/settings berubah dan dibangun ulang harian (`sitemap:refresh`), jadi hasilnya sama dengan "regenerasi via observer + scheduler" di brief tanpa file yang bisa basi.
-- robots.txt production memblok URL berparameter filter (`?kawasan=`, `?tipe=`, `?kamar=`, `?harga=`, `?status=`, `?urut=`, `?kategori=`, `?q=`) sesuai brief 8.4. Halaman itu juga `noindex, follow`; karena diblok, Google umumnya tidak akan merayapinya sama sekali (yang memang tujuannya).
-- OG image default per tipe halaman berupa gambar statis bergaya brand di `public/og/` (Beranda, Properti, Kawasan, Detail Rumah, Fasilitas, Artikel, Tentang, Kontak, umum). Nama "Arunika Land" tertulis di gambar; kalau nama brand berubah, unggah OG default baru di Pengaturan Global → SEO default (menggantikan semua gambar bawaan) atau ganti file di `public/og/`.
-- Detail Rumah: `Residence` (cluster) berisi tiap tipe sebagai entitas ganda `Product` + `SingleFamilyResidence`, supaya `Offer` (harga mulai, IDR, ketersediaan) valid bersama `floorSize`/`numberOfRooms`.
-- `Organization` + `WebSite` dipasang di semua halaman; `RealEstateAgent` (kantor pemasaran) di Beranda dan Kontak.
-- Host kanonik diambil dari `APP_URL`: di production semua request http atau www/non-www yang berbeda di-301 ke sana.
-- Konten yang dihapus (soft delete) → 410 Gone, kecuali ada redirect di Redirect Manager.
-- Pratinjau draft baru untuk artikel (tombol "Pratinjau" di form artikel, URL bertanda tangan 1 jam, hanya Super Admin/Admin Konten, noindex). IndexNow (opsional di brief) belum dipasang.
+1. Sitemap dibangun dinamis dari database dan di-cache (bukan file statis). Cache dibuang otomatis setiap konten/settings berubah dan dibangun ulang harian (`sitemap:refresh`).
+2. **Koreksi brief 8.4:** robots.txt **tidak** memblok URL filter/urutan/pencarian. Kalau diblok, Google tidak bisa membaca noindex-nya dan URL itu tetap bisa terindeks tanpa isi. Halaman itu cukup memakai meta robots `noindex, follow` + canonical ke versi tanpa query. robots.txt production tetap memblok `/admin`, `/livewire`, dan `/terima-kasih` (`/pratinjau` juga tidak diblok: URL-nya bertanda tangan, menolak akses tanpa login admin, dan selalu `noindex`).
+3. OG image default per tipe halaman berupa gambar statis bergaya brand di `public/og/` (nama brand tertulis di gambar). Kalau nama brand berubah, unggah OG default baru di Pengaturan Global → SEO default.
+4. Host kanonik diambil dari `APP_URL`; di production semua request http atau www/non-www yang berbeda di-301 ke sana. Domain final diisi pemilik saat deploy (catatan di README bagian deploy).
+5. `Organization` + `WebSite` di semua halaman; `RealEstateAgent` (kantor pemasaran) di Beranda dan Kontak.
+6. Pratinjau untuk artikel, cluster, dan kawasan (termasuk yang belum dipublikasikan): tombol "Pratinjau" di form admin, URL bertanda tangan 1 jam, hanya Super Admin/Admin Konten, `noindex`. Pratinjau cluster juga menampilkan tipe yang belum dipublikasikan.
+7. IndexNow tidak dipasang.
+
+Catatan teknis lain: Detail Rumah memakai `Residence` (cluster) berisi tiap tipe sebagai entitas ganda `Product` + `SingleFamilyResidence` supaya `Offer` valid bersama `floorSize`/`numberOfRooms`. Konten yang dihapus (soft delete) → 410 Gone, kecuali ada redirect di Redirect Manager.
 
 ---
 

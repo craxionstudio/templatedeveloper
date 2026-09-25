@@ -20,6 +20,7 @@ import Breadcrumbs from '@/components/site/breadcrumbs';
 import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
+import PreviewBanner from '@/components/site/preview-banner';
 import PageHead from '@/components/site/page-head';
 import RichText from '@/components/site/rich-text';
 import SmartLink from '@/components/site/smart-link';
@@ -35,6 +36,8 @@ import type { PageMeta } from '@/types/site';
 
 type Props = {
     meta: PageMeta;
+    /** Pratinjau admin (boleh belum dipublikasikan), noindex. */
+    preview?: boolean;
     breadcrumbs: Crumb[];
     cluster: {
         id: number;
@@ -105,6 +108,7 @@ export default function ClusterShow(props: Props) {
         mobileBar,
         others,
         cta,
+        preview = false,
     } = props;
     const { labels } = usePage().props.site;
     const [selectedSlug, setSelectedSlug] = useState(
@@ -175,6 +179,7 @@ export default function ClusterShow(props: Props) {
     return (
         <>
             <PageHead meta={meta} />
+            <PreviewBanner show={preview} />
 
             <div className="container-site flex flex-col gap-3 pt-3 md:gap-4 md:pt-4 xl:gap-6 xl:pt-6">
                 <Breadcrumbs items={breadcrumbs} compact />

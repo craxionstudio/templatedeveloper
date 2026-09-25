@@ -19,6 +19,7 @@ use App\Support\SiteLayout;
 use App\Support\StructuredData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,7 +38,26 @@ class ClusterController extends Controller
         abort_if(! $cluster && Cluster::onlyTrashed()->where('slug', $slug)->exists(), 410);
         abort_unless($cluster, 404);
 
-        $types = $cluster->publishedHouseTypes;
+        return $this->page($request, $cluster, $cluster->publishedHouseTypes, $settings, $global);
+    }
+
+    /**
+     * Pratinjau admin (termasuk cluster/tipe yang belum dipublikasikan): URL bertanda tangan, noindex.
+     */
+    public function preview(Request $request, Cluster $cluster, ClusterDetailPageSettings $settings, GlobalSettings $global): Response
+    {
+        abort_unless(auth()->user()?->canManageContent(), 403);
+
+        $cluster->load(['kawasan', 'seo', 'media', 'galleryItems.media', 'houseTypes.media']);
+
+        return $this->page($request, $cluster, $cluster->houseTypes->sortBy('sort_order')->values(), $settings, $global, preview: true);
+    }
+
+    /**
+     * @param  Collection<int, HouseType>  $types
+     */
+    private function page(Request $request, Cluster $cluster, Collection $types, ClusterDetailPageSettings $settings, GlobalSettings $global, bool $preview = false): Response
+    {
         $selected = $types->firstWhere('slug', (string) $request->query('tipe')) ?? $types->first();
 
         $sections = $settings->section('sections');
@@ -69,12 +89,14 @@ class ClusterController extends Controller
             'meta' => PageMeta::make(
                 PageMeta::fill($seoPattern['title_pattern'], $values),
                 PageMeta::fill($seoPattern['description_pattern'], $values) ?: strip_tags((string) $cluster->description),
-                $cluster->seo?->toArray() ?? [],
+                [...($cluster->seo?->toArray() ?? []), 'canonical_url' => $cluster->seo?->canonical_url ?: $cluster->publicPath()],
+                noindex: $preview,
                 image: $images[0] ?? null,
                 section: 'rumah',
                 breadcrumbs: $crumbs,
                 schema: [StructuredData::cluster($cluster, $types, $images)],
             ),
+            'preview' => $preview,
             'breadcrumbs' => $crumbs,
             'cluster' => [
                 'id' => $cluster->id,

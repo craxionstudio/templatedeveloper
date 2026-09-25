@@ -109,6 +109,7 @@ return [
     'labels' => [
         'skip_to_content' => 'Langsung ke konten utama',
         'address' => 'Alamat',
+        'preview_notice' => 'Pratinjau: hanya terlihat oleh admin dan tidak diindeks mesin pencari.',
         'form_name' => 'Nama',
         'form_name_placeholder' => 'Nama lengkap',
         'form_whatsapp' => 'WhatsApp',

@@ -27,6 +27,24 @@ class KawasanController extends Controller
         // Kawasan yang sudah dihapus → 410 Gone.
         abort_if(! $kawasan && Kawasan::onlyTrashed()->where('slug', $slug)->exists(), 410);
         abort_unless($kawasan, 404);
+
+        return $this->page($kawasan, $settings, $listing);
+    }
+
+    /**
+     * Pratinjau admin (termasuk kawasan yang belum dipublikasikan): URL bertanda tangan, noindex.
+     */
+    public function preview(Kawasan $kawasan, KawasanDetailPageSettings $settings, ListingPageSettings $listing): Response
+    {
+        abort_unless(auth()->user()?->canManageContent(), 403);
+
+        $kawasan->load(['seo', 'media', 'galleryItems.media']);
+
+        return $this->page($kawasan, $settings, $listing, preview: true);
+    }
+
+    private function page(Kawasan $kawasan, KawasanDetailPageSettings $settings, ListingPageSettings $listing, bool $preview = false): Response
+    {
         $clusters = $kawasan->publishedClusters()->with(ClusterCard::with())->get();
         $typesCount = $clusters->sum('house_types_count');
 
@@ -48,7 +66,8 @@ class KawasanController extends Controller
             'meta' => PageMeta::make(
                 PageMeta::fill($seoPattern['title_pattern'], $values),
                 PageMeta::fill($seoPattern['description_pattern'], $values),
-                $kawasan->seo?->toArray() ?? [],
+                [...($kawasan->seo?->toArray() ?? []), 'canonical_url' => $kawasan->seo?->canonical_url ?: $kawasan->publicPath()],
+                noindex: $preview,
                 image: $image,
                 section: 'kawasan',
                 breadcrumbs: $crumbs,
@@ -57,6 +76,7 @@ class KawasanController extends Controller
                     StructuredData::itemList('Cluster di '.$kawasan->name, $clusters->map(fn (Cluster $c) => ['name' => $c->name, 'url' => $c->publicPath()])),
                 ],
             ),
+            'preview' => $preview,
             'breadcrumbs' => $crumbs,
             'kawasan' => [
                 'name' => $kawasan->name,

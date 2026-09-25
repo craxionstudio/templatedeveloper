@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\PropertyListingController as Listing;
 use App\Models\Article;
 use App\Settings\ArticleIndexPageSettings;
 use App\Settings\GlobalSettings;
@@ -29,7 +28,9 @@ class SeoFileController extends Controller
     }
 
     /**
-     * Production: izinkan crawl, blok admin/Livewire/terima kasih/URL berparameter filter.
+     * Production: izinkan crawl, blok /admin, /livewire, /terima-kasih. URL filter/urutan/pencarian
+     * SENGAJA tidak diblok: Google harus bisa merayapinya untuk membaca meta robots
+     * "noindex, follow" + canonical ke versi tanpa query (keputusan pemilik, koreksi brief 8.4).
      * Non-production: blok semuanya.
      */
     public function robots(): Response
@@ -38,17 +39,12 @@ class SeoFileController extends Controller
             return $this->text("User-agent: *\nDisallow: /\n");
         }
 
-        $filters = collect([...Listing::FILTERS, 'urut', 'kategori', 'q'])
-            ->flatMap(fn (string $param) => ["Disallow: /*?{$param}=", "Disallow: /*&{$param}="]);
-
         $lines = [
             'User-agent: *',
             'Allow: /',
             'Disallow: /admin',
             'Disallow: /livewire',
             'Disallow: /terima-kasih',
-            'Disallow: /pratinjau',
-            ...$filters,
             '',
             'Sitemap: '.StructuredData::url('/sitemap.xml'),
         ];
