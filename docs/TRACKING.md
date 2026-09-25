@@ -144,6 +144,8 @@ Kolom **Meta Pixel ID di admin dikosongkan.** Kolom **Pixel ID untuk Conversions
 
 Tag *Google Ads Conversion Tracking* dengan trigger `CE - generate_lead`. `gclid` sudah tersimpan di setiap lead (kolom `gclid`) untuk offline conversion import.
 
+Tambahkan juga domain Google Ads di **Domain tambahan CSP** (lihat "Menambah tag baru di GTM" di bawah).
+
 ## Deduplikasi Pixel + Conversions API
 
 Setiap lead mendapat `event_id` (UUID) saat disimpan di server. Nilai yang sama dipakai di tiga tempat:
@@ -164,7 +166,61 @@ Data pribadi yang dikirim CAPI (nomor WA, email, nama) dinormalisasi lalu di-has
 
 ## Content-Security-Policy
 
-Halaman publik memakai CSP dengan nonce + `'strict-dynamic'`. GTM dimuat oleh script bertanda nonce, jadi tag yang disisipkan GTM (termasuk Custom HTML Pixel di atas) ikut dipercaya. Pengecualiannya: tag yang memakai **`document.write`** (opsi "Support document.write" di GTM) akan diblok. Jangan aktifkan opsi itu. Kalau ada tag pihak ketiga yang error di Console dengan pesan *Content Security Policy*, catat pesannya untuk disesuaikan (sementara bisa `CSP_ENABLED=false`).
+Halaman publik memakai CSP (Content-Security-Policy) yang membatasi dari mana browser boleh memuat script, mengirim data, menampilkan gambar, dan membuka iframe:
+
+- **Script:** nonce + `'strict-dynamic'`. GTM dimuat oleh script bertanda nonce, jadi script yang disisipkan GTM (termasuk Custom HTML Pixel di atas) ikut dipercaya oleh browser modern. Pengecualiannya: tag yang memakai **`document.write`** (opsi "Support document.write" di GTM) diblok. Jangan aktifkan opsi itu.
+- **Kirim data (`connect-src`), gambar/piksel (`img-src`), iframe (`frame-src`):** hanya domain yang ada di daftar. Bawaan sudah mencakup GTM, GA4, Meta Pixel, Cloudflare Turnstile, Google Maps, dan YouTube (daftar lengkap: `App\Support\CspSources::DEFAULTS`). Domain embed peta di halaman Kontak dan domain CDN/bucket foto ditambahkan otomatis.
+
+Domain lain ditambahkan lewat **Admin → Pengaturan Global → Tracking & verifikasi → Domain tambahan CSP** (Super Admin saja).
+
+## Menambah tag baru di GTM
+
+Setiap tag pihak ketiga baru (TikTok Pixel, Google Ads, Hotjar, LinkedIn Insight, dll.) mengirim data atau memuat gambar/iframe dari domainnya sendiri. Domain itu **harus ditambahkan** di field **Domain tambahan CSP**; kalau tidak, tag terlihat "jalan" di GTM Preview tetapi datanya diblok browser dan tidak pernah sampai ke platform iklan.
+
+Langkah:
+
+1. Buat dan uji tag di GTM seperti biasa (Preview), lalu buka website dari mode Preview.
+2. Buka **Console** browser (Chrome: klik kanan → Inspect → tab Console, atau `F12`) dan picu event-nya (buka halaman, kirim form, dsb.).
+3. Cari pesan merah yang memuat **Content Security Policy**, misalnya:
+
+   ```text
+   Refused to connect to 'https://analytics.tiktok.com/api/v2/pixel' because it violates the following
+   Content Security Policy directive: "connect-src 'self' https://www.googletagmanager.com …".
+
+   Refused to load the image 'https://analytics.tiktok.com/i.gif' because it violates the following
+   Content Security Policy directive: "img-src 'self' data: blob: …".
+   ```
+
+   Kata setelah *directive:* (`connect-src`, `img-src`, `frame-src`, `script-src`) = kolom yang harus diisi; domain di awal pesan = yang harus ditambahkan.
+4. Isi domainnya di kolom yang sesuai (cukup nama domain, mis. `analytics.tiktok.com`; tekan Enter setelah tiap domain), lalu **Simpan**. CSP berlaku di request berikutnya.
+5. Muat ulang halaman dan pastikan tidak ada lagi pesan CSP. Cek juga di tab **Network** bahwa request ke platform tersebut berstatus 200/204.
+
+Aturan isian (divalidasi saat disimpan): hanya nama domain atau `https://domain[:port]`. **Tidak boleh** wildcard `*`, kata kunci seperti `'unsafe-eval'`/`'unsafe-inline'`, `http://`, atau path. Kalau sebuah layanan memakai banyak subdomain, tambahkan satu per satu sesuai yang muncul di Console.
+
+### Contoh: TikTok Pixel
+
+| Kolom | Domain |
+|---|---|
+| script-src | `analytics.tiktok.com` |
+| connect-src | `analytics.tiktok.com`, `analytics-ipv6.tiktok.com` |
+| img-src | `analytics.tiktok.com` |
+
+### Contoh: Google Ads (konversi & remarketing)
+
+| Kolom | Domain |
+|---|---|
+| script-src | `www.googleadservices.com`, `googleads.g.doubleclick.net` |
+| connect-src | `www.googleadservices.com`, `googleads.g.doubleclick.net` |
+| img-src | `www.googleadservices.com`, `googleads.g.doubleclick.net`, `www.google.co.id` |
+| frame-src | `bid.g.doubleclick.net` |
+
+(`td.doubleclick.net`, `www.google.com`, dan `*.g.doubleclick.net` untuk connect/img sudah termasuk bawaan.)
+
+### Catatan layanan lain
+
+- **Hotjar / Microsoft Clarity** memakai koneksi WebSocket (`wss://`) dan banyak subdomain; field ini hanya menerima `https://` tanpa wildcard, jadi pemasangannya perlu penyesuaian kode oleh developer.
+- Nama domain dari penyedia bisa berubah. Selalu cocokkan dengan pesan di Console, bukan hanya dengan tabel di atas.
+- Darurat (tag penting error dan belum sempat ditangani): `CSP_ENABLED=false` di `.env` mematikan CSP sementara. Aktifkan lagi setelah domain ditambahkan.
 
 ## Cara menguji
 

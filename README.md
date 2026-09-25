@@ -299,10 +299,14 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
   bundle Vite dan loader tracking (bertanda nonce) yang boleh jalan, dan script yang mereka muat (GTM, Pixel,
   Turnstile, chunk halaman) ikut dipercaya. Default aktif di semua environment selain `local` (`CSP_ENABLED`).
   Admin Filament tidak diberi CSP. Tag GTM Custom HTML jangan memakai "Support document.write".
+  `connect-src`/`img-src`/`frame-src` memakai daftar domain (bawaan GTM, GA4, Meta, Turnstile, Google Maps, YouTube) +
+  **Domain tambahan CSP** di Pengaturan Global → Tracking & verifikasi. Tag baru di GTM (TikTok, Google Ads, …)
+  perlu domainnya ditambahkan di sana (`docs/TRACKING.md` → "Menambah tag baru di GTM").
 - **Rich text** disanitasi saat disimpan dan saat dikirim ke browser (`App\Support\RichText`, hanya tag yang diizinkan).
 - **Backup** harian database + file unggahan (`spatie/laravel-backup`): `backup:run` 01.30, `backup:clean` 01.00,
   `backup:monitor` 09.00. Tujuan `BACKUP_DISKS` (default `local` → `storage/app/private`), email hanya kalau gagal
-  (`BACKUP_NOTIFICATION_EMAIL`). MySQL butuh `mysqldump` di server.
+  (`BACKUP_NOTIFICATION_EMAIL`). MySQL butuh `mysqldump` di server. Tambahkan disk di luar server
+  (`BACKUP_DISKS=local,s3`, mis. Cloudflare R2 / Backblaze B2 — env di `docs/CHECKLIST-LAUNCH.md`).
 - **Cek SSR semua URL sitemap** (status, satu H1, canonical, robots, og:image, JSON-LD valid):
 
     ```bash

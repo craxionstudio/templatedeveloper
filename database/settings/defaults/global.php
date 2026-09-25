@@ -97,6 +97,14 @@ return [
         'meta_capi_token' => '',
         // Opsional: kode "Test events" dari Meta Events Manager untuk uji coba CAPI.
         'meta_test_event_code' => '',
+        // Domain tambahan CSP halaman publik per direktif (https://domain), digabung ke bawaan
+        // App\Support\CspSources. Lihat docs/TRACKING.md "Menambah tag baru di GTM".
+        'csp_extra' => [
+            'script_src' => [],
+            'connect_src' => [],
+            'img_src' => [],
+            'frame_src' => [],
+        ],
     ],
 
     'notifications' => [

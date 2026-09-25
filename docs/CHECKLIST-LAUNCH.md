@@ -18,7 +18,34 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 - [ ] **Queue worker** jalan terus lewat Supervisor (`php artisan queue:work`). Tanpa worker: email lead tidak terkirim, event CAPI tidak dikirim, dan foto tidak dibuatkan versi AVIF/WebP.
 - [ ] **SSR** jalan terus lewat Supervisor (`php artisan inertia:start-ssr`). Cek: `curl -s https://domain/ | grep "<h1"` harus mengembalikan judul.
 - [ ] **Scheduler cron:** `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`. Isinya: sitemap harian, backup harian 01.30, pembersihan backup, dan monitor backup.
-- [ ] **Backup:** `mysqldump` tersedia di server. `BACKUP_NOTIFICATION_EMAIL` diisi. Disarankan backup disimpan juga di luar server (`BACKUP_DISKS=local,s3` + kredensial S3/Spaces). Tes sekali: `php artisan backup:run`.
+- [ ] **Backup:** `mysqldump` tersedia di server dan `BACKUP_NOTIFICATION_EMAIL` diisi.
+- [ ] **Backup di luar server** (wajib: kalau server rusak, backup `local` ikut hilang). Pilihan murah yang kompatibel S3 (driver `s3` sudah terpasang):
+  - **Cloudflare R2**: tanpa biaya egress, gratis 10 GB/bulan. Dashboard Cloudflare → R2 → buat bucket (mis. `arunika-backup`) → *Manage R2 API Tokens* → token dengan izin *Object Read & Write* untuk bucket itu.
+
+    ```dotenv
+    BACKUP_DISKS=local,s3
+    AWS_ACCESS_KEY_ID=<access key id token R2>
+    AWS_SECRET_ACCESS_KEY=<secret access key token R2>
+    AWS_DEFAULT_REGION=auto
+    AWS_BUCKET=arunika-backup
+    AWS_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+    AWS_USE_PATH_STYLE_ENDPOINT=true
+    ```
+
+  - **Backblaze B2**: murah per GB, gratis 10 GB. Buat bucket **private** → *Application Keys* → key khusus bucket itu. Region & endpoint tertulis di detail bucket (mis. `s3.us-west-004.backblazeb2.com`).
+
+    ```dotenv
+    BACKUP_DISKS=local,s3
+    AWS_ACCESS_KEY_ID=<keyID>
+    AWS_SECRET_ACCESS_KEY=<applicationKey>
+    AWS_DEFAULT_REGION=us-west-004
+    AWS_BUCKET=arunika-backup
+    AWS_ENDPOINT=https://s3.us-west-004.backblazeb2.com
+    AWS_USE_PATH_STYLE_ENDPOINT=true
+    ```
+
+  - Bucket harus **private** (jangan publik). Jalankan `php artisan config:clear`, lalu tes: `php artisan backup:run`, lalu `php artisan backup:list` harus menampilkan backup di disk `local` **dan** `s3`. Cek juga file `.zip`-nya muncul di bucket.
+  - Aturan penghapusan backup lama (`backup:clean`, default: semua 7 hari, harian 16 hari, lalu mingguan/bulanan) berlaku juga di bucket.
 - [ ] Redis untuk cache/session/queue (opsional, disarankan): `CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION`.
 - [ ] Web server: kompresi gzip/brotli + cache aset `/build/*` 1 tahun (contoh nginx di README). Kalau pakai Cloudflare: Brotli, HTTP/3, "Always Use HTTPS"; jangan cache HTML di edge.
 
@@ -45,7 +72,8 @@ Panduan lengkap: `docs/TRACKING.md`.
 - [ ] **Pixel ID untuk Conversions API** (Pixel yang sama dengan di GTM) + **access token CAPI** (Events Manager → Settings → Conversions API → Generate access token).
 - [ ] Uji deduplikasi: isi **Test event code**, kirim form lead, lalu di Events Manager → Test events harus muncul `Lead` dari Browser dan dari Server dengan status *Deduplicated*. **Kosongkan** test event code setelah selesai.
 - [ ] GA4: tandai `generate_lead` sebagai *Key event*. Kalau ada Google Ads, impor konversinya.
-- [ ] Tag GTM Custom HTML **jangan** memakai opsi "Support document.write" (diblok CSP). Kalau ada tag pihak ketiga yang error di Console karena Content-Security-Policy, catat pesan errornya untuk disesuaikan.
+- [ ] Tag GTM Custom HTML **jangan** memakai opsi "Support document.write" (diblok CSP).
+- [ ] Setiap tag pihak ketiga selain GA4/Meta (TikTok Pixel, Google Ads, dll.): tambahkan domainnya di **Tracking & verifikasi → Domain tambahan CSP**, lalu pastikan tidak ada pesan *Content Security Policy* di Console browser (langkah & contoh domain: `docs/TRACKING.md` → "Menambah tag baru di GTM").
 
 ## 5. Anti-spam & notifikasi lead
 

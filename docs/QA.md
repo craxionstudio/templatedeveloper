@@ -74,7 +74,7 @@ Ukur ulang dengan PageSpeed Insights setelah foto asli dan ID tracking diisi (ak
 ## 6. Keamanan
 
 - Header di semua respons (termasuk admin): `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`; HSTS di production (HTTPS).
-- **CSP** halaman publik: nonce per request + `'strict-dynamic'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`. Nonce diganti baru juga untuk halaman dari cache. Diuji di browser: 0 pelanggaran CSP di semua halaman, navigasi client, modal, dan submit form (dengan GTM/Pixel aktif). Admin Filament tidak diberi CSP (Alpine/Livewire).
+- **CSP** halaman publik: nonce per request + `'strict-dynamic'`, `connect-src`/`img-src`/`frame-src` berupa daftar domain (bawaan + Domain tambahan CSP dari admin, input divalidasi), `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`. Nonce diganti baru juga untuk halaman dari cache. Diuji di browser: 0 pelanggaran CSP di semua halaman, navigasi client, modal, dan submit form (dengan GTM/Pixel aktif). Admin Filament tidak diberi CSP (Alpine/Livewire).
 - Rich text disanitasi saat disimpan **dan** saat dikirim ke browser (artikel, deskripsi cluster/kawasan, sejarah, kebijakan privasi).
 - Form publik: CSRF, honeypot, rate limit (IP + nomor WA), Turnstile; data rahasia (token CAPI, secret Turnstile) terenkripsi dan tidak pernah dikirim ke browser.
 - Akun seeder di production tidak memakai password `password`, dan password tidak ter-reset kalau seeder dijalankan ulang.

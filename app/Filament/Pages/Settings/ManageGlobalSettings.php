@@ -4,8 +4,10 @@ namespace App\Filament\Pages\Settings;
 
 use App\Filament\Forms\Fields;
 use App\Settings\GlobalSettings;
+use App\Support\CspSources;
 use App\Support\Secret;
 use BackedEnum;
+use Closure;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -164,6 +166,27 @@ class ManageGlobalSettings extends PageSettingsPage
                                 self::secret('tracking.turnstile_secret_key', 'Secret key'),
                             ]),
                         ]),
+                    Section::make('Domain tambahan CSP')
+                        ->description('Untuk tag pihak ketiga baru di GTM (mis. TikTok Pixel, Google Ads). Isi domain saja (analytics.tiktok.com) atau https://domain; tekan Enter setelah tiap domain. GTM, GA4, Meta Pixel, Turnstile, Google Maps, dan YouTube sudah diizinkan. Panduan: docs/TRACKING.md.')
+                        ->collapsible()
+                        ->schema([
+                            Grid::make(2)->schema(collect([
+                                'script_src' => ['script-src', 'Script yang dimuat tag (fallback browser lama)'],
+                                'connect_src' => ['connect-src', 'Tujuan kirim data (fetch/beacon)'],
+                                'img_src' => ['img-src', 'Gambar / piksel pelacak'],
+                                'frame_src' => ['frame-src', 'Iframe'],
+                            ])->map(fn (array $meta, string $key) => TagsInput::make("tracking.csp_extra.{$key}")
+                                ->label($meta[0])
+                                ->helperText($meta[1])
+                                ->placeholder('analytics.contoh.com')
+                                ->nestedRecursiveRules([
+                                    fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                                        if (CspSources::normalize($value) === null) {
+                                            $fail('Hanya domain atau https://domain (tanpa *, tanpa kata kunci seperti \'unsafe-eval\', tanpa path).');
+                                        }
+                                    },
+                                ]))->values()->all()),
+                        ]),
                     Grid::make(2)->schema([
                         TextInput::make('tracking.google_verification')->label('Verifikasi Google Search Console'),
                         TextInput::make('tracking.bing_verification')->label('Verifikasi Bing Webmaster'),
@@ -259,6 +282,11 @@ class ManageGlobalSettings extends PageSettingsPage
         if (! self::canManageTracking()) {
             $data = array_diff_key($data, array_flip(self::RESTRICTED));
         } elseif (isset($data['tracking']) && is_array($data['tracking'])) {
+            // Domain CSP disimpan dalam bentuk baku (https://domain), yang tidak valid dibuang.
+            if (isset($data['tracking']['csp_extra']) && is_array($data['tracking']['csp_extra'])) {
+                $data['tracking']['csp_extra'] = CspSources::normalizeAll($data['tracking']['csp_extra']);
+            }
+
             foreach (self::SECRETS as $key) {
                 $clear = (bool) ($data['tracking'][$key.'_clear'] ?? false);
                 $value = trim((string) ($data['tracking'][$key] ?? ''));

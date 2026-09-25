@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CspSources;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
@@ -45,17 +46,18 @@ class SecurityHeaders
 
     public static function policy(string $nonce, bool $secure): string
     {
+        $sources = CspSources::sources();
+        $list = fn (string $key): string => implode(' ', $sources[$key]);
+
         $directives = [
             "default-src 'self'",
-            // https: dan 'unsafe-inline' hanya fallback browser lama; diabaikan bila nonce/strict-dynamic didukung.
-            "script-src 'nonce-{$nonce}' 'strict-dynamic' https: 'unsafe-inline'",
+            // Daftar domain & 'unsafe-inline' hanya fallback browser lama; diabaikan bila nonce/strict-dynamic didukung.
+            "script-src 'nonce-{$nonce}' 'strict-dynamic' 'self' {$list('script_src')} 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob: https:",
+            "img-src 'self' data: blob: {$list('img_src')}",
             "font-src 'self' data:",
-            // GA4, Meta Pixel, Turnstile.
-            "connect-src 'self' https:",
-            // Google Maps (facade), Turnstile, GTM noscript, video.
-            "frame-src 'self' https:",
+            "connect-src 'self' {$list('connect_src')}",
+            "frame-src 'self' {$list('frame_src')}",
             "media-src 'self' https:",
             "object-src 'none'",
             "base-uri 'self'",

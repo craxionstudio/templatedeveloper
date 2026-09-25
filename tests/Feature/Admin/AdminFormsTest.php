@@ -19,6 +19,7 @@ use App\Settings\ListingPageSettings;
 use App\Support\DummyData;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -149,7 +150,8 @@ it('menyembunyikan dan menolak perubahan tab Tracking untuk Admin Konten', funct
         ->assertDontSee('Tracking & verifikasi')
         ->assertDontSee('GTM-ASLI');
 
-    expect(array_filter((array) $page->get('data.tracking')))->toBeEmpty();
+    // Tidak ada satu pun nilai tracking yang terkirim ke browser (struktur kosong dari field tersembunyi boleh).
+    expect(collect(Arr::dot((array) $page->get('data.tracking')))->filter(fn ($v) => $v !== false && filled($v))->all())->toBeEmpty();
 
     $page
         // Request dimanipulasi: tetap tidak boleh mengubah tracking.
