@@ -22,9 +22,49 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 
 ## Requirement
 
-- PHP 8.3+ (ekstensi: pdo_sqlite, mbstring, intl, gd/zip untuk Filament) dan Composer
-- Node.js 22+ dan npm
-- Production: MySQL 8, Redis (opsional, fallback `database`), Supervisor
+- **PHP 8.3.6 atau lebih baru** (diuji di PHP 8.3.6 bawaan Ubuntu 24.04 dan PHP 8.4). `composer.json` mengunci
+  platform ke PHP 8.3.6 (`config.platform.php`), jadi `composer install` / `composer update` hanya memilih versi
+  library yang jalan di 8.3. **Jangan** pakai `--ignore-platform-reqs`.
+- Composer 2
+- Node.js 22+ dan npm (build aset & proses SSR)
+- Production: MySQL 8 (+ `mysqldump` untuk backup), Redis (opsional, fallback `database`), Supervisor
+
+**Extension PHP wajib**
+
+| Extension                                                                                                                   | Untuk                                                 |
+| --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `mbstring`, `intl`, `ctype`, `tokenizer`, `openssl`, `fileinfo`, `xml`, `dom`, `simplexml`, `xmlreader`, `xmlwriter`, `zip` | Laravel, Filament, ekspor XLSX, sitemap/RSS           |
+| `pdo_mysql`                                                                                                                 | database production (MySQL 8)                         |
+| `pdo_sqlite`                                                                                                                | database lokal & test                                 |
+| `gd` (atau `imagick`)                                                                                                       | foto: resize + varian WebP/AVIF                       |
+| `exif`                                                                                                                      | membaca orientasi foto yang diunggah                  |
+| `curl`                                                                                                                      | HTTP keluar: Meta Conversions API, Turnstile, webhook |
+| `bcmath`                                                                                                                    | perhitungan angka besar (harga) oleh beberapa library |
+
+Disarankan: `opcache` (production), `pcntl` (queue worker berhenti dengan rapi), `redis` (kalau memakai Redis).
+
+Cek extension yang belum terpasang:
+
+```bash
+php -v
+php -m
+for e in bcmath ctype curl dom exif fileinfo gd intl mbstring openssl pdo_mysql pdo_sqlite simplexml tokenizer xml xmlreader xmlwriter zip; do
+    php -m | grep -qix "$e" || echo "BELUM ADA: $e"
+done
+composer check-platform-reqs    # setelah composer install: semua harus "success"
+```
+
+Pasang di Ubuntu 24.04 (PHP 8.3 bawaan; `exif`, `fileinfo`, `ctype`, `tokenizer` sudah termasuk `php8.3-common`):
+
+```bash
+sudo apt install php8.3-cli php8.3-fpm php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip php8.3-intl \
+    php8.3-gd php8.3-sqlite3 php8.3-mysql php8.3-bcmath
+```
+
+> **AVIF:** GD bawaan Ubuntu untuk PHP 8.3 **tidak** mendukung AVIF. Di server seperti itu aplikasi otomatis hanya
+> membuat varian **WebP** (browser tetap mendapat WebP + gambar asli). AVIF aktif sendiri kalau GD punya dukungan AVIF
+> (`php -r 'var_dump(gd_info()["AVIF Support"] ?? false);'` → `true`) atau memakai Imagick yang mendukung AVIF
+> (`IMAGE_DRIVER=imagick`, cek `php -r 'print_r(Imagick::queryFormats("AVIF"));'`).
 
 ## Instalasi Pertama Kali
 
@@ -216,7 +256,8 @@ Hasil audit Lighthouse **mobile** (Lighthouse 12, simulasi 4G lambat, `APP_ENV=p
 seperti nginx, foto masih placeholder) untuk 10 halaman utama: **Performance 94–97, Accessibility 100,
 Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 
-- **Gambar:** setiap koleksi gambar punya konversi **AVIF + WebP** lebar 480/960/1600 px (tidak pernah diperbesar,
+- **Gambar:** setiap koleksi gambar punya konversi **WebP** (+ **AVIF** kalau GD/Imagick server mendukung, lihat
+  Requirement) lebar 480/960/1600 px (tidak pernah diperbesar,
   lewat queue). Gambar dari settings halaman dibuatkan varian yang sama di `storage/app/public/_variants`
   setelah settings disimpan. Frontend (`components/site/picture.tsx`) merender `<picture>` dengan `srcset`/`sizes`,
   `width`/`height` asli, `loading="lazy"`; gambar LCP (hero, cover, foto galeri pertama) memakai

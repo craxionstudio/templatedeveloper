@@ -141,6 +141,26 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 - `docs/TRACKING.md`: bagian "Menambah tag baru di GTM" (cara membaca pesan CSP di Console, contoh domain TikTok Pixel & Google Ads).
 - `docs/CHECKLIST-LAUNCH.md`: backup luar server via Cloudflare R2 / Backblaze B2 (driver S3 `league/flysystem-aws-s3-v3` dipasang) beserta env-nya.
 
+**Kompatibilitas PHP 8.3.6** (permintaan pemilik 28 Sep 2026; server produksi/lokal memakai PHP 8.3.6)
+
+- `composer.json`: `"php": "^8.3"` dan `config.platform.php = 8.3.6`, sehingga `composer install/update` hanya memilih versi yang jalan di PHP 8.3.6, tanpa `--ignore-platform-reqs`. `composer.lock` dibuat ulang dengan PHP 8.3.6.
+- Laravel 13 dan Filament 5 **tetap** (keduanya mendukung PHP 8.3). Perubahan versi library:
+
+  | Package | Sebelum | Sesudah | Alasan |
+  |---|---|---|---|
+  | `symfony/*` (http-kernel, console, mailer, mime, routing, html-sanitizer, dll.) | 8.1.x | 7.4.x (LTS) | Symfony 8 butuh PHP 8.4 |
+  | `spatie/laravel-sitemap` | 8.2.0 | 7.4.0 | 8.x butuh PHP 8.4 |
+  | `spatie/schema-org` | 5.0.1 | 3.23.2 | 5.x butuh PHP 8.4 |
+  | `filament/filament` (+ plugin) | 5.8.4 | 5.9.0 | pembaruan minor ikut resolusi ulang |
+  | `inertiajs/inertia-laravel` | 3.3.4 | 3.4.0 | pembaruan minor |
+  | `nesbot/carbon` | 3.14.0 | 3.14.1 | patch |
+
+  Ditambah otomatis: `symfony/polyfill-php83` (dan `polyfill-php84` tetap, menyediakan `Pdo\Mysql` dll. di PHP 8.3), `spatie/browsershot` + `nicmart/tree` (dependensi laravel-sitemap 7, tidak dipakai langsung). Total 52 package berubah; API yang dipakai aplikasi (Sitemap/Url/Image, Schema/MultiTypedEntity) sama, tidak ada perubahan kode.
+- Kode aplikasi dicek bebas sintaks khusus PHP 8.4+ (property hooks, asymmetric visibility, `new` tanpa kurung saat chaining, `array_find`/`array_any`/`array_all`, `mb_trim`, dll.) dan lolos `php -l` di PHP 8.3.6. `use Pdo\Mysql` di `config/database.php` (bawaan Laravel) aman karena disediakan `symfony/polyfill-php84`.
+- **AVIF:** GD bawaan Ubuntu untuk PHP 8.3.6 tidak mendukung AVIF. Varian gambar kini hanya membuat format yang didukung server (`ResponsiveImages::formats()`): WebP selalu, AVIF bila GD/Imagick mendukung. Sebelumnya konversi AVIF akan gagal di server seperti itu.
+- Seluruh test, `migrate:fresh --seed`, `npm run build`, dan `qa:pages` dijalankan dengan PHP 8.3.6 (paket Ubuntu `8.3.6-0ubuntu0.24.04.11`) dan juga PHP 8.4.
+- README → Requirement: PHP 8.3.6+, daftar extension wajib, perintah `php -m` untuk mengecek, dan catatan AVIF.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

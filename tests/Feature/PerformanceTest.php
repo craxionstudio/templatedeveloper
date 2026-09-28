@@ -18,14 +18,31 @@ beforeEach(function () {
     Storage::fake('public');
 });
 
+/**
+ * Urutan <source>: AVIF (kalau server mendukung) lalu WebP.
+ *
+ * @return list<string>
+ */
+function expectedImageTypes(): array
+{
+    return array_map(fn (string $format) => ResponsiveImages::FORMATS[$format], ResponsiveImages::formats());
+}
+
+it('hanya membuat AVIF kalau GD/Imagick server mendukungnya', function () {
+    expect(ResponsiveImages::formats())->toContain('webp')
+        ->and(in_array('avif', ResponsiveImages::formats(), true))->toBe(ResponsiveImages::supportsAvif())
+        ->and(ResponsiveImages::supportsAvif())->toBe(function_exists('imageavif') && (bool) (gd_info()['AVIF Support'] ?? false));
+});
+
 it('membuat varian WebP + AVIF responsif untuk gambar media library tanpa memperbesar', function () {
     $article = Article::query()->published()->firstOrFail();
     $article->addMedia(UploadedFile::fake()->image('cover.jpg', 1200, 800))->toMediaCollection('cover');
 
     $media = $article->fresh()->getFirstMedia('cover');
 
+    // AVIF hanya dibuat kalau server mendukung (GD bawaan Ubuntu PHP 8.3 tidak punya AVIF).
     foreach ([480, 960] as $width) {
-        foreach (['webp', 'avif'] as $format) {
+        foreach (ResponsiveImages::formats() as $format) {
             expect($media->hasGeneratedConversion("{$width}-{$format}"))->toBeTrue()
                 ->and(Storage::disk('public')->exists($media->getPathRelativeToRoot("{$width}-{$format}")))->toBeTrue();
         }
@@ -34,10 +51,9 @@ it('membuat varian WebP + AVIF responsif untuk gambar media library tanpa memper
     $image = Image::media($article->fresh(), 'cover', 'Cover');
 
     expect($image)->toMatchArray(['width' => 1200, 'height' => 800])
-        ->and($image['sources'][0]['type'])->toBe('image/avif')
-        ->and($image['sources'][1]['type'])->toBe('image/webp')
+        ->and(collect($image['sources'])->pluck('type')->all())->toBe(expectedImageTypes())
         // 1600 tidak diperbesar: lebar maksimum = lebar asli 1200.
-        ->and($image['sources'][1]['srcset'])->toContain(' 480w')->toContain(' 960w')->toContain(' 1200w')->not->toContain('1600w');
+        ->and(collect($image['sources'])->firstWhere('type', 'image/webp')['srcset'])->toContain(' 480w')->toContain(' 960w')->toContain(' 1200w')->not->toContain('1600w');
 
     [$w] = getimagesize(Storage::disk('public')->path($media->getPathRelativeToRoot('1600-webp')));
     expect($w)->toBe(1200);
@@ -51,12 +67,12 @@ it('mengirim srcset & ukuran gambar ke halaman (galeri Detail Rumah)', function 
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page
         ->where('gallery.items.0.width', 1600)
         ->where('gallery.items.0.height', 1000)
-        ->where('gallery.items.0.sources.0.type', 'image/avif')
+        ->where('gallery.items.0.sources.0.type', expectedImageTypes()[0])
         ->where('meta.og.image', fn (string $url) => str_contains($url, 'fasad')));
 
     // Kartu cluster (listing) juga memakai varian responsif.
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page
-        ->where('clusters.data', fn ($items) => collect($items)->firstWhere('name', 'Vega Garden')['image']['sources'][0]['type'] === 'image/avif'));
+        ->where('clusters.data', fn ($items) => collect($items)->firstWhere('name', 'Vega Garden')['image']['sources'][0]['type'] === expectedImageTypes()[0]));
 });
 
 it('membuat varian untuk gambar yang diunggah lewat settings halaman', function () {
@@ -66,13 +82,13 @@ it('membuat varian untuk gambar yang diunggah lewat settings halaman', function 
     $settings->hero = [...$settings->hero, 'image' => 'home/hero.jpg'];
     $settings->save();
 
-    expect(Storage::disk('public')->exists(ResponsiveImages::variantPath('home/hero.jpg', 960, 'avif')))->toBeTrue()
-        ->and(Storage::disk('public')->exists(ResponsiveImages::variantPath('home/hero.jpg', 1600, 'webp')))->toBeTrue();
+    expect(Storage::disk('public')->exists(ResponsiveImages::variantPath('home/hero.jpg', 1600, 'webp')))->toBeTrue()
+        ->and(Storage::disk('public')->exists(ResponsiveImages::variantPath('home/hero.jpg', 960, 'avif')))->toBe(ResponsiveImages::supportsAvif());
 
     $this->get('/')->assertInertia(fn (Assert $page) => $page
         ->where('hero.image.width', 2000)
-        ->where('hero.image.sources.0.type', 'image/avif')
-        ->where('hero.image.sources.1.srcset', fn (string $srcset) => str_contains($srcset, '_variants/home/hero-1600.webp 1600w')));
+        ->where('hero.image.sources', fn ($sources) => collect($sources)->pluck('type')->all() === expectedImageTypes()
+            && str_contains(collect($sources)->firstWhere('type', 'image/webp')['srcset'], '_variants/home/hero-1600.webp 1600w')));
 });
 
 describe('cache halaman publik', function () {

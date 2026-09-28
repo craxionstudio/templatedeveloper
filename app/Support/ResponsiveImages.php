@@ -27,6 +27,27 @@ class ResponsiveImages
 
     public const QUALITY = ['avif' => 55, 'webp' => 78];
 
+    /**
+     * Format yang BISA dibuat di server ini. AVIF butuh GD dengan dukungan AVIF (libavif) atau
+     * Imagick dengan codec AVIF; GD bawaan Ubuntu untuk PHP 8.3 tidak punya AVIF, jadi di sana
+     * hanya WebP yang dibuat (browser tetap mendapat WebP + gambar asli).
+     *
+     * @return list<string>
+     */
+    public static function formats(): array
+    {
+        return array_values(array_filter(array_keys(self::FORMATS), fn (string $format) => $format !== 'avif' || self::supportsAvif()));
+    }
+
+    public static function supportsAvif(): bool
+    {
+        if (config('media-library.image_driver') === 'imagick') {
+            return class_exists(\Imagick::class) && \Imagick::queryFormats('AVIF') !== [];
+        }
+
+        return function_exists('imageavif') && (bool) (gd_info()['AVIF Support'] ?? false);
+    }
+
     public const VARIANT_DIR = '_variants';
 
     /**
@@ -103,7 +124,7 @@ class ResponsiveImages
         }
 
         foreach (self::WIDTHS as $width) {
-            foreach (array_keys(self::FORMATS) as $format) {
+            foreach (self::formats() as $format) {
                 $target = self::variantPath($path, $width, $format);
 
                 if ($disk->exists($target) && $disk->lastModified($target) >= $disk->lastModified($path)) {

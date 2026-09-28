@@ -6,6 +6,8 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 
 ## 1. Server & `.env`
 
+- [ ] **PHP 8.3.6+** dengan semua extension wajib (README → Requirement: jalankan cek `php -m` di sana), lalu `composer install --no-dev --optimize-autoloader` **tanpa** `--ignore-platform-reqs` dan `composer check-platform-reqs` semua "success".
+
 - [ ] `APP_ENV=production` dan `APP_DEBUG=false`.
 - [ ] `APP_KEY` sudah dibuat (`php artisan key:generate`) dan **disimpan di tempat aman**. Access token CAPI dan secret key Turnstile dienkripsi dengan key ini; kalau `APP_KEY` diganti, isi ulang keduanya.
 - [ ] **`APP_URL` persis domain final:** `https://`, pilih **salah satu** www atau non-www, tanpa garis miring di akhir (mis. `https://arunikaland.co.id`). Semua request http atau varian www/non-www lain otomatis di-301 ke sini, dan nilai ini dipakai untuk canonical, sitemap, OG, dan JSON-LD.
@@ -118,7 +120,7 @@ Panduan lengkap: `docs/TRACKING.md`.
 ## 9. Performa
 
 - [ ] **PageSpeed Insights** (mobile) untuk Beranda, `/properti`, satu Detail Rumah, dan satu artikel, **setelah** foto asli diunggah dan ID tracking diisi. Target: Performance ≥ 90, LCP < 2,5 dtk, CLS < 0,1. Hasil audit lab sebelum go-live: Performance 94–97, lainnya 100 (lihat `docs/QA.md`).
-- [ ] Setelah foto diunggah, cek versi AVIF/WebP sudah dibuat. Header respons foto di tab Network harus `image/avif` atau `image/webp`. Kalau belum, pastikan queue worker jalan, atau jalankan `php artisan images:variants`.
+- [ ] Setelah foto diunggah, cek versi WebP (dan AVIF kalau server mendukung, lihat README → Requirement) sudah dibuat. Header respons foto di tab Network harus `image/webp` (atau `image/avif`). Kalau belum, pastikan queue worker jalan, atau jalankan `php artisan images:variants`.
 - [ ] Cek header `X-Page-Cache: HIT` di request kedua halaman publik (cache halaman aktif).
 
 ## 10. Setelah go-live
