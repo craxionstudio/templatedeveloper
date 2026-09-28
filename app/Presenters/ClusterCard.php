@@ -34,10 +34,11 @@ class ClusterCard
             'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
             'typesCount' => $types->count(),
             'types' => $types->map(fn (HouseType $type): string => trim($type->name.($type->lot_size ? ' · '.$type->lot_size : '')))->values()->all(),
-            'landArea' => self::range($types->min('land_area'), $types->max('land_area')),
-            'bedrooms' => self::bedrooms($types),
-            'price' => Rupiah::range($types->min('price_from'), $types->max('price_from')),
-            'installment' => Rupiah::short($types->min('installment_from')),
+            'landArea' => self::range(self::positive($types, 'land_area')->min(), self::positive($types, 'land_area')->max()),
+            'bedrooms' => self::bedrooms($types->filter(fn (HouseType $type) => $type->bedrooms > 0)),
+            // Tanpa harga → null; kartu menampilkan "Hubungi kami untuk harga".
+            'price' => Rupiah::range(self::positive($types, 'price_from')->min(), self::positive($types, 'price_from')->max()),
+            'installment' => Rupiah::short(self::positive($types, 'installment_from')->min()),
             'image' => Image::media($cover, 'image', $cover?->alt, 'Foto cluster '.$cluster->name),
         ];
     }
@@ -59,6 +60,17 @@ class ClusterCard
     public static function with(): array
     {
         return ['kawasan', 'publishedHouseTypes', 'galleryItems.media'];
+    }
+
+    /**
+     * Nilai kolom yang benar-benar diisi (> 0); 0/null = belum ada data.
+     *
+     * @param  Collection<int, HouseType>  $types
+     * @return Collection<int, int>
+     */
+    private static function positive(Collection $types, string $column): Collection
+    {
+        return $types->pluck($column)->filter(fn ($value) => $value !== null && $value > 0)->values();
     }
 
     private static function range(?int $min, ?int $max): ?string

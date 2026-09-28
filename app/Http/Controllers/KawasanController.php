@@ -7,6 +7,7 @@ use App\Models\Kawasan;
 use App\Presenters\ClusterCard;
 use App\Presenters\Image;
 use App\Presenters\KawasanCard;
+use App\Settings\GlobalSettings;
 use App\Settings\KawasanDetailPageSettings;
 use App\Settings\ListingPageSettings;
 use App\Support\Breadcrumbs;
@@ -89,7 +90,7 @@ class KawasanController extends Controller
                 'stats' => array_values(array_filter([
                     $kawasan->area_ha !== null ? ['value' => rtrim(rtrim(number_format((float) $kawasan->area_ha, 2, ',', '.'), '0'), ',').' ha', 'label' => $hero['stat_area_label']] : null,
                     ['value' => (string) $clusters->count(), 'label' => $hero['stat_cluster_label']],
-                    ['value' => Rupiah::short($clusters->min('price_min')) ?? '–', 'label' => $hero['stat_price_label']],
+                    ['value' => Rupiah::short($clusters->pluck('price_min')->filter(fn ($p) => $p > 0)->min()) ?? app(GlobalSettings::class)->section('labels')['price_on_request'], 'label' => $hero['stat_price_label']],
                 ])),
             ],
             'about' => $about['enabled'] ? [

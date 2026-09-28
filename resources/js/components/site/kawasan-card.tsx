@@ -57,12 +57,20 @@ export function KawasanCard({
                 </ul>
                 <div className="mt-auto flex items-end justify-between gap-3 border-t border-[#ECE6DA] pt-3.5">
                     <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-caption">
-                            {labels.price_from}
-                        </span>
-                        <span className="text-lg font-bold xl:text-xl">
-                            {kawasan.priceFrom}
-                        </span>
+                        {kawasan.priceFrom ? (
+                            <span className="text-xs text-caption">
+                                {labels.price_from}
+                            </span>
+                        ) : null}
+                        {kawasan.priceFrom ? (
+                            <span className="text-lg font-bold xl:text-xl">
+                                {kawasan.priceFrom}
+                            </span>
+                        ) : (
+                            <span className="text-[15px] font-semibold">
+                                {labels.price_on_request}
+                            </span>
+                        )}
                     </div>
                     <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-terracotta">
                         {viewLabel}
@@ -92,8 +100,10 @@ export function KawasanCardCompact({ kawasan }: { kawasan: KawasanCardData }) {
             />
             <div className="flex flex-col justify-center gap-2 p-5 md:p-6">
                 <span className="text-xs font-semibold text-terracotta">
-                    {kawasan.clustersCount} {labels.clusters} ·{' '}
-                    {labels.price_from.toLowerCase()} {kawasan.priceFrom}
+                    {kawasan.clustersCount} {labels.clusters}
+                    {kawasan.priceFrom
+                        ? ` · ${labels.price_from.toLowerCase()} ${kawasan.priceFrom}`
+                        : null}
                 </span>
                 <h3 className="font-display text-xl leading-tight font-semibold group-hover:text-terracotta xl:text-2xl">
                     {kawasan.name}

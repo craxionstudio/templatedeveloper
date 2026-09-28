@@ -117,6 +117,8 @@ return [
     'labels' => [
         'skip_to_content' => 'Langsung ke konten utama',
         'address' => 'Alamat',
+        // Kartu & Detail Rumah untuk cluster yang belum punya harga.
+        'price_on_request' => 'Hubungi kami untuk harga',
         'facility_list' => 'Daftar fasilitas',
         'kawasan_list' => 'Daftar kawasan',
         'article_list' => 'Daftar artikel',

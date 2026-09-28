@@ -41,7 +41,7 @@ class ClustersTable
                 TextColumn::make('price_min')->label('Harga')->sortable()
                     ->formatStateUsing(fn ($state, Cluster $record): ?string => Rupiah::range($record->price_min, $record->price_max)),
                 TextColumn::make('badge')->label('Badge')->badge(),
-                TextColumn::make('status')->label('Status')->badge(),
+                TextColumn::make('status')->label('Status')->badge()->placeholder('—'),
                 IconColumn::make('is_featured')->label('Unggulan')->boolean(),
                 ToggleColumn::make('is_published')->label('Publik'),
             ])

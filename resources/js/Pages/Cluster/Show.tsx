@@ -46,7 +46,10 @@ type Props = {
         kawasan: { name: string; url: string } | null;
         buildingType: string | null;
         badge: string | null;
-        status: string;
+        /** Status penjualan opsional; null = tanpa badge. */
+        status: string | null;
+        /** Link WA tingkat cluster (dipakai kalau belum ada tipe). */
+        whatsappUrl: string;
         address: string | null;
         description: string | null;
         legality: string | null;
@@ -111,10 +114,16 @@ export default function ClusterShow(props: Props) {
         preview = false,
     } = props;
     const { labels } = usePage().props.site;
+    // Tipe tanpa data sama sekali (belum ada harga/luas/denah) tidak ditampilkan sebagai tab.
+    const visibleTypes = types.filter((t) => t.hasData);
     const [selectedSlug, setSelectedSlug] = useState(
-        props.selectedType ?? types[0]?.slug,
+        props.selectedType ?? visibleTypes[0]?.slug,
     );
-    const type = types.find((t) => t.slug === selectedSlug) ?? types[0];
+    const type =
+        visibleTypes.find((t) => t.slug === selectedSlug) ??
+        visibleTypes[0] ??
+        null;
+    const whatsappUrl = type?.whatsappUrl ?? cluster.whatsappUrl;
 
     // Event view_listing + Pixel ViewContent sekali per cluster.
     useEffect(() => {
@@ -139,7 +148,7 @@ export default function ClusterShow(props: Props) {
         setSelectedSlug(slug);
         track('select_house_type', {
             cluster: cluster.name,
-            house_type: types.find((t) => t.slug === slug)?.name,
+            house_type: visibleTypes.find((t) => t.slug === slug)?.name,
         });
         const url = new URL(window.location.href);
         url.searchParams.set('tipe', slug);
@@ -193,12 +202,18 @@ export default function ClusterShow(props: Props) {
             <div className="container-site grid gap-8 pt-6 pb-14 xl:grid-cols-[1fr_400px] xl:gap-16 xl:pt-10 xl:pb-[120px]">
                 <div className="flex min-w-0 flex-col gap-8 xl:gap-12">
                     <header className="flex flex-col gap-3">
-                        <div className="flex flex-wrap gap-2">
-                            {cluster.badge ? (
-                                <Badge>{cluster.badge}</Badge>
-                            ) : null}
-                            <Badge tone="success">{cluster.status}</Badge>
-                        </div>
+                        {cluster.badge || cluster.status ? (
+                            <div className="flex flex-wrap gap-2">
+                                {cluster.badge ? (
+                                    <Badge>{cluster.badge}</Badge>
+                                ) : null}
+                                {cluster.status ? (
+                                    <Badge tone="success">
+                                        {cluster.status}
+                                    </Badge>
+                                ) : null}
+                            </div>
+                        ) : null}
                         <p className="text-sm font-semibold text-caption">
                             {cluster.kawasan ? (
                                 <>
@@ -232,15 +247,13 @@ export default function ClusterShow(props: Props) {
                         ) : null}
                     </header>
 
-                    {type ? (
-                        <PriceBox
-                            type={type}
-                            pricing={pricing}
-                            bookingFee={cluster.bookingFee}
-                        />
-                    ) : null}
+                    <PriceBox
+                        type={type}
+                        pricing={pricing}
+                        bookingFee={cluster.bookingFee}
+                    />
                     {promo ? <PromoBox promo={promo} /> : null}
-                    {sections.specs && type ? (
+                    {sections.specs ? (
                         <SpecSection
                             title={sections.specs}
                             type={type}
@@ -251,7 +264,7 @@ export default function ClusterShow(props: Props) {
                     {sections.types && type ? (
                         <TypeTabs
                             title={sections.types}
-                            types={types}
+                            types={visibleTypes}
                             selected={type}
                             onSelect={selectType}
                             specLabels={specLabels}
@@ -278,7 +291,7 @@ export default function ClusterShow(props: Props) {
                         <LeadCard
                             marketing={marketing}
                             form={form}
-                            whatsappUrl={type?.whatsappUrl ?? '/kontak'}
+                            whatsappUrl={whatsappUrl}
                             legality={cluster.legality}
                             clusterId={cluster.id}
                             houseTypeId={type?.id ?? null}
@@ -294,7 +307,7 @@ export default function ClusterShow(props: Props) {
                         <LeadCard
                             marketing={marketing}
                             form={form}
-                            whatsappUrl={type?.whatsappUrl ?? '/kontak'}
+                            whatsappUrl={whatsappUrl}
                             legality={cluster.legality}
                             clusterId={cluster.id}
                             houseTypeId={type?.id ?? null}
@@ -335,39 +348,45 @@ export default function ClusterShow(props: Props) {
             </div>
 
             {/* Mobile: sticky bottom bar (harga mulai + WA + Jadwalkan Survey). */}
-            {type ? (
-                <>
-                    <div className="h-[84px] md:hidden" aria-hidden="true" />
-                    <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2.5 border-t border-line bg-white px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
-                        <div className="mr-auto flex flex-col">
-                            <span className="text-xs text-caption">
-                                {mobileBar.priceLabel}
+            <>
+                <div className="h-[84px] md:hidden" aria-hidden="true" />
+                <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2.5 border-t border-line bg-white px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+                    <div className="mr-auto flex flex-col">
+                        {type?.price ? (
+                            <>
+                                <span className="text-xs text-caption">
+                                    {mobileBar.priceLabel}
+                                </span>
+                                <span className="text-lg leading-tight font-bold">
+                                    {type.price}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="text-sm leading-tight font-semibold">
+                                {labels.price_on_request}
                             </span>
-                            <span className="text-lg leading-tight font-bold">
-                                {type.price}
-                            </span>
-                        </div>
-                        <a
-                            href={type.whatsappUrl}
-                            aria-label={mobileBar.whatsappLabel}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            data-cluster={cluster.name}
-                            data-position="sticky"
-                            className="flex size-12 items-center justify-center rounded-full border-[1.5px] border-ink text-ink"
-                        >
-                            <Icon name="chat" className="size-5" />
-                        </a>
-                        <SmartLink
-                            href={form.surveyUrl}
-                            onClick={openSurvey}
-                            className="flex h-12 items-center rounded-full bg-terracotta px-5 font-semibold text-white no-underline"
-                        >
-                            {mobileBar.surveyLabel}
-                        </SmartLink>
+                        )}
                     </div>
-                </>
-            ) : null}
+                    <a
+                        href={whatsappUrl}
+                        aria-label={mobileBar.whatsappLabel}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-cluster={cluster.name}
+                        data-position="sticky"
+                        className="flex size-12 items-center justify-center rounded-full border-[1.5px] border-ink text-ink"
+                    >
+                        <Icon name="chat" className="size-5" />
+                    </a>
+                    <SmartLink
+                        href={form.surveyUrl}
+                        onClick={openSurvey}
+                        className="flex h-12 items-center rounded-full bg-terracotta px-5 font-semibold text-white no-underline"
+                    >
+                        {mobileBar.surveyLabel}
+                    </SmartLink>
+                </div>
+            </>
         </>
     );
 }

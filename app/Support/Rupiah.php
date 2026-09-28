@@ -12,9 +12,12 @@ class Rupiah
 
     private const MILLION = 1_000_000;
 
+    /**
+     * null / 0 = belum ada harga (tampil "Hubungi kami untuk harga", bukan "Rp 0").
+     */
     public static function short(?int $amount): ?string
     {
-        if ($amount === null) {
+        if ($amount === null || $amount <= 0) {
             return null;
         }
 
@@ -23,11 +26,11 @@ class Rupiah
 
     public static function range(?int $min, ?int $max): ?string
     {
-        if ($min === null) {
+        if ($min === null || $min <= 0) {
             return null;
         }
 
-        if ($max === null || $max === $min) {
+        if ($max === null || $max <= 0 || $max === $min) {
             return self::short($min);
         }
 
@@ -43,7 +46,7 @@ class Rupiah
      */
     public static function full(?int $amount): ?string
     {
-        return $amount === null ? null : 'Rp '.number_format($amount, 0, ',', '.');
+        return $amount === null || $amount <= 0 ? null : 'Rp '.number_format($amount, 0, ',', '.');
     }
 
     private static function unit(int $amount): string

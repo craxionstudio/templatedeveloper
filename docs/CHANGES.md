@@ -161,6 +161,16 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 - Seluruh test, `migrate:fresh --seed`, `npm run build`, dan `qa:pages` dijalankan dengan PHP 8.3.6 (paket Ubuntu `8.3.6-0ubuntu0.24.04.11`) dan juga PHP 8.4.
 - README → Requirement: PHP 8.3.6+, daftar extension wajib, perintah `php -m` untuk mengecek, dan catatan AVIF.
 
+**Status opsional & cluster tanpa tipe/harga** (permintaan pemilik 28 Sep 2026)
+
+- **Status penjualan** cluster (ready stock / inden / sold out) opsional. Migrasi `make_cluster_status_nullable` (kolom nullable, tanpa default). Form admin: "Status penjualan (opsional)", placeholder "Tanpa status". Status kosong = tidak ada badge status di kartu maupun Detail Rumah; di JSON-LD `availability` hanya diisi kalau bisa ditentukan (status atau sisa unit).
+- **Cluster tanpa tipe / tanpa harga** didukung. Di admin, "Harga mulai" dan "LT" tipe rumah tidak wajib lagi. Nilai 0/kosong dianggap belum diisi: `Rupiah` mengembalikan `null` (tidak pernah "Rp 0"), dan agregat cluster (`price_min`, LT, KT, cicilan) mengabaikan 0.
+  - Kartu cluster & kartu kawasan: harga diganti label **"Hubungi kami untuk harga"** (`labels.price_on_request` di Pengaturan Global, bisa diubah). Kartu kawasan ringkas tidak menulis "· mulai …" kalau belum ada harga; statistik harga di hero Detail Kawasan memakai label yang sama.
+  - Detail Rumah: section harga/cicilan/booking fee, spesifikasi, dan baris data tab tipe hanya tampil kalau datanya ada. Tipe yang sama sekali tanpa data (harga, luas, KT, denah) tidak dijadikan tab. Tombol WA (pesan tanpa nama tipe) dan form lead tetap tampil; sticky bar mobile menampilkan "Hubungi kami untuk harga".
+  - JSON-LD: `Offer` hanya dibuat untuk tipe dengan harga > 0; cluster tanpa tipe tidak punya `containsPlace`; jumlah kamar hanya diisi kalau > 0.
+- **Urutan listing:** cluster yang sudah punya harga selalu di atas, yang belum punya harga di bawah (scope `Cluster::pricedFirst()`), di `/properti` (semua pilihan urut), cluster mandiri di `/properti/kawasan`, dan daftar cluster di Detail Kawasan.
+- Test: `tests/Feature/ClusterWithoutTypesTest.php` (form admin tanpa status, props & JSON-LD Detail Rumah tanpa tipe / tipe tanpa harga, kartu di listing/kawasan/beranda/sitemap, urutan, `Rupiah`, render SSR). Helper `jsonLd()`/`ofType()` dipindah ke `tests/Pest.php`. Dijalankan di PHP 8.3.6 dan 8.4 (SQLite) dan juga MariaDB.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

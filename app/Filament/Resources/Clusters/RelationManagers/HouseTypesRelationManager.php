@@ -52,9 +52,9 @@ class HouseTypesRelationManager extends RelationManager
                     TextInput::make('lot_size')->label('Kavling')->placeholder('7×15')->maxLength(20),
                 ]),
                 Section::make('Ukuran & ruang')->columns(4)->schema([
-                    TextInput::make('land_area')->label('LT (m²)')->numeric()->minValue(0)->required(),
+                    TextInput::make('land_area')->label('LT (m²)')->numeric()->minValue(0),
                     TextInput::make('building_area')->label('LB (m²)')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'building_area', $state)),
-                    TextInput::make('bedrooms')->label('Kamar tidur')->numeric()->minValue(0)->required(),
+                    TextInput::make('bedrooms')->label('Kamar tidur')->numeric()->minValue(0)->default(0)->required(),
                     TextInput::make('extra_bedrooms')->label('KT tambahan (+1)')->numeric()->minValue(0)->default(0),
                     TextInput::make('bathrooms')->label('Kamar mandi')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'bathrooms', $state)),
                     TextInput::make('floors')->label('Lantai')->numeric()->minValue(1)->default(1),
@@ -62,7 +62,8 @@ class HouseTypesRelationManager extends RelationManager
                     TextInput::make('units_available')->label('Sisa unit')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'units_available', $state)),
                 ]),
                 Section::make('Harga')->columns(2)->schema([
-                    TextInput::make('price_from')->label('Harga mulai')->numeric()->minValue(0)->prefix('Rp')->required(),
+                    TextInput::make('price_from')->label('Harga mulai')->numeric()->minValue(0)->prefix('Rp')
+                        ->helperText('Kosong = tampil "Hubungi kami untuk harga".'),
                     TextInput::make('installment_from')->label('Cicilan mulai / bulan')->numeric()->minValue(0)->prefix('Rp'),
                 ]),
                 Section::make('Denah')->schema(Fields::image('floorplan', 'floorplan_alt', 'Denah')),
@@ -84,7 +85,7 @@ class HouseTypesRelationManager extends RelationManager
                 TextColumn::make('bedrooms')->label('KT / KM')
                     ->formatStateUsing(fn ($state, HouseType $record): string => $record->bedroomsLabel().' / '.$record->bathrooms),
                 TextColumn::make('price_from')->label('Harga mulai')
-                    ->formatStateUsing(fn ($state): ?string => Rupiah::short($state)),
+                    ->formatStateUsing(fn ($state): ?string => Rupiah::short($state))->placeholder('—'),
                 TextColumn::make('units_available')->label('Sisa unit'),
                 ToggleColumn::make('is_published')->label('Publik'),
             ])

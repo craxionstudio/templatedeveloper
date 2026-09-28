@@ -89,7 +89,7 @@ class PropertyListingController extends Controller
     {
         $view = $settings->section('kawasan_view');
         $kawasans = Kawasan::query()->visible()->ordered()->with(KawasanCard::with())->get();
-        $standalone = Cluster::query()->published()->standalone()->ordered()->with(ClusterCard::with())->get();
+        $standalone = Cluster::query()->published()->standalone()->pricedFirst()->ordered()->with(ClusterCard::with())->get();
         $header = $settings->section('header');
 
         $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti'), '/properti'], [$settings->section('toggle')['kawasan_label']]]);
@@ -240,6 +240,9 @@ class PropertyListingController extends Controller
 
     private function sorted(Builder $query, string $sort): Builder
     {
+        // Cluster yang sudah punya harga selalu di atas; yang belum punya harga di bawah.
+        $query->pricedFirst();
+
         return match ($sort) {
             'harga-terendah' => $query->orderBy('price_min')->orderBy('sort_order'),
             'harga-tertinggi' => $query->orderByDesc('price_max')->orderBy('sort_order'),

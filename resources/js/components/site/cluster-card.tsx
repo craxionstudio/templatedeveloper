@@ -117,9 +117,15 @@ export default function ClusterCard({
                         <span className="text-xs text-caption">
                             {labels.price}
                         </span>
-                        <span className="text-lg font-bold xl:text-xl">
-                            {cluster.price}
-                        </span>
+                        {cluster.price ? (
+                            <span className="text-lg font-bold xl:text-xl">
+                                {cluster.price}
+                            </span>
+                        ) : (
+                            <span className="text-[15px] font-semibold">
+                                {labels.price_on_request}
+                            </span>
+                        )}
                     </div>
                     {cluster.installment ? (
                         <span className="text-right text-xs text-body">

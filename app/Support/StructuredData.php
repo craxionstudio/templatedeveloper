@@ -215,7 +215,14 @@ class StructuredData
             $residence->containedInPlace(Schema::place()->name($cluster->kawasan->name)->url(self::url($cluster->kawasan->publicPath())));
         }
 
-        $residence->containsPlace(collect($types)->values()->map(function (HouseType $type) use ($cluster, $url, $address, $images): array {
+        $types = collect($types)->values();
+
+        // Cluster tanpa tipe: Residence saja, tanpa containsPlace kosong.
+        if ($types->isEmpty()) {
+            return $residence->toArray();
+        }
+
+        $residence->containsPlace($types->map(function (HouseType $type) use ($cluster, $url, $address, $images): array {
             $entity = (new MultiTypedEntity)
                 ->product(function (Product $product) use ($cluster, $type, $url, $images): void {
                     $product->name($cluster->name.' — '.$type->name)
@@ -226,20 +233,32 @@ class StructuredData
                         $product->image($images[0]);
                     }
 
-                    if ($type->price_from) {
-                        $product->offers(Schema::offer()
+                    // Tidak ada Offer tanpa harga.
+                    if ($type->price_from > 0) {
+                        $offer = Schema::offer()
                             ->price($type->price_from)
                             ->priceCurrency('IDR')
-                            ->availability(self::availability($cluster, $type))
                             ->url($url.'?tipe='.$type->slug)
-                            ->seller(Schema::organization()->identifier(self::organizationId())));
+                            ->seller(Schema::organization()->identifier(self::organizationId()));
+
+                        if ($availability = self::availability($cluster, $type)) {
+                            $offer->availability($availability);
+                        }
+
+                        $product->offers($offer);
                     }
                 })
                 ->singleFamilyResidence(function (SingleFamilyResidence $house) use ($type, $address): void {
-                    $house->address($address)
-                        ->numberOfRooms($type->bedrooms + $type->extra_bedrooms)
-                        ->numberOfBedrooms($type->bedrooms + $type->extra_bedrooms)
-                        ->numberOfBathroomsTotal($type->bathrooms);
+                    $house->address($address);
+                    $rooms = $type->bedrooms + $type->extra_bedrooms;
+
+                    if ($rooms > 0) {
+                        $house->numberOfRooms($rooms)->numberOfBedrooms($rooms);
+                    }
+
+                    if ($type->bathrooms > 0) {
+                        $house->numberOfBathroomsTotal($type->bathrooms);
+                    }
 
                     if ($type->building_area) {
                         $house->floorSize(Schema::quantitativeValue()->value($type->building_area)->unitCode('MTK')->unitText('m²'));
@@ -290,12 +309,16 @@ class StructuredData
         return $posting->toArray();
     }
 
-    private static function availability(Cluster $cluster, HouseType $type): string
+    /**
+     * null kalau status penjualan kosong dan sisa unit tidak diisi (jangan mengklaim ketersediaan).
+     */
+    private static function availability(Cluster $cluster, HouseType $type): ?string
     {
         return match (true) {
             $cluster->status === ClusterStatus::SoldOut, $type->units_available === 0 => ItemAvailability::SoldOut,
             $cluster->status === ClusterStatus::Inden => ItemAvailability::PreOrder,
-            default => ItemAvailability::InStock,
+            $cluster->status === ClusterStatus::ReadyStock, $type->units_available > 0 => ItemAvailability::InStock,
+            default => null,
         };
     }
 

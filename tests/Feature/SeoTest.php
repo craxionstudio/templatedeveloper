@@ -11,7 +11,6 @@ use App\Settings\GlobalSettings;
 use App\Support\Sitemaps;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
@@ -25,25 +24,6 @@ beforeEach(function () {
 function asProduction(): void
 {
     app()->detectEnvironment(fn () => 'production');
-}
-
-/**
- * @return list<array<string, mixed>>
- */
-function jsonLd(TestResponse $response): array
-{
-    $page = $response->viewData('page');
-
-    return $page['props']['meta']['jsonLd'];
-}
-
-/**
- * @param  list<array<string, mixed>>  $graphs
- * @return array<string, mixed>|null
- */
-function ofType(array $graphs, string $type): ?array
-{
-    return collect($graphs)->first(fn (array $g) => $g['@type'] === $type || (is_array($g['@type']) && in_array($type, $g['@type'], true)));
 }
 
 it('memasang canonical absolut tanpa query, kecuali pagination', function (string $url, string $canonical) {

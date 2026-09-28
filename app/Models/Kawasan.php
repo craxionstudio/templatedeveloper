@@ -59,7 +59,7 @@ class Kawasan extends Model implements HasMedia
 
     public function publishedClusters(): HasMany
     {
-        return $this->clusters()->published()->ordered();
+        return $this->clusters()->published()->pricedFirst()->ordered();
     }
 
     public function galleryItems(): MorphMany

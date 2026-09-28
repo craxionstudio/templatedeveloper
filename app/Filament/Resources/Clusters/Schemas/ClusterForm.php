@@ -59,10 +59,10 @@ class ClusterForm
                                     ->default(PropertyType::Rumah)
                                     ->required(),
                                 Select::make('status')
-                                    ->label('Status')
+                                    ->label('Status penjualan (opsional)')
                                     ->options(ClusterStatus::class)
-                                    ->default(ClusterStatus::ReadyStock)
-                                    ->required(),
+                                    ->placeholder('Tanpa status')
+                                    ->helperText('Kosong = tidak ada badge status di kartu & Detail Rumah.'),
                             ]),
                             Select::make('badge')
                                 ->label('Badge')

@@ -119,6 +119,16 @@ class Cluster extends Model implements HasMedia
         return $query->orderBy($this->qualifyColumn('sort_order'))->orderBy($this->qualifyColumn('name'));
     }
 
+    /**
+     * Cluster yang sudah punya harga di atas, yang belum punya harga di bawah (urutan listing publik).
+     */
+    public function scopePricedFirst(Builder $query): Builder
+    {
+        $column = $this->qualifyColumn('price_min');
+
+        return $query->orderByRaw("CASE WHEN {$column} IS NULL OR {$column} <= 0 THEN 1 ELSE 0 END");
+    }
+
     public function scopeStandalone(Builder $query): Builder
     {
         return $query->whereNull($this->qualifyColumn('kawasan_id'));
@@ -143,16 +153,18 @@ class Cluster extends Model implements HasMedia
     public function refreshAggregates(): void
     {
         $types = $this->publishedHouseTypes()->get();
+        // Nilai kosong / 0 = belum diisi, tidak ikut rentang kartu (hindari "Rp 0", "0 KT").
+        $values = fn (string $column) => $types->pluck($column)->filter(fn ($v) => $v !== null && $v > 0);
 
         $this->forceFill([
             'house_types_count' => $types->count(),
-            'price_min' => $types->min('price_from'),
-            'price_max' => $types->max('price_from'),
-            'installment_min' => $types->min('installment_from'),
-            'land_area_min' => $types->min('land_area'),
-            'land_area_max' => $types->max('land_area'),
-            'bedrooms_min' => $types->min('bedrooms'),
-            'bedrooms_max' => $types->max('bedrooms'),
+            'price_min' => $values('price_from')->min(),
+            'price_max' => $values('price_from')->max(),
+            'installment_min' => $values('installment_from')->min(),
+            'land_area_min' => $values('land_area')->min(),
+            'land_area_max' => $values('land_area')->max(),
+            'bedrooms_min' => $values('bedrooms')->min(),
+            'bedrooms_max' => $values('bedrooms')->max(),
         ])->saveQuietly();
     }
 

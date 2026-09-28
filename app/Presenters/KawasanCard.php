@@ -24,7 +24,7 @@ class KawasanCard
             'summary' => $kawasan->summary,
             'clustersCount' => $clusters->count(),
             'clusters' => $clusters->map(fn (Cluster $cluster) => $cluster->name)->values()->all(),
-            'priceFrom' => Rupiah::short($clusters->min('price_min')),
+            'priceFrom' => Rupiah::short($clusters->pluck('price_min')->filter(fn ($p) => $p > 0)->min()),
             'image' => Image::media($kawasan, 'hero', $kawasan->hero_alt, 'Foto kawasan '.$kawasan->name),
         ];
     }
