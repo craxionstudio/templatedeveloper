@@ -1,0 +1,62 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            echo "=== 1. Mengaktifkan Maintenance Mode ==="
+            php artisan down --retry=60 || true
+
+            echo "=== 2. Mengambil Kode Terbaru ==="
+            git pull origin main
+
+            echo "=== 3. Menginstal Dependensi PHP ==="
+            composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+            echo "=== 4. Membangun Aset Frontend & SSR ==="
+            npm ci
+            npm run build
+
+            echo "=== 5. Menjalankan Migrasi Database ==="
+            php artisan migrate --force
+
+            echo "=== 6. Memastikan Symlink Storage ==="
+            php artisan storage:link || true
+
+            echo "=== 7. Mengoptimalkan Cache Laravel & Filament ==="
+            php artisan optimize:clear
+            php artisan optimize
+            php artisan filament:optimize
+
+            echo "=== 8. Merestart Inertia SSR & Queue Worker ==="
+            php artisan inertia:stop-ssr || true
+            php artisan queue:restart || true
+
+            echo "=== 9. Menonaktifkan Maintenance Mode ==="
+            php artisan up
+
+            echo "=== Deployment Berhasil Selesai! ==="
