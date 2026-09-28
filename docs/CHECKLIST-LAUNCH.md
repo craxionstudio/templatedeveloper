@@ -87,11 +87,12 @@ Panduan lengkap: `docs/TRACKING.md`.
 
 - [ ] **Import data asli properti** (sekali, setelah deploy dan `migrate`):
   ```bash
-  php artisan import:bsd-data --fresh   # hapus kawasan/cluster/tipe/promo contoh Arunika, lalu import docs/data/bsd-city-data.json
+  php artisan import:bsd-data --fresh   # hapus kawasan/cluster/tipe contoh, nonaktifkan konten contoh, lalu import docs/data/bsd-city-data.json
   ```
   Cek hasilnya: 23 kawasan, 144 cluster, 87 tipe rumah. Setelah itu cukup `php artisan import:bsd-data` (tanpa `--fresh`) kalau JSON diperbarui. **Jangan** pakai `--fresh` lagi setelah admin mulai melengkapi data: `--fresh` menghapus semua kawasan & cluster.
 - [ ] Lengkapi data per cluster mulai dari 10 prioritas (`docs/data/BELUM-LENGKAP.md`, atau Admin → Cluster → filter **Belum lengkap**, urutkan **Prioritas**). Centang item di tab **Internal** setelah dilengkapi.
-- [ ] Setelah import, cek teks Arunika di Pengaturan Halaman (judul/eyebrow listing, hero Beranda, "Kawasan di kota Arunika", dll.) dan Pengaturan Global (nama brand).
+- [ ] Teks Arunika sudah diganti BSD City otomatis saat `migrate` (hanya teks yang belum diubah admin). Cek sekilas Pengaturan Global (nama brand, tagline) dan hero Beranda.
+- [ ] Setelah ada fasilitas/artikel/pengembangan mendatang yang asli: publikasikan, lalu nyalakan lagi section **Fasilitas**, **Pengembangan Mendatang**, dan **Artikel & Berita** di Pengaturan Halaman → Beranda. Selama kosong, `/fasilitas` dan `/artikel` menampilkan keadaan kosong (teksnya di tab Daftar masing-masing).
 - [ ] Ganti semua data di **`docs/DATA-DUMMY.md`** (LB, kamar mandi, carport, sisa unit, lokasi fasilitas, fasilitas kawasan). Selama belum diganti, field di admin bertanda kuning **Data dummy**.
 - [ ] Cari dan ganti semua teks dalam kurung siku `[...]`: nama PT, alamat, telepon, email, `[XX]`, `[TAHUN]`, `[VISI PERUSAHAAN]`, `[MISI …]`, `[NAMA MARKETING]`, `[NAMA NARASUMBER]`, dll. Cek di setiap Pengaturan Halaman, Profil Developer, Profil Lokasi, Kawasan, Cluster, Artikel, Promo, dan Future Development. Setelah itu, cari `[` di halaman publik.
 - [ ] Unggah foto asli: hero Beranda, galeri cluster (foto pertama = foto utama), hero kawasan, denah tipe, cover artikel, foto fasilitas, foto marketing, logo, dan favicon. Isi **alt text** di setiap foto.

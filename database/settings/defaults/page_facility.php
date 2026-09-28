@@ -4,9 +4,9 @@ $shared = require __DIR__.'/_shared.php';
 
 return [
     'header' => [
-        'eyebrow' => 'Fasilitas Developer',
+        'eyebrow' => 'Fasilitas Kota',
         'title' => 'Semua yang kamu butuhkan, dalam jarak jalan kaki.',
-        'description' => 'Fasilitas di kawasan Arunika dibangun dan dikelola langsung oleh developer, terbuka untuk seluruh penghuni dan terus bertambah seiring pengembangan kawasan.',
+        'description' => 'Sekolah, kampus, rumah sakit, pusat belanja, dan ruang terbuka di BSD City, terus bertambah seiring pengembangan kota.',
         'stats' => [
             ['value' => '[XX]+', 'label' => 'Fasilitas aktif'],
             ['value' => '[XX] ha', 'label' => 'Ruang terbuka hijau'],
@@ -28,13 +28,18 @@ return [
         'kawasan_filter_label' => 'Kawasan',
         'all_kawasan_label' => 'Semua kawasan',
         'everywhere_label' => 'Semua kawasan',
+        // Tampil kalau belum ada fasilitas yang dipublikasikan (stat, foto header, dan filter disembunyikan).
+        'empty_title' => 'Daftar fasilitas sedang kami lengkapi',
+        'empty_description' => 'Sementara itu, fasilitas tiap kawasan bisa kamu lihat di halaman kawasan, atau tanyakan langsung ke tim marketing.',
+        'empty_button_label' => 'Lihat kawasan',
+        'empty_button_url' => '/properti/kawasan',
     ],
 
     'cta' => $shared['cta'],
 
     'seo' => [
         ...$shared['seo'],
-        'meta_title' => 'Fasilitas Kawasan',
-        'meta_description' => 'Fasilitas di kota Arunika dibangun dan dikelola langsung oleh developer: taman, clubhouse, sekolah, klinik, area komersial, dan keamanan 24 jam.',
+        'meta_title' => 'Fasilitas Kota BSD City',
+        'meta_description' => 'Sekolah, kampus, rumah sakit, mal, stasiun, dan akses tol di sekitar BSD City. Semua yang dekat dari rumah kamu nanti.',
     ],
 ];

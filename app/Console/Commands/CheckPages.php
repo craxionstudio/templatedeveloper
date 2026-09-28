@@ -34,7 +34,7 @@ class CheckPages extends Command
 
         foreach ($paths as $path) {
             try {
-                $response = Http::timeout(20)->withHeaders(['User-Agent' => 'ArunikaQA/1.0'])->get($base.$path);
+                $response = Http::timeout(20)->withHeaders(['User-Agent' => 'SiteQA/1.0'])->get($base.$path);
                 $problems = self::problems($response->status(), $response->body());
             } catch (Throwable $e) {
                 $problems = ['gagal diambil: '.$e->getMessage()];

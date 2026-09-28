@@ -220,7 +220,7 @@ Data properti asli ada di `docs/data/bsd-city-data.json`. Yang belum lengkap ter
 dan per cluster ada di admin (tab **Internal**).
 
 ```bash
-# Pertama kali: hapus data dummy properti (kawasan, cluster, tipe rumah, promo contoh Arunika), lalu import
+# Pertama kali: hapus data dummy properti (kawasan, cluster, tipe rumah), nonaktifkan konten contoh, lalu import
 php artisan import:bsd-data --fresh
 
 # Setelah JSON diperbarui: upsert per slug, aman diulang, tidak membuat duplikat
@@ -231,7 +231,8 @@ php artisan import:bsd-data path/ke/file-lain.json
 - Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
   kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, Kontak, serta pola
   judul Detail Kawasan & Detail Rumah).
-- `--fresh` **tidak** menghapus user, artikel, lead (cluster di lead jadi kosong), fasilitas kota, atau settings lain.
+- `--fresh` **tidak** menghapus user, artikel, lead (cluster di lead jadi kosong), fasilitas, atau settings. Konten contoh
+  (fasilitas, pengembangan mendatang, artikel, promo) hanya dinonaktifkan (`is_published = false`).
   Di production, perintah ini minta konfirmasi (lewati dengan `--force`).
 - Nilai `null` di JSON dibiarkan kosong, dan saat import ulang tidak menimpa isi yang sudah dilengkapi di admin.
   Nilai yang ada di JSON menimpa isi admin.
@@ -316,6 +317,8 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
   Non-production: `noindex, nofollow` + header `X-Robots-Tag`, dan robots.txt `Disallow: /`.
 - **OG image:** gambar dari tab SEO > foto konten (galeri cluster, hero kawasan, cover artikel) > OG default di
   Pengaturan Global → SEO default > gambar default per tipe halaman di `public/og/*.png` (1200×630).
+  Gambar bawaan dibuat ulang dengan `npm i --no-save playwright && node scripts/og-images.mjs` (teks di
+  dalam script; ubah kalau nama brand berubah).
 - **JSON-LD** (`App\Support\StructuredData`, spatie/schema-org): `Organization` + `WebSite` di semua halaman,
   `RealEstateAgent` (kantor pemasaran, jam buka) di Beranda & Kontak, `BreadcrumbList` di semua halaman selain
   Beranda, `ItemList` di kedua tampilan listing & Detail Kawasan, `Place` di Detail Kawasan, `Residence` berisi

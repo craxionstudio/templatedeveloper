@@ -5,6 +5,8 @@ import NewsletterForm from '@/components/lead/newsletter-form';
 import ArticleCard from '@/components/site/article-card';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import { Icon } from '@/components/site/icons';
+import EmptyState from '@/components/site/empty-state';
+import type { EmptyStateData } from '@/components/site/empty-state';
 import PageHead from '@/components/site/page-head';
 import Pagination from '@/components/site/pagination';
 import Picture, { IMAGE_SIZES } from '@/components/site/picture';
@@ -37,6 +39,8 @@ type Props = {
     search: { placeholder: string; value: string; action: string } | null;
     count: string;
     emptyText: string;
+    /** Belum ada artikel yang dipublikasikan sama sekali. */
+    empty: EmptyStateData | null;
     articles: { data: ArticleCardData[]; pagination: PaginationData };
     newsletter: {
         title: string;
@@ -60,6 +64,7 @@ export default function ArtikelIndex({
     search,
     count,
     emptyText,
+    empty,
     articles,
     newsletter,
 }: Props) {
@@ -172,66 +177,77 @@ export default function ArtikelIndex({
                 ) : null}
             </section>
 
-            <section className="container-site flex flex-col gap-5 pt-8 pb-14 xl:gap-8 xl:pt-12 xl:pb-[120px]">
-                <div className="flex flex-col gap-4 xl:flex-row-reverse xl:items-center xl:justify-between xl:border-b xl:border-line xl:pb-6">
-                    {searchForm}
-                    <nav
-                        aria-label={header.eyebrow}
-                        className="-mx-5 flex [scrollbar-width:none] gap-2 overflow-x-auto px-5 xl:mx-0 xl:px-0"
-                    >
-                        <SmartLink
-                            href={categories.all.url}
-                            className={chip(categories.all.active)}
-                            aria-current={
-                                categories.all.active ? 'page' : undefined
-                            }
+            {empty ? (
+                <section className="container-site pt-8 pb-14 xl:pt-12 xl:pb-[120px]">
+                    <EmptyState state={empty} />
+                </section>
+            ) : (
+                <section className="container-site flex flex-col gap-5 pt-8 pb-14 xl:gap-8 xl:pt-12 xl:pb-[120px]">
+                    <div className="flex flex-col gap-4 xl:flex-row-reverse xl:items-center xl:justify-between xl:border-b xl:border-line xl:pb-6">
+                        {searchForm}
+                        <nav
+                            aria-label={header.eyebrow}
+                            className="-mx-5 flex [scrollbar-width:none] gap-2 overflow-x-auto px-5 xl:mx-0 xl:px-0"
                         >
-                            {categories.all.label}
-                        </SmartLink>
-                        {categories.items.map((item) => (
                             <SmartLink
-                                key={item.url}
-                                href={item.url}
-                                className={chip(item.active)}
-                                aria-current={item.active ? 'page' : undefined}
+                                href={categories.all.url}
+                                className={chip(categories.all.active)}
+                                aria-current={
+                                    categories.all.active ? 'page' : undefined
+                                }
                             >
-                                {item.label}
+                                {categories.all.label}
                             </SmartLink>
-                        ))}
-                    </nav>
-                </div>
-                <p className="text-[15px] text-body">{count}</p>
-
-                {/* Judul section untuk urutan heading (h1 → h2 → h3 kartu). */}
-                <h2 className="sr-only">{labels.article_list}</h2>
-                {articles.data.length === 0 ? (
-                    <p className="rounded-card bg-white p-10 text-center text-body">
-                        {emptyText}
-                    </p>
-                ) : (
-                    <>
-                        <div className="flex flex-col gap-5 md:hidden">
-                            {articles.data.map((article) => (
-                                <ArticleCard
-                                    key={article.id}
-                                    article={article}
-                                    variant="row"
-                                />
+                            {categories.items.map((item) => (
+                                <SmartLink
+                                    key={item.url}
+                                    href={item.url}
+                                    className={chip(item.active)}
+                                    aria-current={
+                                        item.active ? 'page' : undefined
+                                    }
+                                >
+                                    {item.label}
+                                </SmartLink>
                             ))}
-                        </div>
-                        <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3 xl:gap-y-10">
-                            {articles.data.map((article) => (
-                                <ArticleCard
-                                    key={article.id}
-                                    article={article}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
+                        </nav>
+                    </div>
+                    <p className="text-[15px] text-body">{count}</p>
 
-                <Pagination pagination={articles.pagination} className="mt-4" />
-            </section>
+                    {/* Judul section untuk urutan heading (h1 → h2 → h3 kartu). */}
+                    <h2 className="sr-only">{labels.article_list}</h2>
+                    {articles.data.length === 0 ? (
+                        <p className="rounded-card bg-white p-10 text-center text-body">
+                            {emptyText}
+                        </p>
+                    ) : (
+                        <>
+                            <div className="flex flex-col gap-5 md:hidden">
+                                {articles.data.map((article) => (
+                                    <ArticleCard
+                                        key={article.id}
+                                        article={article}
+                                        variant="row"
+                                    />
+                                ))}
+                            </div>
+                            <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3 xl:gap-y-10">
+                                {articles.data.map((article) => (
+                                    <ArticleCard
+                                        key={article.id}
+                                        article={article}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    <Pagination
+                        pagination={articles.pagination}
+                        className="mt-4"
+                    />
+                </section>
+            )}
 
             {newsletter ? (
                 <section className="container-site pb-14 xl:pb-[120px]">

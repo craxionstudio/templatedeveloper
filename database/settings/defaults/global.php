@@ -6,9 +6,9 @@
 
 return [
     'identity' => [
-        'brand_name' => 'Arunika Land',
+        'brand_name' => 'BSD City',
         'company_name' => '[NAMA PT DEVELOPER]',
-        'tagline' => 'Developer Properti',
+        'tagline' => 'Kota mandiri Sinar Mas Land di Serpong',
         'logo_light' => null,
         'logo_dark' => null,
         'favicon' => null,
@@ -18,7 +18,7 @@ return [
         'hotline' => '[NO. HOTLINE]',
         // Format 62xxxxxxxxxx. Kosong = tombol WA diarahkan ke halaman kontak.
         'whatsapp' => '',
-        'whatsapp_message' => 'Halo, saya ingin info tentang properti Arunika Land.',
+        'whatsapp_message' => 'Halo, saya ingin info tentang rumah di BSD City.',
         'phone' => '[NO. TELEPON]',
         'email' => '[EMAIL]',
         'office_address' => '[ALAMAT KANTOR PEMASARAN]',
@@ -35,9 +35,13 @@ return [
     ],
 
     'footer' => [
-        'description' => 'Developer kawasan hunian terpadu di Serpong, Tangerang Selatan.',
-        // Kolom Properti otomatis berisi kawasan yang dipublikasikan.
+        'description' => 'Kota mandiri seluas sekitar 6.000 hektare yang dikembangkan Sinar Mas Land di Serpong, Tangerang.',
+        // Kolom Properti otomatis berisi kawasan yang dipublikasikan (maksimal property_limit,
+        // kawasan dari cluster Prioritas 1–10 dulu), ditutup link "Semua kawasan".
         'property_title' => 'Properti',
+        'property_limit' => 8,
+        'property_all_label' => 'Semua kawasan',
+        'property_all_url' => '/properti/kawasan',
         'columns' => [
             [
                 'title' => 'Perusahaan',

@@ -5,14 +5,14 @@ $shared = require __DIR__.'/_shared.php';
 return [
     'hero' => [
         'enabled' => true,
-        'eyebrow' => 'Arunika Land · Sejak [TAHUN]',
-        'title' => 'Kota yang tumbuh bersama keluargamu.',
-        'description' => 'Kawasan hunian terpadu lengkap dengan sekolah, pusat belanja, taman, dan akses transportasi yang terus berkembang.',
+        'eyebrow' => 'Serpong, Tangerang',
+        'title' => 'Pilih rumah di kota seluas 6.000 hektare.',
+        'description' => 'Lebih dari 20 kawasan hunian, dari cluster baru di Vireya dan Terravia sampai NavaPark. Bandingkan tipe dan harga, lalu atur jadwal survey.',
         'image' => null,
         'image_mobile' => null,
-        'image_alt' => 'Foto aerial kota Arunika',
+        'image_alt' => 'Foto aerial BSD City',
         'video_url' => '',
-        'primary_label' => 'Lihat Semua Listing',
+        'primary_label' => 'Lihat Semua Cluster',
         'primary_url' => '/properti',
         'secondary_label' => 'Chat Marketing',
         // Kosong = link WhatsApp.
@@ -40,11 +40,11 @@ return [
     'listing' => [
         'enabled' => true,
         'eyebrow' => 'Pilihan Properti',
-        'title' => 'Temukan rumah di kawasan Arunika',
+        'title' => 'Temukan rumah di BSD City',
         'source' => 'auto',
         'items' => [],
         'limit' => 4,
-        'button_label' => 'Lihat Semua Listing',
+        'button_label' => 'Lihat Semua Cluster',
         'button_url' => '/properti',
     ],
 
@@ -52,13 +52,13 @@ return [
         'enabled' => true,
         'eyebrow' => 'Keunggulan Wilayah',
         'title' => 'Lokasi yang terhubung ke pusat kota',
-        'description' => 'Setiap kawasan Arunika dipilih dekat dengan simpul transportasi dan pusat aktivitas, jadi waktu di jalan lebih singkat dan waktu bersama keluarga lebih banyak.',
+        'description' => 'Kawasan-kawasan di BSD City terhubung ke tol Jakarta-Serpong, JORR, dan Commuter Line, jadi waktu di jalan lebih singkat dan waktu bersama keluarga lebih banyak.',
         // true = peta, badge, dan poin keunggulan diambil dari Profil Lokasi.
         'use_area' => true,
     ],
 
     'facilities' => [
-        'enabled' => true,
+        'enabled' => false,
         'eyebrow' => 'Fasilitas Developer',
         'title' => 'Semua kebutuhan harian, ada di dalam kawasan',
         'source' => 'auto',
@@ -69,10 +69,10 @@ return [
     ],
 
     'developments' => [
-        'enabled' => true,
+        'enabled' => false,
         'eyebrow' => 'Pengembangan Mendatang',
         'title' => 'Kawasan yang terus bertumbuh, nilai properti ikut naik',
-        'description' => 'Rencana pengembangan kawasan Arunika untuk beberapa tahun ke depan.',
+        'description' => 'Rencana pengembangan BSD City untuk beberapa tahun ke depan.',
         'disclaimer' => 'Jadwal bersifat estimasi dan dapat berubah mengikuti perizinan.',
         'source' => 'auto',
         'items' => [],
@@ -80,9 +80,9 @@ return [
     ],
 
     'articles' => [
-        'enabled' => true,
+        'enabled' => false,
         'eyebrow' => 'Artikel & Berita',
-        'title' => 'Kabar terbaru dari Arunika',
+        'title' => 'Kabar terbaru dari BSD City',
         // null = artikel highlight terbaru.
         'main_article_id' => null,
         'source' => 'auto',
@@ -96,6 +96,6 @@ return [
 
     'seo' => [
         ...$shared['seo'],
-        'meta_description' => 'Kawasan hunian terpadu di Serpong lengkap dengan sekolah, pusat belanja, taman, dan akses transportasi yang terus berkembang.',
+        'meta_description' => 'Rumah di BSD City, dari cluster baru sampai kawasan mapan: Vireya, Terravia, Eonna, NavaPark, dan lainnya. Bandingkan tipe dan harga, lalu atur survey.',
     ],
 ];

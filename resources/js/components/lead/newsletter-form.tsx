@@ -71,7 +71,7 @@ export default function NewsletterForm({
                     placeholder={placeholder}
                     aria-invalid={Boolean(error)}
                     aria-describedby={error ? `${id}-error` : undefined}
-                    className="h-[52px] flex-1 rounded-full border-0 bg-white px-5 text-[15px] text-ink"
+                    className="h-[52px] shrink-0 rounded-full border-0 bg-white px-5 text-[15px] text-ink md:flex-1"
                 />
                 <button
                     type="submit"

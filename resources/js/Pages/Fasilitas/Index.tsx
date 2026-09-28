@@ -1,6 +1,8 @@
 import { router, usePage } from '@inertiajs/react';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import CtaSection from '@/components/site/cta-section';
+import EmptyState from '@/components/site/empty-state';
+import type { EmptyStateData } from '@/components/site/empty-state';
 import FacilityCard from '@/components/site/facility-card';
 import { ContentIcon } from '@/components/site/icons';
 import PageHead from '@/components/site/page-head';
@@ -39,6 +41,8 @@ type Props = {
         } | null;
     };
     facilities: FacilityCardData[];
+    /** Belum ada fasilitas yang dipublikasikan. */
+    empty: EmptyStateData | null;
     cta: CtaData;
 };
 
@@ -48,6 +52,7 @@ export default function FasilitasIndex({
     header,
     filters,
     facilities,
+    empty,
     cta,
 }: Props) {
     const { labels } = usePage().props.site;
@@ -95,21 +100,23 @@ export default function FasilitasIndex({
                         <p className="text-base leading-[1.7] text-body xl:text-[17px]">
                             {header.description}
                         </p>
-                        <dl className="flex gap-7">
-                            {header.stats.map((stat) => (
-                                <div
-                                    key={stat.label}
-                                    className="flex flex-col-reverse"
-                                >
-                                    <dt className="text-[13px] text-caption">
-                                        {stat.label}
-                                    </dt>
-                                    <dd className="font-display text-2xl font-semibold xl:text-[30px]">
-                                        {stat.value}
-                                    </dd>
-                                </div>
-                            ))}
-                        </dl>
+                        {header.stats.length > 0 ? (
+                            <dl className="flex gap-7">
+                                {header.stats.map((stat) => (
+                                    <div
+                                        key={stat.label}
+                                        className="flex flex-col-reverse"
+                                    >
+                                        <dt className="text-[13px] text-caption">
+                                            {stat.label}
+                                        </dt>
+                                        <dd className="font-display text-2xl font-semibold xl:text-[30px]">
+                                            {stat.value}
+                                        </dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        ) : null}
                     </div>
                 </div>
                 {main ? (
@@ -132,81 +139,91 @@ export default function FasilitasIndex({
                 ) : null}
             </section>
 
-            <section className="container-site flex flex-col gap-6 pt-10 pb-14 xl:pt-14 xl:pb-[120px]">
-                <div className="flex flex-col gap-4 border-b border-line pb-5 xl:flex-row xl:items-center xl:justify-between">
-                    <nav
-                        aria-label={filters.allLabel}
-                        className="-mx-5 flex [scrollbar-width:none] gap-2 overflow-x-auto px-5 xl:mx-0 xl:flex-wrap xl:px-0"
-                    >
-                        <SmartLink
-                            href={query({ kategori: null })}
-                            className={chip(!filters.activeCategory)}
-                            aria-current={
-                                !filters.activeCategory ? 'page' : undefined
-                            }
+            {empty ? (
+                <section className="container-site pt-10 pb-14 xl:pt-14 xl:pb-[120px]">
+                    <EmptyState state={empty} />
+                </section>
+            ) : (
+                <section className="container-site flex flex-col gap-6 pt-10 pb-14 xl:pt-14 xl:pb-[120px]">
+                    <div className="flex flex-col gap-4 border-b border-line pb-5 xl:flex-row xl:items-center xl:justify-between">
+                        <nav
+                            aria-label={filters.allLabel}
+                            className="-mx-5 flex [scrollbar-width:none] gap-2 overflow-x-auto px-5 xl:mx-0 xl:flex-wrap xl:px-0"
                         >
-                            {filters.allLabel}
-                        </SmartLink>
-                        {filters.categories.map((category) => (
                             <SmartLink
-                                key={category.slug}
-                                href={query({ kategori: category.slug })}
-                                className={chip(
-                                    filters.activeCategory === category.slug,
-                                )}
+                                href={query({ kategori: null })}
+                                className={chip(!filters.activeCategory)}
                                 aria-current={
-                                    filters.activeCategory === category.slug
-                                        ? 'page'
-                                        : undefined
+                                    !filters.activeCategory ? 'page' : undefined
                                 }
                             >
-                                <ContentIcon
-                                    name={category.icon}
-                                    className="size-4"
-                                />
-                                {category.name}
+                                {filters.allLabel}
                             </SmartLink>
-                        ))}
-                    </nav>
-                    {filters.kawasan ? (
-                        <label className="flex items-center gap-2.5 text-sm text-caption">
-                            {filters.kawasan.label}
-                            <select
-                                value={filters.kawasan.active ?? ''}
-                                onChange={(e) =>
-                                    router.get(
-                                        query({
-                                            kawasan: e.target.value || null,
-                                        }),
-                                        {},
-                                        { preserveScroll: true },
-                                    )
-                                }
-                                className="h-11 rounded-xl border-[1.5px] border-[#CFC7B6] bg-white px-3 text-[15px] text-ink"
-                            >
-                                <option value="">
-                                    {filters.kawasan.allLabel}
-                                </option>
-                                {filters.kawasan.options.map((option) => (
-                                    <option
-                                        key={option.value}
-                                        value={option.value}
-                                    >
-                                        {option.label}
+                            {filters.categories.map((category) => (
+                                <SmartLink
+                                    key={category.slug}
+                                    href={query({ kategori: category.slug })}
+                                    className={chip(
+                                        filters.activeCategory ===
+                                            category.slug,
+                                    )}
+                                    aria-current={
+                                        filters.activeCategory === category.slug
+                                            ? 'page'
+                                            : undefined
+                                    }
+                                >
+                                    <ContentIcon
+                                        name={category.icon}
+                                        className="size-4"
+                                    />
+                                    {category.name}
+                                </SmartLink>
+                            ))}
+                        </nav>
+                        {filters.kawasan ? (
+                            <label className="flex items-center gap-2.5 text-sm text-caption">
+                                {filters.kawasan.label}
+                                <select
+                                    value={filters.kawasan.active ?? ''}
+                                    onChange={(e) =>
+                                        router.get(
+                                            query({
+                                                kawasan: e.target.value || null,
+                                            }),
+                                            {},
+                                            { preserveScroll: true },
+                                        )
+                                    }
+                                    className="h-11 rounded-xl border-[1.5px] border-[#CFC7B6] bg-white px-3 text-[15px] text-ink"
+                                >
+                                    <option value="">
+                                        {filters.kawasan.allLabel}
                                     </option>
-                                ))}
-                            </select>
-                        </label>
-                    ) : null}
-                </div>
-                {/* Judul section untuk urutan heading (h1 → h2 → h3 kartu). */}
-                <h2 className="sr-only">{labels.facility_list}</h2>
-                <div className="grid gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
-                    {facilities.map((facility) => (
-                        <FacilityCard key={facility.id} facility={facility} />
-                    ))}
-                </div>
-            </section>
+                                    {filters.kawasan.options.map((option) => (
+                                        <option
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        ) : null}
+                    </div>
+                    {/* Judul section untuk urutan heading (h1 → h2 → h3 kartu). */}
+                    <h2 className="sr-only">{labels.facility_list}</h2>
+                    <div className="grid gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
+                        {facilities.map((facility) => (
+                            <FacilityCard
+                                key={facility.id}
+                                facility={facility}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
 
             <CtaSection cta={cta} />
         </>

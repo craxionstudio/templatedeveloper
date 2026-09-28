@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Kawasan;
 use App\Settings\GlobalSettings;
 use App\Settings\NavigationSettings;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Menyusun data layout global (header, drawer mobile, footer) yang dibagikan ke semua
@@ -64,7 +65,7 @@ class SiteLayout
             'navigation' => array_values(app(NavigationSettings::class)->header_items),
             'footer' => [
                 'description' => $footer['description'],
-                'columns' => [self::propertyColumn($footer['property_title']), ...$footer['columns']],
+                'columns' => [self::propertyColumn($footer), ...$footer['columns']],
                 'socialTitle' => $footer['social_title'],
                 'social' => $footer['social'],
                 'officeTitle' => $footer['office_title'],
@@ -98,15 +99,33 @@ class SiteLayout
      *
      * @return array{title: string, links: list<array{label: string, url: string}>}
      */
-    public static function propertyColumn(string $title): array
+    /**
+     * Kolom Properti di footer: maksimal N kawasan (Pengaturan Global → Footer). Urutan: kawasan yang
+     * punya cluster Prioritas 1–10 dulu (prioritas terkecil di atas), lalu urutan kawasan.
+     * Ditutup link "Semua kawasan".
+     *
+     * @param  array<string, mixed>  $footer
+     * @return array<string, mixed>
+     */
+    public static function propertyColumn(array $footer): array
     {
-        return [
-            'title' => $title,
-            'links' => Kawasan::query()->visible()->ordered()->get(['name', 'slug'])
-                ->map(fn (Kawasan $kawasan): array => ['label' => $kawasan->name, 'url' => $kawasan->publicPath()])
-                ->values()
-                ->all(),
-        ];
+        $limit = max(1, (int) ($footer['property_limit'] ?? 8));
+
+        $kawasans = Kawasan::query()->visible()
+            ->withMin(['clusters as top_priority' => fn (Builder $q) => $q->published()->whereNotNull('prioritas')], 'prioritas')
+            ->orderByRaw('CASE WHEN top_priority IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('top_priority')
+            ->ordered()
+            ->limit($limit)
+            ->get(['id', 'name', 'slug', 'sort_order']);
+
+        $links = $kawasans->map(fn (Kawasan $kawasan): array => ['label' => $kawasan->name, 'url' => $kawasan->publicPath()]);
+
+        if (filled($footer['property_all_label'] ?? null)) {
+            $links->push(['label' => $footer['property_all_label'], 'url' => $footer['property_all_url'] ?: '/properti/kawasan']);
+        }
+
+        return ['title' => $footer['property_title'], 'links' => $links->values()->all()];
     }
 
     /**

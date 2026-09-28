@@ -43,7 +43,7 @@ export default function SiteHeader() {
                                 newTab={item.new_tab}
                                 aria-current={active ? 'page' : undefined}
                                 className={cn(
-                                    'border-b-2 py-2 text-ink no-underline transition-colors',
+                                    'border-b-2 py-2 whitespace-nowrap text-ink no-underline transition-colors',
                                     active
                                         ? 'border-terracotta font-bold'
                                         : 'border-transparent hover:border-line',

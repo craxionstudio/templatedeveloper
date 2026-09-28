@@ -188,6 +188,24 @@ class Fields
         return TextInput::make($path)->label($label)->maxLength(255)->helperText($helper);
     }
 
+    /**
+     * Teks keadaan kosong halaman daftar (key empty_* di section settings).
+     */
+    public static function emptyState(string $section, string $description): Section
+    {
+        return Section::make('Keadaan kosong')
+            ->description($description)
+            ->schema([
+                self::text("{$section}.empty_title", 'Judul'),
+                self::textarea("{$section}.empty_description", 'Deskripsi', 2),
+                Grid::make(2)->schema([
+                    self::text("{$section}.empty_button_label", 'Label tombol'),
+                    self::text("{$section}.empty_button_url", 'URL tombol'),
+                ]),
+            ])
+            ->compact();
+    }
+
     public static function textarea(string $path, string $label, int $rows = 3, ?string $helper = null): Textarea
     {
         return Textarea::make($path)->label($label)->rows($rows)->helperText($helper);

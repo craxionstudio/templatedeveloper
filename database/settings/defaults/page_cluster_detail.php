@@ -53,7 +53,7 @@ return [
         'whatsapp_message' => 'Halo, saya tertarik dengan {cluster} tipe {type}. Boleh minta info harga dan unit yang tersedia?',
         // Dipakai kalau cluster tidak punya marketing sendiri.
         'marketing_name' => '[NAMA MARKETING]',
-        'marketing_title' => 'Marketing Arunika Land',
+        'marketing_title' => 'Marketing BSD City',
         'marketing_whatsapp' => '',
         'marketing_photo' => null,
     ],

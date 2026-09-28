@@ -10,7 +10,7 @@ return [
         'title' => '',
         'description' => '',
         'image' => null,
-        'image_alt' => 'Foto kantor Arunika Land',
+        'image_alt' => 'Foto kantor pemasaran BSD City',
     ],
 
     'history' => [
@@ -66,6 +66,6 @@ return [
 
     'seo' => [
         ...$shared['seo'],
-        'meta_title' => 'Tentang Kami',
+        'meta_title' => 'Tentang BSD City dan Sinar Mas Land',
     ],
 ];

@@ -10,7 +10,6 @@ use App\Models\Cluster;
 use App\Models\GalleryItem;
 use App\Models\HouseType;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Models\SeoMeta;
 use App\Settings\AboutPageSettings;
 use App\Settings\ArticleIndexPageSettings;
@@ -20,10 +19,10 @@ use App\Settings\FacilityPageSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\KawasanDetailPageSettings;
 use App\Settings\ListingPageSettings;
+use App\Support\DummyContent;
 use App\Support\IconOptions;
 use App\Support\PageCache;
 use App\Support\Sitemaps;
-use Database\Seeders\ContentSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +42,7 @@ class ImportBsdData extends Command
 {
     protected $signature = 'import:bsd-data
         {path=docs/data/bsd-city-data.json : File JSON (relatif ke root project atau path absolut)}
-        {--fresh : Hapus dulu SEMUA kawasan, cluster, tipe rumah, dan promo contoh Arunika}
+        {--fresh : Hapus dulu SEMUA kawasan, cluster, tipe rumah, dan promo contoh; nonaktifkan konten contoh lain}
         {--force : Jalankan --fresh di production tanpa konfirmasi}';
 
     protected $description = 'Import profil lokasi, kawasan, cluster, tipe rumah, dan SEO dari file JSON data asli';
@@ -132,7 +131,8 @@ class ImportBsdData extends Command
 
     /**
      * --fresh: hapus permanen semua data properti (dummy) beserta media, galeri, dan SEO-nya.
-     * User, artikel, lead (cluster_id jadi null), fasilitas kota, dan settings tidak disentuh.
+     * Konten contoh lain dinonaktifkan (tidak dihapus). User, lead (cluster_id jadi null),
+     * dan settings tidak disentuh.
      */
     private function deleteDummyProperties(): void
     {
@@ -150,9 +150,10 @@ class ImportBsdData extends Command
         $this->count('Dihapus: kawasan', Kawasan::withTrashed()->count());
         Kawasan::withTrashed()->each(fn (Kawasan $kawasan) => $kawasan->forceDelete());
 
-        $promos = Promo::withTrashed()->whereIn('title', ContentSeeder::DUMMY_PROMO_TITLES)->get();
-        $this->count('Dihapus: promo contoh', $promos->count());
-        $promos->each(fn (Promo $promo) => $promo->forceDelete());
+        // Konten contoh lain (fasilitas, pengembangan mendatang, artikel, promo) tidak dihapus, hanya dinonaktifkan.
+        foreach (DummyContent::unpublish() as $type => $n) {
+            $this->count("Dinonaktifkan: {$type} contoh", $n);
+        }
     }
 
     /**

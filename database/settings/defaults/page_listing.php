@@ -4,12 +4,12 @@ $shared = require __DIR__.'/_shared.php';
 
 return [
     'header' => [
-        'eyebrow' => 'Serpong, Tangerang Selatan',
-        'title' => 'Properti Arunika',
-        'description' => 'Pilih rumah berdasarkan cluster, atau jelajahi dulu kawasan-kawasan di dalam kota Arunika.',
+        'eyebrow' => 'Serpong, Tangerang',
+        'title' => 'Properti BSD City',
+        'description' => 'Pilih rumah berdasarkan cluster, atau jelajahi dulu kawasan-kawasan di BSD City.',
         'image' => null,
         'image_mobile' => null,
-        'image_alt' => 'Foto aerial kota Arunika',
+        'image_alt' => 'Foto aerial BSD City',
         // Angka statistik dihitung otomatis; hanya label yang bisa diubah.
         'stat_kawasan_label' => 'Kawasan',
         'stat_cluster_label' => 'Cluster',
@@ -79,13 +79,13 @@ return [
 
     'seo_cluster' => [
         ...$shared['seo'],
-        'meta_title' => 'Properti di Kota Arunika',
-        'meta_description' => 'Pilih rumah berdasarkan cluster di kota Arunika, Serpong: bandingkan tipe, luas tanah, kamar tidur, dan harga.',
+        'meta_title' => 'Daftar Cluster Rumah di BSD City',
+        'meta_description' => 'Semua cluster rumah di BSD City dalam satu halaman. Saring per kawasan, tipe, jumlah kamar, dan harga. Info LT, LB, dan cicilan tiap tipe.',
     ],
 
     'seo_kawasan' => [
         ...$shared['seo'],
-        'meta_title' => 'Kawasan di Kota Arunika',
-        'meta_description' => 'Jelajahi kawasan-kawasan di kota Arunika, Serpong, beserta cluster di dalamnya dan cluster mandiri.',
+        'meta_title' => 'Kawasan Hunian di BSD City',
+        'meta_description' => 'Kenali kawasan di BSD City sebelum memilih rumah: fasilitas, akses tol dan stasiun, dan cluster di tiap kawasan.',
     ],
 ];

@@ -50,7 +50,7 @@ return [
 
     'seo' => [
         ...$shared['seo'],
-        'meta_title' => 'Kontak',
-        'meta_description' => 'Hubungi kantor pemasaran Arunika Land: alamat, jam buka, WhatsApp, dan form konsultasi.',
+        'meta_title' => 'Kantor Pemasaran BSD City',
+        'meta_description' => 'Tanya harga, tipe rumah, atau jadwal survey cluster di BSD City. Hubungi kantor pemasaran lewat WhatsApp atau isi form ini.',
     ],
 ];

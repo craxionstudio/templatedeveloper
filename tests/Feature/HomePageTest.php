@@ -9,9 +9,9 @@ it('merender beranda dengan data layout global', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Home')
-            ->where('meta.title', 'Arunika Land — Developer Properti')
+            ->where('meta.title', 'BSD City — Kota mandiri Sinar Mas Land di Serpong')
             ->has('hero.title')
-            ->where('site.brand.name', 'Arunika Land')
+            ->where('site.brand.name', 'BSD City')
             ->has('site.navigation', 5)
             ->where('site.navigation.0', ['label' => 'Beranda', 'url' => '/', 'new_tab' => false])
             ->has('site.footer.columns', 2)
@@ -49,6 +49,7 @@ it('mengisi kolom Properti di footer dari kawasan yang tampil di publik', functi
             ['label' => 'Arunika Garden', 'url' => '/properti/kawasan/arunika-garden'],
             ['label' => 'Arunika Hills', 'url' => '/properti/kawasan/arunika-hills'],
             ['label' => 'Arunika Lakeside', 'url' => '/properti/kawasan/arunika-lakeside'],
+            ['label' => 'Semua kawasan', 'url' => '/properti/kawasan'],
         ])
     );
 });
@@ -58,7 +59,7 @@ it('tidak menampilkan kawasan tanpa cluster yang dipublikasikan di footer', func
     Cluster::query()->whereHas('kawasan', fn ($q) => $q->where('slug', 'arunika-hills'))->update(['is_published' => false]);
 
     $this->get('/')->assertInertia(fn (Assert $page) => $page
-        ->has('site.footer.columns.0.links', 2)
+        ->has('site.footer.columns.0.links', 3) // 2 kawasan + "Semua kawasan"
         ->where('site.footer.columns.0.links.1.label', 'Arunika Lakeside')
     );
 });
@@ -76,7 +77,7 @@ it('memakai isi awal kalau teks settings dikosongkan', function () {
     $settings->hero = [...$settings->hero, 'title' => ''];
     $settings->save();
 
-    $this->get('/')->assertInertia(fn (Assert $page) => $page->where('hero.title', 'Kota yang tumbuh bersama keluargamu.'));
+    $this->get('/')->assertInertia(fn (Assert $page) => $page->where('hero.title', 'Pilih rumah di kota seluas 6.000 hektare.'));
 });
 
 it('tidak merender section yang dimatikan di settings', function () {

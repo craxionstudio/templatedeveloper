@@ -208,6 +208,50 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
   - Tahun dibuka/launching belum ditampilkan di website (hanya di admin).
 - Test: `tests/Feature/ImportBsdDataTest.php` (--fresh, idempoten, isian admin tetap, konversi, SEO, render halaman, data internal tidak bocor, tabel & form admin).
 
+**Ganti Arunika → BSD City, footer kawasan, konten contoh nonaktif** (permintaan pemilik 29 Sep 2026)
+
+1. **Teks Arunika → BSD City**:
+   - **Diganti di tiga tempat:** isi awal (`database/settings/defaults/`, seeder) **dan** database yang sudah berjalan lewat migrasi.
+     - `database/settings/2026_09_29_100000_rebrand_to_bsd_city.php` untuk settings.
+     - `database/migrations/2026_09_29_100100_replace_arunika_content.php` untuk Profil Developer, Profil Lokasi, dan deskripsi kategori artikel.
+   - **Teks yang sudah diubah admin tidak ditimpa:** nilai hanya diganti kalau masih sama dengan teks lama. Jalan otomatis saat deploy (`php artisan migrate`).
+   - **Global:**
+     - Brand "BSD City", tagline "Kota mandiri Sinar Mas Land di Serpong".
+     - Pesan WA default dan deskripsi footer diperbarui.
+   - **Beranda:**
+     - Hero: eyebrow "Serpong, Tangerang", headline & sub-headline baru, tombol "Lihat Semua Cluster" → /properti dan "Chat Marketing" → WA.
+     - Judul listing "Temukan rumah di BSD City", deskripsi keunggulan wilayah, judul artikel, dan meta description.
+   - **Properti:** judul "Properti BSD City", deskripsi baru, eyebrow "Serpong, Tangerang", SEO kedua tampilan (statistik tetap otomatis).
+   - **Detail Kawasan:** eyebrow "Kawasan di BSD City".
+   - **Detail Rumah:** jabatan marketing default "Marketing BSD City".
+   - **Fasilitas:** eyebrow "Fasilitas Kota", deskripsi, dan SEO.
+   - **Artikel:** judul "Kabar & inspirasi dari BSD City" dan SEO.
+   - **Tentang Kami & Kontak:** alt foto dan SEO.
+   - **Profil Developer:** deskripsi diganti paragraf profil BSD City dari data asli, alt foto diganti.
+   - **Profil Lokasi:** nama & alt foto.
+   - **Logo** tetap teks. Tagline hanya tampil di header kalau ≤ 24 karakter (tagline baru tidak muat di samping menu 1280 px). Menu header tidak lagi patah baris.
+   - **OG image bawaan** (`public/og/*.png`) dibuat ulang dengan brand BSD City lewat script baru `scripts/og-images.mjs`.
+   - **Lain-lain:** user agent `qa:pages` jadi `SiteQA/1.0`, `APP_NAME` di `.env.example` jadi "BSD City".
+   - **Sisa "Arunika" yang sengaja dibiarkan:**
+     - Data contoh di `PropertySeeder`/`ContentSeeder`/`ArticleSeeder` (dihapus atau dinonaktifkan oleh import; dipakai test).
+     - Nama cookie `arunika_attribution` (mengganti nama membuang data first-touch pengunjung yang sudah ada).
+     - Contoh nama database di `.env.example`.
+2. **Footer kolom Properti:**
+   - Maksimal 8 kawasan. Kawasan dengan cluster Prioritas 1–10 tampil dulu (prioritas terkecil di atas), lalu urutan kawasan.
+   - Ditutup link "Semua kawasan" → /properti/kawasan.
+   - Jumlah, label, dan URL link diatur di Pengaturan Global → Footer (`property_limit`, `property_all_label`, `property_all_url`).
+3. **Konten contoh dinonaktifkan, tidak dihapus:**
+   - Fasilitas, pengembangan mendatang, artikel, dan promo contoh diberi `is_published = false` (`App\Support\DummyContent`). Dijalankan oleh migrasi di atas dan oleh `import:bsd-data --fresh`, yang sekarang tidak lagi menghapus promo.
+   - Section **Fasilitas**, **Pengembangan Mendatang**, dan **Artikel & Berita** di Beranda dimatikan lewat toggle.
+   - **Keadaan kosong:**
+     - `/fasilitas` dan `/artikel` tetap bisa dibuka dan menampilkan kartu keadaan kosong (judul, deskripsi, tombol).
+     - Teksnya diatur di tab Daftar masing-masing Pengaturan Halaman.
+     - Selama kosong, statistik & foto header Fasilitas serta filter/pencarian Artikel disembunyikan.
+     - Pencarian artikel tanpa hasil tetap memakai "Belum ada artikel yang cocok.".
+   - **Sitemap** sudah hanya memuat konten yang dipublikasikan; kategori artikel tanpa artikel terbit tidak masuk.
+   - **Perbaikan kecil:** kolom email newsletter di mobile sebelumnya gepeng (`flex-1` di layout kolom).
+- Test: `tests/Feature/RebrandBsdCityTest.php` (migrasi settings & data, teks admin aman, tidak ada "Arunika" di halaman publik, hero & header Properti, footer, section Beranda, keadaan kosong, sitemap).
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

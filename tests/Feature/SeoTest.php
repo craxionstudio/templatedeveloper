@@ -51,7 +51,7 @@ it('mengisi Open Graph & Twitter lengkap dengan OG image default per tipe halama
         ->where('meta.og.type', 'website')
         ->where('meta.og.url', url('/properti/vega-garden'))
         ->where('meta.og.locale', 'id_ID')
-        ->where('meta.og.siteName', 'Arunika Land')
+        ->where('meta.og.siteName', 'BSD City')
         ->where('meta.og.image', url('/og/rumah.png'))
         ->where('meta.og.imageWidth', 1200)
         ->where('meta.og.imageHeight', 630)
@@ -78,7 +78,7 @@ it('memakai og:type article dengan waktu terbit di detail artikel', function () 
 
 it('memasang Organization & WebSite di semua halaman dan BreadcrumbList selain home', function () {
     $home = jsonLd($this->get('/'));
-    expect(ofType($home, 'Organization'))->toMatchArray(['@context' => 'https://schema.org', 'name' => 'Arunika Land', '@id' => url('/').'/#organization'])
+    expect(ofType($home, 'Organization'))->toMatchArray(['@context' => 'https://schema.org', 'name' => 'BSD City', '@id' => url('/').'/#organization'])
         ->and(ofType($home, 'WebSite'))->toMatchArray(['inLanguage' => 'id-ID'])
         ->and(ofType($home, 'RealEstateAgent'))->not->toBeNull()
         ->and(ofType($home, 'BreadcrumbList'))->toBeNull();
@@ -309,7 +309,7 @@ it('menampilkan pratinjau draft artikel hanya lewat URL bertanda tangan untuk ad
 });
 
 it('menyusun title dari pola settings dan override meta title admin', function () {
-    $this->get('/properti/kawasan/arunika-garden')->assertInertia(fn (Assert $page) => $page->where('meta.title', fn (string $title) => str_ends_with($title, '| Arunika Land')));
+    $this->get('/properti/kawasan/arunika-garden')->assertInertia(fn (Assert $page) => $page->where('meta.title', fn (string $title) => str_ends_with($title, '| BSD City')));
 
     Cluster::query()->where('slug', 'vega-garden')->first()->seo()->create(['meta_title' => 'Rumah Vega Garden Serpong', 'meta_description' => 'Deskripsi khusus.']);
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page

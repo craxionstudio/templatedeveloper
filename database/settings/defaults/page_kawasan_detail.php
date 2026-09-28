@@ -4,7 +4,7 @@ $shared = require __DIR__.'/_shared.php';
 
 return [
     'hero' => [
-        'eyebrow' => 'Kawasan di kota Arunika',
+        'eyebrow' => 'Kawasan di BSD City',
         'stat_area_label' => 'Luas kawasan',
         'stat_cluster_label' => 'Cluster',
         'stat_price_label' => 'Harga mulai',

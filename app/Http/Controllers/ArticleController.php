@@ -12,6 +12,7 @@ use App\Settings\ArticleIndexPageSettings;
 use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
+use App\Support\EmptyState;
 use App\Support\PageMeta;
 use App\Support\RichText;
 use App\Support\StructuredData;
@@ -189,6 +190,8 @@ class ArticleController extends Controller
             'search' => $list['show_search'] ? ['placeholder' => $list['search_placeholder'], 'value' => $search, 'action' => $category ? $category->publicPath() : '/artikel'] : null,
             'count' => trim($total.' '.$list['count_suffix']),
             'emptyText' => $list['empty_text'],
+            // Belum ada artikel yang dipublikasikan sama sekali (bukan hasil filter/pencarian kosong).
+            'empty' => Article::query()->published()->exists() ? null : EmptyState::make($list),
             'articles' => [
                 'data' => ArticleCard::collection($paginator->items()),
                 'pagination' => self::pagination($paginator),

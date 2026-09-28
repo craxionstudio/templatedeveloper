@@ -156,7 +156,7 @@ it('menyembunyikan dan menolak perubahan tab Tracking untuk Admin Konten', funct
     $page
         // Request dimanipulasi: tetap tidak boleh mengubah tracking.
         ->set('data.tracking', ['gtm_id' => 'GTM-PALSU'])
-        ->fillForm(['identity.brand_name' => 'Arunika Land'])
+        ->fillForm(['identity.brand_name' => 'BSD City'])
         ->call('save')
         ->assertHasNoFormErrors();
 

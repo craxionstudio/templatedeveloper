@@ -24,8 +24,11 @@ export function BrandMark({ className }: { className?: string }) {
     );
 }
 
+/** Tagline lebih panjang dari ini tidak muat di samping menu header (lebar konten 1280 px). */
+const TAGLINE_MAX = 24;
+
 /**
- * Logo teks sementara. Di Milestone 2 bisa diganti file logo dari Pengaturan Global.
+ * Logo teks sementara (sampai ada file logo). Tagline panjang tidak ditampilkan di header.
  */
 export default function BrandLogo({
     name,
@@ -47,8 +50,8 @@ export default function BrandLogo({
                 <span className="font-display text-xl font-semibold xl:text-2xl">
                     {name}
                 </span>
-                {tagline ? (
-                    <span className="hidden text-[11px] tracking-[0.12em] text-caption uppercase xl:block">
+                {tagline && tagline.length <= TAGLINE_MAX ? (
+                    <span className="hidden text-[11px] tracking-[0.12em] whitespace-nowrap text-caption uppercase xl:block">
                         {tagline}
                     </span>
                 ) : null}

@@ -53,8 +53,9 @@ class ManageArticleIndexPage extends PageSettingsPage
                         Fields::text('list.search_placeholder', 'Placeholder pencarian'),
                         Fields::text('list.all_label', 'Chip "Semua"'),
                         Fields::text('list.count_suffix', 'Akhiran jumlah ("artikel")'),
-                        Fields::text('list.empty_text', 'Teks kalau kosong'),
+                        Fields::text('list.empty_text', 'Teks kalau filter/pencarian tidak menemukan artikel'),
                     ]),
+                    Fields::emptyState('list', 'Tampil kalau belum ada artikel yang dipublikasikan sama sekali. Filter dan pencarian disembunyikan.'),
                 ]),
                 Tab::make('Newsletter')->schema([
                     Fields::enabled('newsletter'),

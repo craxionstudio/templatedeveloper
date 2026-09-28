@@ -79,8 +79,15 @@ class ManageGlobalSettings extends PageSettingsPage
                 ]),
                 Tab::make('Footer')->schema([
                     Fields::textarea('footer.description', 'Deskripsi singkat', 2),
-                    TextInput::make('footer.property_title')->label('Judul kolom Properti')
-                        ->helperText('Isi kolom Properti otomatis: kawasan yang dipublikasikan.'),
+                    Grid::make(4)->schema([
+                        TextInput::make('footer.property_title')->label('Judul kolom Properti')
+                            ->helperText('Isi otomatis: kawasan yang dipublikasikan, yang punya cluster Prioritas 1–10 dulu.'),
+                        TextInput::make('footer.property_limit')->label('Maksimal kawasan')
+                            ->numeric()->integer()->minValue(1)->maxValue(30)->default(8),
+                        TextInput::make('footer.property_all_label')->label('Label link semua kawasan')->maxLength(40),
+                        TextInput::make('footer.property_all_url')->label('URL link semua kawasan')
+                            ->placeholder('/properti/kawasan')->maxLength(255),
+                    ]),
                     Repeater::make('footer.columns')
                         ->label('Kolom link lain')
                         ->schema([

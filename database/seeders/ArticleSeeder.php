@@ -18,9 +18,9 @@ class ArticleSeeder extends Seeder
     public function run(): void
     {
         $categories = collect([
-            ['Berita', 'Kabar terbaru pembangunan dan kegiatan di kota Arunika.'],
+            ['Berita', 'Kabar terbaru pembangunan dan kegiatan di BSD City.'],
             ['Tips Properti', 'Panduan praktis membeli, membiayai, dan merawat rumah.'],
-            ['Gaya Hidup', 'Cerita keseharian dan agenda warga kota Arunika.'],
+            ['Gaya Hidup', 'Cerita keseharian dan agenda warga BSD City.'],
             ['Promo', 'Info promo dan program pembelian yang sedang berjalan.'],
             ['Investasi', 'Pertimbangan nilai properti dan potensi sewa.'],
         ])->mapWithKeys(fn (array $category, int $index) => [
@@ -42,18 +42,7 @@ class ArticleSeeder extends Seeder
                 $name => Tag::query()->updateOrCreate(['slug' => Str::slug($name)], ['name' => $name]),
             ]);
 
-        // [judul, kategori, excerpt, tanggal, highlight, tag]
-        $articles = [
-            ['5 hal yang perlu dicek sebelum mengajukan KPR rumah pertama', 'Tips Properti', 'Dari rasio cicilan sampai biaya di luar harga rumah, ini daftar cek singkat supaya pengajuan KPR lebih mulus.', '2026-09-18', true, ['KPR', 'Rumah Pertama', 'Keuangan']],
-            ['Beda SHM dan SHGB, mana yang lebih aman untuk rumah tinggal?', 'Tips Properti', 'Penjelasan singkat status sertifikat, masa berlaku, dan cara meningkatkan SHGB jadi SHM.', '2026-09-15', false, ['Legalitas', 'Rumah Pertama']],
-            ['Progres pembangunan Stasiun LRT capai [XX] persen', 'Berita', 'Pekerjaan skybridge ke kawasan Arunika mulai berjalan bulan ini.', '2026-09-12', false, ['Kawasan']],
-            ['Agenda akhir pekan di Central Park bulan ini', 'Gaya Hidup', 'Pasar tani, lari pagi bersama, dan bioskop terbuka untuk penghuni dan pengunjung.', '2026-09-05', false, ['Kawasan']],
-            ['Syarat dan cara ikut promo DP 0% September', 'Promo', 'Daftar cluster yang ikut promo, bank rekanan, dan dokumen yang perlu disiapkan.', '2026-09-01', false, ['KPR']],
-            ['Kenapa rumah dekat stasiun cenderung lebih cepat disewa', 'Investasi', 'Melihat permintaan sewa di sekitar simpul transportasi dan apa yang dicari penyewa.', '2026-08-28', false, ['Keuangan']],
-            ['Checklist serah terima kunci: apa saja yang dicek?', 'Tips Properti', 'Dari retak dinding sampai tekanan air, daftar yang perlu diperiksa sebelum tanda tangan BAST.', '2026-08-22', false, ['Rumah Pertama']],
-            ['Arunika Walk tahap 1 resmi dibuka untuk umum', 'Berita', 'Enam puluh tenant kuliner dan ritel kini beroperasi setiap hari mulai pukul 10.00.', '2026-08-15', false, ['Kawasan']],
-            ['Ide tata taman belakang untuk lahan 3 meter', 'Gaya Hidup', 'Tanaman yang tahan panas, pilihan paving, dan cara membuat taman terasa lebih luas.', '2026-08-08', false, []],
-        ];
+        $articles = self::articleData();
 
         foreach ($articles as [$title, $category, $excerpt, $date, $highlight, $articleTags]) {
             $publishedAt = Carbon::parse($date.' 09:00', config('app.timezone'));
@@ -76,6 +65,26 @@ class ArticleSeeder extends Seeder
             $article->timestamps = false;
             $article->forceFill(['created_at' => $publishedAt, 'updated_at' => $publishedAt])->saveQuietly();
         }
+    }
+
+    /**
+     * Artikel contoh: [judul, kategori, excerpt, tanggal, highlight, tag].
+     *
+     * @return list<array{0: string, 1: string, 2: string, 3: string, 4: bool, 5: list<string>}>
+     */
+    public static function articleData(): array
+    {
+        return [
+            ['5 hal yang perlu dicek sebelum mengajukan KPR rumah pertama', 'Tips Properti', 'Dari rasio cicilan sampai biaya di luar harga rumah, ini daftar cek singkat supaya pengajuan KPR lebih mulus.', '2026-09-18', true, ['KPR', 'Rumah Pertama', 'Keuangan']],
+            ['Beda SHM dan SHGB, mana yang lebih aman untuk rumah tinggal?', 'Tips Properti', 'Penjelasan singkat status sertifikat, masa berlaku, dan cara meningkatkan SHGB jadi SHM.', '2026-09-15', false, ['Legalitas', 'Rumah Pertama']],
+            ['Progres pembangunan Stasiun LRT capai [XX] persen', 'Berita', 'Pekerjaan skybridge ke kawasan Arunika mulai berjalan bulan ini.', '2026-09-12', false, ['Kawasan']],
+            ['Agenda akhir pekan di Central Park bulan ini', 'Gaya Hidup', 'Pasar tani, lari pagi bersama, dan bioskop terbuka untuk penghuni dan pengunjung.', '2026-09-05', false, ['Kawasan']],
+            ['Syarat dan cara ikut promo DP 0% September', 'Promo', 'Daftar cluster yang ikut promo, bank rekanan, dan dokumen yang perlu disiapkan.', '2026-09-01', false, ['KPR']],
+            ['Kenapa rumah dekat stasiun cenderung lebih cepat disewa', 'Investasi', 'Melihat permintaan sewa di sekitar simpul transportasi dan apa yang dicari penyewa.', '2026-08-28', false, ['Keuangan']],
+            ['Checklist serah terima kunci: apa saja yang dicek?', 'Tips Properti', 'Dari retak dinding sampai tekanan air, daftar yang perlu diperiksa sebelum tanda tangan BAST.', '2026-08-22', false, ['Rumah Pertama']],
+            ['Arunika Walk tahap 1 resmi dibuka untuk umum', 'Berita', 'Enam puluh tenant kuliner dan ritel kini beroperasi setiap hari mulai pukul 10.00.', '2026-08-15', false, ['Kawasan']],
+            ['Ide tata taman belakang untuk lahan 3 meter', 'Gaya Hidup', 'Tanaman yang tahan panas, pilihan paving, dan cara membuat taman terasa lebih luas.', '2026-08-08', false, []],
+        ];
     }
 
     private function placeholderBody(string $excerpt): string

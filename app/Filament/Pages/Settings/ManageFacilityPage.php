@@ -58,6 +58,7 @@ class ManageFacilityPage extends PageSettingsPage
                         Fields::text('list.kawasan_filter_label', 'Label filter kawasan'),
                         Fields::text('list.all_kawasan_label', 'Opsi "Semua kawasan"'),
                     ]),
+                    Fields::emptyState('list', 'Tampil kalau belum ada fasilitas yang dipublikasikan. Statistik, foto header, dan filter disembunyikan.'),
                 ]),
                 Tab::make('CTA')->schema([Fields::cta()]),
                 Tab::make('SEO')->schema(Fields::settingsSeo('seo', '/fasilitas')),

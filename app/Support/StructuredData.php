@@ -159,7 +159,7 @@ class StructuredData
     }
 
     /**
-     * Detail Kawasan: Place (containedInPlace = lokasi Arunika).
+     * Detail Kawasan: Place (containedInPlace = Profil Lokasi).
      *
      * @return array<string, mixed>
      */

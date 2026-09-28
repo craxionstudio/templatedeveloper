@@ -10,6 +10,7 @@ use App\Presenters\Image;
 use App\Settings\FacilityPageSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
+use App\Support\EmptyState;
 use App\Support\PageMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -42,6 +43,9 @@ class FacilityController extends Controller
 
         $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/fasilitas', 'Fasilitas')]]);
 
+        // Belum ada fasilitas yang dipublikasikan: header tanpa stat & foto, lalu keadaan kosong.
+        $empty = ! Facility::query()->published()->exists();
+
         return Inertia::render('Fasilitas/Index', [
             // Filter kategori/kawasan = noindex, follow; canonical ke /fasilitas.
             'meta' => PageMeta::make($header['title'], $header['description'], $settings->section('seo'), noindex: $category !== null || $kawasan !== null, section: 'fasilitas', breadcrumbs: $crumbs),
@@ -50,8 +54,8 @@ class FacilityController extends Controller
                 'eyebrow' => $header['eyebrow'],
                 'title' => $header['title'],
                 'description' => $header['description'],
-                'stats' => array_values($header['stats'] ?? []),
-                'images' => collect($header['images'] ?? [])->values()->map(fn (array $img) => Image::path($img['image'] ?? null, $img['alt'] ?? null))->all(),
+                'stats' => $empty ? [] : array_values($header['stats'] ?? []),
+                'images' => $empty ? [] : collect($header['images'] ?? [])->values()->map(fn (array $img) => Image::path($img['image'] ?? null, $img['alt'] ?? null))->all(),
             ],
             'filters' => [
                 'allLabel' => $list['all_label'],
@@ -65,6 +69,7 @@ class FacilityController extends Controller
                 ] : null,
             ],
             'facilities' => FacilityCard::collection($facilities, $list['everywhere_label']),
+            'empty' => $empty ? EmptyState::make($list) : null,
             'cta' => Cta::resolve($settings->section('cta')),
         ]);
     }

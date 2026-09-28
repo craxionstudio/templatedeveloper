@@ -26,7 +26,7 @@ class ContentSeeder extends Seeder
     }
 
     /**
-     * Judul promo contoh Arunika (dihapus oleh import:bsd-data --fresh).
+     * Judul promo contoh (dinonaktifkan oleh import:bsd-data --fresh, lihat App\Support\DummyContent).
      */
     public const DUMMY_PROMO_TITLES = ['DP 0% dan gratis biaya KPR di semua cluster Arunika.', 'Promo rumah ini'];
 
@@ -125,14 +125,7 @@ class ContentSeeder extends Seeder
 
     private function seedFutureDevelopments(): void
     {
-        $items = [
-            ['2026', 'Arunika Walk Tahap 1', 'Area komersial 2 ha dengan 60 tenant F&B dan ritel.', DevelopmentStatus::Beroperasi],
-            ['2027', 'Stasiun LRT [NAMA]', 'Stasiun terintegrasi dengan skybridge ke kawasan.', DevelopmentStatus::Konstruksi],
-            ['2028', 'Rumah Sakit [NAMA]', 'Rumah sakit tipe B kerja sama dengan [OPERATOR].', DevelopmentStatus::Perencanaan],
-            ['2029', 'Arunika CBD', 'Pusat bisnis dengan perkantoran, hotel, dan apartemen.', DevelopmentStatus::Perencanaan],
-        ];
-
-        foreach ($items as $index => [$target, $title, $description, $status]) {
+        foreach (self::developmentData() as $index => [$target, $title, $description, $status]) {
             FutureDevelopment::query()->updateOrCreate(['title' => $title], [
                 'target' => $target,
                 'description' => $description,
@@ -142,5 +135,20 @@ class ContentSeeder extends Seeder
                 'is_published' => true,
             ]);
         }
+    }
+
+    /**
+     * Pengembangan mendatang contoh: [target, judul, deskripsi, status].
+     *
+     * @return list<array{0: string, 1: string, 2: string, 3: DevelopmentStatus}>
+     */
+    public static function developmentData(): array
+    {
+        return [
+            ['2026', 'Arunika Walk Tahap 1', 'Area komersial 2 ha dengan 60 tenant F&B dan ritel.', DevelopmentStatus::Beroperasi],
+            ['2027', 'Stasiun LRT [NAMA]', 'Stasiun terintegrasi dengan skybridge ke kawasan.', DevelopmentStatus::Konstruksi],
+            ['2028', 'Rumah Sakit [NAMA]', 'Rumah sakit tipe B kerja sama dengan [OPERATOR].', DevelopmentStatus::Perencanaan],
+            ['2029', 'Arunika CBD', 'Pusat bisnis dengan perkantoran, hotel, dan apartemen.', DevelopmentStatus::Perencanaan],
+        ];
     }
 }

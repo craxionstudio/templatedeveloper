@@ -14,11 +14,11 @@ class ProfileSeeder extends Seeder
     public function run(): void
     {
         Area::query()->updateOrCreate([], [
-            'name' => 'Kota Arunika',
-            'location' => 'Serpong, Tangerang Selatan',
+            'name' => 'BSD City',
+            'location' => 'Serpong, Tangerang Selatan dan Kabupaten Tangerang, Banten',
             'description' => 'Kota mandiri di Serpong dengan beberapa kawasan hunian, fasilitas kawasan, dan akses transportasi yang terus berkembang.',
             'area_ha' => null, // [XX] ha — isi dengan data asli
-            'hero_alt' => 'Foto aerial kota Arunika',
+            'hero_alt' => 'Foto aerial BSD City',
             'map_badge_label' => 'Akses tol langsung',
             'map_badge_value' => '± 5 menit',
             'advantages' => [
@@ -31,7 +31,7 @@ class ProfileSeeder extends Seeder
 
         DeveloperProfile::query()->updateOrCreate([], [
             'headline' => 'Bukan sekadar membangun rumah, kami merancang kota.',
-            'description' => 'Arunika Land adalah pengembang kawasan hunian terpadu yang berdiri sejak [TAHUN]. Kami merencanakan setiap kawasan dari nol: jaringan jalan, ruang hijau, fasilitas pendidikan dan kesehatan, sampai pusat komersial, supaya penghuni tidak perlu jauh-jauh untuk kebutuhan sehari-hari.',
+            'description' => 'BSD City adalah kota terencana seluas sekitar 6.000 hektare yang dikembangkan Sinar Mas Land. Di dalamnya ada puluhan kawasan hunian, dari kawasan awal seperti Giri Loka dan Nusa Loka sampai kawasan baru seperti Vireya, Terravia, dan The Armont, bersama sekolah, kampus, rumah sakit, pusat belanja, dan kawasan bisnis.',
             'history' => '<p>[TAMBAHKAN SEJARAH SINGKAT, GRUP USAHA INDUK, ATAU PENGHARGAAN YANG PERNAH DITERIMA.]</p>',
             'vision_quote' => '[KUTIPAN VISI / FILOSOFI DEVELOPER]',
             'stats' => [
@@ -40,8 +40,8 @@ class ProfileSeeder extends Seeder
                 ['value' => '[XX]', 'label' => 'Cluster terbangun'],
                 ['value' => '[XX]rb', 'label' => 'Keluarga penghuni'],
             ],
-            'photo_alt' => 'Kantor pemasaran Arunika Land',
-            'secondary_photo_alt' => 'Tim Arunika Land',
+            'photo_alt' => 'Kantor pemasaran BSD City',
+            'secondary_photo_alt' => 'Tim pemasaran BSD City',
         ]);
     }
 }

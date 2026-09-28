@@ -4,7 +4,7 @@ Hasil pemeriksaan sebelum serah terima. Semua dijalankan ulang dari nol di sesi 
 
 ## 1. Test otomatis (Pest)
 
-**291 test, semua lolos** (`composer test` = Pint + Pest). Pemetaan ke brief bagian 10:
+**332 test, semua lolos** (`composer test` = Pint + Pest). Pemetaan ke brief bagian 10:
 
 | Wajib di brief | File test |
 |---|---|
@@ -26,7 +26,7 @@ Hasil pemeriksaan sebelum serah terima. Semua dijalankan ulang dari nol di sesi 
 
 `php artisan qa:pages --base=<url>` mengambil **setiap URL di sitemap** lewat HTTP (seperti crawler) dan memeriksa: status 200, tepat satu `<h1>`, `<title>`, canonical, meta robots, og:image, serta JSON-LD. Setiap blok JSON-LD harus berupa JSON valid, ber-`@context` schema.org, dan semua `@type`-nya dikenal.
 
-Hasil di lingkungan build: **34 URL dicek, 0 bermasalah** (7 halaman, `/properti/kawasan`, 3 kawasan, 9 cluster, 5 kategori, 9 artikel).
+Hasil di lingkungan build: **175 URL dicek, 0 bermasalah** (7 halaman, `/properti/kawasan`, 23 kawasan, 144 cluster; artikel contoh tidak dipublikasikan).
 
 ## 3. Structured data
 
