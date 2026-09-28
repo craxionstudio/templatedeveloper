@@ -32,12 +32,12 @@ class Fields
      * @param  list<string>  $reserved
      * @return array<int, TextInput>
      */
-    public static function titleAndSlug(string $source = 'name', string $label = 'Nama', array $reserved = [], ?Closure $modifyUniqueRule = null): array
+    public static function titleAndSlug(string $source = 'name', string $label = 'Nama', array $reserved = [], ?Closure $modifyUniqueRule = null, bool $required = true): array
     {
         return [
             TextInput::make($source)
                 ->label($label)
-                ->required()
+                ->required($required)
                 ->maxLength(255)
                 ->live(onBlur: true)
                 ->afterStateUpdated(function (Get $get, Set $set, ?string $old, ?string $state): void {

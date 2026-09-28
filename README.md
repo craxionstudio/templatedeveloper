@@ -214,6 +214,35 @@ Aturan admin yang berlaku di semua resource:
   otomatis (lihat menu Redirect).
 - Kolom **Properti di footer** otomatis berisi kawasan yang tampil di publik.
 
+### Import data asli (BSD City)
+
+Data properti asli ada di `docs/data/bsd-city-data.json`. Yang belum lengkap tercatat di `docs/data/BELUM-LENGKAP.md`,
+dan per cluster ada di admin (tab **Internal**).
+
+```bash
+# Pertama kali: hapus data dummy properti (kawasan, cluster, tipe rumah, promo contoh Arunika), lalu import
+php artisan import:bsd-data --fresh
+
+# Setelah JSON diperbarui: upsert per slug, aman diulang, tidak membuat duplikat
+php artisan import:bsd-data
+php artisan import:bsd-data path/ke/file-lain.json
+```
+
+- Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
+  kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, Kontak, serta pola
+  judul Detail Kawasan & Detail Rumah).
+- `--fresh` **tidak** menghapus user, artikel, lead (cluster di lead jadi kosong), fasilitas kota, atau settings lain.
+  Di production, perintah ini minta konfirmasi (lewati dengan `--force`).
+- Nilai `null` di JSON dibiarkan kosong, dan saat import ulang tidak menimpa isi yang sudah dilengkapi di admin.
+  Nilai yang ada di JSON menimpa isi admin.
+- Checklist "perlu dilengkapi" digabung: item yang sudah dicentang di admin tetap tercentang.
+- Rentang (`"1000-1788"`, `"5-6"`) disimpan angka terkecil. `"3+1"` disimpan 3. `2.5` lantai disimpan 2. Nilai
+  aslinya ditulis di catatan internal tipe rumah.
+- Tipe tanpa nama (harga "mulai" tingkat cluster) disimpan tanpa nama. Di website, labelnya "Harga mulai Rp …".
+- Catatan internal, checklist, prioritas, dan sisa unit hanya tampil di admin, tidak di website.
+- Admin → Cluster: kolom **Kelengkapan** ("Belum lengkap (N)"), filter **Belum lengkap**, dan kolom **Prioritas**
+  (1–10, bisa diurutkan).
+
 Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarahkan ke
 `/kontak`. Hotline placeholder tampil sebagai teks tanpa link `tel:`.
 

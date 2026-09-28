@@ -31,6 +31,7 @@ class Kawasan extends Model implements HasMedia
     protected $fillable = [
         'name', 'slug', 'summary', 'about_title', 'description', 'area_ha', 'hero_alt', 'facilities',
         'map_embed_url', 'latitude', 'longitude', 'is_featured', 'sort_order', 'is_published', 'published_at',
+        'access', 'opened_year',
     ];
 
     protected function casts(): array
@@ -40,6 +41,8 @@ class Kawasan extends Model implements HasMedia
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'facilities' => 'array',
+            'access' => 'array',
+            'opened_year' => 'integer',
             'is_featured' => 'boolean',
             'is_published' => 'boolean',
             'published_at' => 'datetime',

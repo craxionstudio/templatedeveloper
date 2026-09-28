@@ -1,7 +1,7 @@
 import { ListingHeader } from '@/components/listing/listing-header';
 import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
-import { ContentIcon } from '@/components/site/icons';
+import { ContentIcon, Icon } from '@/components/site/icons';
 import { KawasanCardCompact } from '@/components/site/kawasan-card';
 import PreviewBanner from '@/components/site/preview-banner';
 import PageHead from '@/components/site/page-head';
@@ -42,6 +42,8 @@ type Props = {
         title: string;
         items: { icon?: string; title: string; description?: string }[];
     } | null;
+    /** Daftar "Lokasi & akses" (kosong = null). */
+    access: { title: string; items: string[] } | null;
     clusters: {
         eyebrow: string;
         title: string;
@@ -64,6 +66,7 @@ export default function KawasanShow({
     hero,
     about,
     facilities,
+    access,
     clusters,
     others,
     cta,
@@ -111,7 +114,7 @@ export default function KawasanShow({
                 }}
             />
 
-            {about || facilities ? (
+            {about || facilities || access ? (
                 <section className="container-site grid gap-8 py-14 xl:grid-cols-2 xl:gap-20 xl:py-[120px]">
                     {about ? (
                         <div className="flex flex-col gap-5">
@@ -125,36 +128,61 @@ export default function KawasanShow({
                             </div>
                         </div>
                     ) : null}
-                    {facilities ? (
-                        <div className="flex flex-col gap-4">
-                            <h3 className="text-base font-semibold xl:text-lg">
-                                {facilities.title}
-                            </h3>
-                            <ul className="grid gap-3 md:grid-cols-2">
-                                {facilities.items.map((item) => (
-                                    <li
-                                        key={item.title}
-                                        className="flex gap-4 rounded-2xl bg-white p-4 xl:p-5"
-                                    >
-                                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#F8E1D4] text-terracotta">
-                                            <ContentIcon
-                                                name={item.icon}
-                                                className="size-5"
-                                            />
-                                        </span>
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-[15px] font-semibold">
-                                                {item.title}
-                                            </span>
-                                            {item.description ? (
-                                                <span className="text-[13px] leading-snug text-body">
-                                                    {item.description}
+                    {facilities || access ? (
+                        <div className="flex flex-col gap-10">
+                            {facilities ? (
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-base font-semibold xl:text-lg">
+                                        {facilities.title}
+                                    </h3>
+                                    <ul className="grid gap-3 md:grid-cols-2">
+                                        {facilities.items.map((item) => (
+                                            <li
+                                                key={item.title}
+                                                className="flex gap-4 rounded-2xl bg-white p-4 xl:p-5"
+                                            >
+                                                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#F8E1D4] text-terracotta">
+                                                    <ContentIcon
+                                                        name={item.icon}
+                                                        className="size-5"
+                                                    />
                                                 </span>
-                                            ) : null}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-[15px] font-semibold">
+                                                        {item.title}
+                                                    </span>
+                                                    {item.description ? (
+                                                        <span className="text-[13px] leading-snug text-body">
+                                                            {item.description}
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ) : null}
+                            {access ? (
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-base font-semibold xl:text-lg">
+                                        {access.title}
+                                    </h3>
+                                    <ul className="flex flex-col gap-3">
+                                        {access.items.map((item) => (
+                                            <li
+                                                key={item}
+                                                className="flex gap-3 text-[15px] leading-relaxed text-body"
+                                            >
+                                                <Icon
+                                                    name="pin"
+                                                    className="mt-1 size-[18px] shrink-0 text-terracotta"
+                                                />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ) : null}
                         </div>
                     ) : null}
                     <div className="md:hidden">{buttons}</div>

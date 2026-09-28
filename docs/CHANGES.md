@@ -171,6 +171,43 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 - **Urutan listing:** cluster yang sudah punya harga selalu di atas, yang belum punya harga di bawah (scope `Cluster::pricedFirst()`), di `/properti` (semua pilihan urut), cluster mandiri di `/properti/kawasan`, dan daftar cluster di Detail Kawasan.
 - Test: `tests/Feature/ClusterWithoutTypesTest.php` (form admin tanpa status, props & JSON-LD Detail Rumah tanpa tipe / tipe tanpa harga, kartu di listing/kawasan/beranda/sitemap, urutan, `Rupiah`, render SSR). Helper `jsonLd()`/`ofType()` dipindah ke `tests/Pest.php`. Dijalankan di PHP 8.3.6 dan 8.4 (SQLite) dan juga MariaDB.
 
+**Import data asli BSD City** (permintaan pemilik 28 Sep 2026; data di `docs/data/bsd-city-data.json`, checklist di `docs/data/BELUM-LENGKAP.md`)
+
+- Perintah `php artisan import:bsd-data {path=docs/data/bsd-city-data.json} {--fresh} {--force}` (`App\Console\Commands\ImportBsdData`). Cara pakai ada di README → Import data asli dan CHECKLIST-LAUNCH bagian 6.
+  - **Upsert per slug**: tipe rumah per (cluster, slug); tipe tanpa nama memakai slug teknis `tipe-N`.
+  - **Nilai null tidak menimpa isi yang sudah ada.**
+  - **Checklist digabung**, dan status centang dari admin dipertahankan.
+  - **`--fresh`** menghapus permanen semua kawasan, cluster, tipe rumah (beserta galeri, media, SEO), dan 2 promo contoh Arunika (`ContentSeeder::DUMMY_PROMO_TITLES`). User, artikel, lead, fasilitas kota, dan settings lain tidak disentuh.
+  - **SEO halaman** masuk ke tab SEO settings tiap halaman. Pola Detail Kawasan/Rumah `{Nama …}` diubah jadi `{name}`.
+  - **Konversi:**
+    - Rentang disimpan angka terkecil; `3+1` / `5+1+1` disimpan angka pertama; lantai 2,5 disimpan 2. Nilai aslinya ditulis di catatan internal tipe.
+    - `x` di kavling jadi `×`.
+    - Deskripsi teks biasa jadi paragraf HTML.
+    - Ikon fasilitas/keunggulan dipilih dari kata kunci (tanpa ikon cocok = ikon centang).
+  - **Urutan**: cluster prioritas 1–10 di urutan teratas, sisanya mengikuti urutan file.
+- Migrasi `add_import_fields_to_property_tables`:
+  - **Cluster**: `catatan_internal`, `perlu_dilengkapi` (`[{item, selesai}]`) + `perlu_dilengkapi_count` (dihitung otomatis), `prioritas`, `facilities`, `launch_year`.
+  - **Kawasan**: `access` (lokasi & akses), `opened_year`.
+  - **Tipe rumah**: `catatan_internal`; `name` dan `floors` boleh kosong.
+- **Admin:**
+  - **Cluster**: tab **Internal** (prioritas, catatan internal, checklist perlu dilengkapi dengan centang), fasilitas cluster, dan tahun launching.
+  - **Tabel cluster**: kolom **Kelengkapan** ("Belum lengkap (N)", tooltip berisi item yang belum), filter **Belum lengkap**, kolom **Prioritas** yang bisa diurutkan (tanpa prioritas selalu di bawah).
+  - **Tipe rumah**: nama tidak wajib, ada catatan internal, dan "Sisa unit" ditandai internal.
+  - **Kawasan**: daftar lokasi & akses, dan tahun dibuka.
+- **Website:**
+  - **Detail Kawasan**: daftar "Lokasi & akses" (judul di Pengaturan Halaman → Detail Kawasan → Fasilitas).
+  - **Detail Rumah**:
+    - Section "Fasilitas {cluster}" (Pengaturan Halaman → Detail Rumah).
+    - Section deskripsi disembunyikan kalau deskripsi kosong.
+    - **Sisa unit tidak ditampilkan lagi** (label `units_available` & `unit` dihapus dari defaults).
+  - **Tipe tanpa nama:**
+    - Label tab jadi "Harga mulai Rp …", dan judul H1 tanpa nama tipe.
+    - Pesan WA dan nama di JSON-LD memakai nama cluster.
+    - Tidak dibuat chip di kartu.
+    - Section tipe tidak tampil kalau semua tipe hanya berisi harga.
+  - Tahun dibuka/launching belum ditampilkan di website (hanya di admin).
+- Test: `tests/Feature/ImportBsdDataTest.php` (--fresh, idempoten, isian admin tetap, konversi, SEO, render halaman, data internal tidak bocor, tabel & form admin).
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

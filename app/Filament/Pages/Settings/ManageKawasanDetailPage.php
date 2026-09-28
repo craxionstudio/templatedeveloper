@@ -54,6 +54,7 @@ class ManageKawasanDetailPage extends PageSettingsPage
                     Section::make('Fasilitas kawasan')->schema([
                         Fields::enabled('facilities'),
                         Fields::text('facilities.title', 'Judul'),
+                        Fields::text('facilities.access_title', 'Judul daftar lokasi & akses'),
                     ]),
                     Section::make('Cluster di kawasan')->schema([
                         Fields::enabled('clusters'),

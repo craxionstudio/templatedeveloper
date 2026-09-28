@@ -225,7 +225,7 @@ class StructuredData
         $residence->containsPlace($types->map(function (HouseType $type) use ($cluster, $url, $address, $images): array {
             $entity = (new MultiTypedEntity)
                 ->product(function (Product $product) use ($cluster, $type, $url, $images): void {
-                    $product->name($cluster->name.' — '.$type->name)
+                    $product->name($type->displayName() ? $cluster->name.' — '.$type->displayName() : $cluster->name)
                         ->url($url.'?tipe='.$type->slug)
                         ->brand(Schema::brand()->name($cluster->name));
 

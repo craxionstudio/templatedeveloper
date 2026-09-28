@@ -44,6 +44,11 @@ class KawasanForm
                             RichEditor::make('description')
                                 ->label('Deskripsi')
                                 ->toolbarButtons([['bold', 'italic', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList', 'blockquote'], ['undo', 'redo']]),
+                            TextInput::make('opened_year')
+                                ->label('Tahun dibuka')
+                                ->numeric()
+                                ->minValue(1900)
+                                ->maxValue(2100),
                             TextInput::make('area_ha')
                                 ->label('Luas kawasan (ha)')
                                 ->numeric()
@@ -69,13 +74,20 @@ class KawasanForm
                                 ->dummyHint(fn (?Kawasan $record, $state): bool => DummyData::isKawasanFacilities($record, $state))
                                 ->schema([
                                     Fields::icon(),
-                                    TextInput::make('title')->label('Judul')->required()->maxLength(80),
-                                    TextInput::make('description')->label('Keterangan')->maxLength(120),
+                                    TextInput::make('title')->label('Judul')->required()->maxLength(160),
+                                    TextInput::make('description')->label('Keterangan')->maxLength(160),
                                 ])
                                 ->columns(3)
                                 ->reorderableWithDragAndDrop()
                                 ->defaultItems(0)
                                 ->addActionLabel('Tambah fasilitas'),
+                            Repeater::make('access')
+                                ->label('Lokasi & akses')
+                                ->helperText('Tampil sebagai daftar di Detail Kawasan (bagian Tentang Kawasan).')
+                                ->simple(TextInput::make('text')->required()->maxLength(200))
+                                ->reorderableWithDragAndDrop()
+                                ->defaultItems(0)
+                                ->addActionLabel('Tambah poin akses'),
                         ]),
                         Tab::make('Peta')->schema([
                             Textarea::make('map_embed_url')

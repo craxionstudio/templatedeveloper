@@ -33,7 +33,9 @@ class ClusterCard
             'badge' => $cluster->badge?->getLabel(),
             'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
             'typesCount' => $types->count(),
-            'types' => $types->map(fn (HouseType $type): string => trim($type->name.($type->lot_size ? ' · '.$type->lot_size : '')))->values()->all(),
+            // Chip nama tipe; tipe tanpa nama (harga tingkat cluster) tidak dibuat chip.
+            'types' => $types->filter(fn (HouseType $type) => $type->displayName() !== null)
+                ->map(fn (HouseType $type): string => trim($type->name.($type->lot_size ? ' · '.$type->lot_size : '')))->values()->all(),
             'landArea' => self::range(self::positive($types, 'land_area')->min(), self::positive($types, 'land_area')->max()),
             'bedrooms' => self::bedrooms($types->filter(fn (HouseType $type) => $type->bedrooms > 0)),
             // Tanpa harga → null; kartu menampilkan "Hubungi kami untuk harga".

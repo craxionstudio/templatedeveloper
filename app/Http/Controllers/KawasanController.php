@@ -106,6 +106,10 @@ class KawasanController extends Controller
                 'title' => $settings->section('facilities')['title'],
                 'items' => array_values($kawasan->facilities),
             ] : null,
+            'access' => $settings->section('facilities')['enabled'] && filled($kawasan->access) ? [
+                'title' => $settings->section('facilities')['access_title'],
+                'items' => array_values($kawasan->access),
+            ] : null,
             'clusters' => $clustersSection['enabled'] ? [
                 'eyebrow' => PageMeta::fill($clustersSection['eyebrow'], $values),
                 'title' => PageMeta::fill($clustersSection['title'], $values),

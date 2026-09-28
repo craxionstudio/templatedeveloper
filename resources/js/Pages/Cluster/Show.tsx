@@ -57,6 +57,7 @@ type Props = {
         brochure: string | null;
         pricelist: string | null;
         specifications: { label: string; value: string }[];
+        facilities: string[];
     };
     gallery: GalleryData;
     types: HouseTypeData[];
@@ -71,6 +72,7 @@ type Props = {
         specs: string | null;
         types: string | null;
         description: string | null;
+        facilities: string | null;
     };
     specLabels: Record<string, string>;
     downloads: { brochure: string; pricelist: string };
@@ -124,6 +126,15 @@ export default function ClusterShow(props: Props) {
         visibleTypes[0] ??
         null;
     const whatsappUrl = type?.whatsappUrl ?? cluster.whatsappUrl;
+    // Tipe tanpa nama yang isinya hanya harga sudah terwakili kotak harga: tanpa section tipe.
+    const showTypeTabs = visibleTypes.some(
+        (t) =>
+            t.name ||
+            t.landArea ||
+            t.buildingArea ||
+            t.bedrooms ||
+            t.floorplan.url,
+    );
 
     // Event view_listing + Pixel ViewContent sekali per cluster.
     useEffect(() => {
@@ -148,7 +159,8 @@ export default function ClusterShow(props: Props) {
         setSelectedSlug(slug);
         track('select_house_type', {
             cluster: cluster.name,
-            house_type: visibleTypes.find((t) => t.slug === slug)?.name,
+            house_type:
+                visibleTypes.find((t) => t.slug === slug)?.name ?? undefined,
         });
         const url = new URL(window.location.href);
         url.searchParams.set('tipe', slug);
@@ -232,7 +244,7 @@ export default function ClusterShow(props: Props) {
                         </p>
                         <h1 className="font-display text-[34px] leading-[1.1] font-medium xl:text-[52px]">
                             {cluster.name}
-                            {type
+                            {type?.name
                                 ? `, ${labels.type_prefix} ${type.name}${type.lotSize ? ` ${type.lotSize}` : ''}`
                                 : ''}
                         </h1>
@@ -261,7 +273,7 @@ export default function ClusterShow(props: Props) {
                             materials={cluster.specifications}
                         />
                     ) : null}
-                    {sections.types && type ? (
+                    {sections.types && type && showTypeTabs ? (
                         <TypeTabs
                             title={sections.types}
                             types={visibleTypes}
@@ -271,7 +283,8 @@ export default function ClusterShow(props: Props) {
                         />
                     ) : null}
 
-                    {sections.description ? (
+                    {sections.description &&
+                    (cluster.description || downloadsBlock) ? (
                         <section className="flex flex-col gap-4">
                             <h2 className="font-display text-[26px] font-medium xl:text-[32px]">
                                 {sections.description}
@@ -283,6 +296,28 @@ export default function ClusterShow(props: Props) {
                             {downloadsBlock ? (
                                 <div className="mt-2">{downloadsBlock}</div>
                             ) : null}
+                        </section>
+                    ) : null}
+
+                    {sections.facilities && cluster.facilities.length > 0 ? (
+                        <section className="flex flex-col gap-4">
+                            <h2 className="font-display text-[26px] font-medium xl:text-[32px]">
+                                {sections.facilities}
+                            </h2>
+                            <ul className="grid gap-x-6 gap-y-3 md:grid-cols-2">
+                                {cluster.facilities.map((item) => (
+                                    <li
+                                        key={item}
+                                        className="flex gap-3 text-[15px] leading-relaxed text-body"
+                                    >
+                                        <Icon
+                                            name="check"
+                                            className="mt-1 size-[18px] shrink-0 text-terracotta"
+                                        />
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
                         </section>
                     ) : null}
 

@@ -13,7 +13,8 @@ import type { ImageData } from '@/types/content';
 export type HouseTypeData = {
     id: number;
     slug: string;
-    name: string;
+    /** Null = tipe tanpa nama (harga "mulai" tingkat cluster). */
+    name: string | null;
     /** false = tipe belum punya harga/luas/kamar/denah: tidak ditampilkan. */
     hasData: boolean;
     lotSize: string | null;
@@ -25,7 +26,6 @@ export type HouseTypeData = {
     carports: number | null;
     price: string | null;
     installment: string | null;
-    unitsAvailable: number | null;
     floorplan: ImageData;
     whatsappUrl: string;
 };
@@ -303,6 +303,24 @@ export function SpecSection({
     );
 }
 
+/**
+ * Label tab/judul tipe. Tipe tanpa nama memakai harganya ("Harga mulai Rp 1,5 M"),
+ * atau nomor urut kalau harga juga belum ada.
+ */
+export function typeLabel(
+    type: HouseTypeData,
+    index: number,
+    labels: Record<string, string>,
+): string {
+    if (type.name) {
+        return `${labels.type_prefix} ${type.name}`;
+    }
+
+    return type.price
+        ? `${labels.price_from} ${type.price}`
+        : `${labels.type_prefix} ${index + 1}`;
+}
+
 export function TypeTabs({
     title,
     types,
@@ -346,7 +364,7 @@ export function TypeTabs({
                                     : 'border border-line bg-white text-ink',
                             )}
                         >
-                            {labels.type_prefix} {type.name}
+                            {typeLabel(type, types.indexOf(type), labels)}
                         </button>
                     ))}
                 </div>
@@ -366,7 +384,7 @@ export function TypeTabs({
                 />
                 <div className="flex flex-col py-1">
                     <h3 className="font-display text-2xl font-semibold">
-                        {labels.type_prefix} {selected.name}
+                        {typeLabel(selected, types.indexOf(selected), labels)}
                     </h3>
                     {selected.lotSize ? (
                         <p className="text-sm text-body">
@@ -410,14 +428,6 @@ export function TypeTabs({
                                 </div>
                             ))}
                     </dl>
-                    {selected.unitsAvailable !== null ? (
-                        <p className="mt-3 text-[13px] text-body">
-                            {specLabels.units_available}:{' '}
-                            <strong className="text-terracotta">
-                                {selected.unitsAvailable} {labels.unit}
-                            </strong>
-                        </p>
-                    ) : null}
                 </div>
             </div>
         </section>

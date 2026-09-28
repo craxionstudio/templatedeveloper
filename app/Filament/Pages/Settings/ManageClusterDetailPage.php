@@ -54,6 +54,10 @@ class ManageClusterDetailPage extends PageSettingsPage
                         Fields::enabled('sections.description'),
                         Fields::text('sections.description.title', 'Judul'),
                     ]),
+                    Section::make('Fasilitas cluster')->schema([
+                        Fields::enabled('sections.facilities'),
+                        Fields::text('sections.facilities.title', 'Judul', '{cluster} diganti nama cluster.'),
+                    ]),
                     Section::make('Listing lainnya')->schema([
                         Fields::enabled('sections.others'),
                         Fields::text('sections.others.eyebrow', 'Eyebrow'),

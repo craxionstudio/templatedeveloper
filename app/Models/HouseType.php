@@ -21,7 +21,7 @@ class HouseType extends Model implements HasMedia
     protected $fillable = [
         'cluster_id', 'name', 'slug', 'lot_size', 'land_area', 'building_area', 'bedrooms', 'extra_bedrooms',
         'bathrooms', 'floors', 'carports', 'price_from', 'installment_from', 'units_available', 'floorplan_alt',
-        'sort_order', 'is_published',
+        'sort_order', 'is_published', 'catatan_internal',
     ];
 
     protected function casts(): array
@@ -63,6 +63,14 @@ class HouseType extends Model implements HasMedia
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy($this->qualifyColumn('sort_order'))->orderBy($this->qualifyColumn('id'));
+    }
+
+    /**
+     * Nama untuk teks (judul, WA, JSON-LD). Tipe tanpa nama (harga "mulai" tingkat cluster) → null.
+     */
+    public function displayName(): ?string
+    {
+        return filled($this->name) ? $this->name : null;
     }
 
     /**

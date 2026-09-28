@@ -9,6 +9,8 @@ return [
         // {cluster} diganti nama cluster.
         'types' => ['enabled' => true, 'title' => 'Tipe-tipe rumah di {cluster}'],
         'description' => ['enabled' => true, 'title' => 'Deskripsi rumah'],
+        // {cluster} diganti nama cluster. Kosong (cluster tanpa fasilitas) = tidak tampil.
+        'facilities' => ['enabled' => true, 'title' => 'Fasilitas {cluster}'],
         'others' => [
             'enabled' => true,
             'eyebrow' => 'Listing lainnya',
@@ -37,7 +39,6 @@ return [
         'floors' => 'Lantai',
         'carports' => 'Carport',
         'lot' => 'Kavling',
-        'units_available' => 'Sisa unit',
     ],
 
     'form' => [

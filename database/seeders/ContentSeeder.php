@@ -25,9 +25,14 @@ class ContentSeeder extends Seeder
         $this->seedFutureDevelopments();
     }
 
+    /**
+     * Judul promo contoh Arunika (dihapus oleh import:bsd-data --fresh).
+     */
+    public const DUMMY_PROMO_TITLES = ['DP 0% dan gratis biaya KPR di semua cluster Arunika.', 'Promo rumah ini'];
+
     private function seedPromos(): void
     {
-        Promo::query()->updateOrCreate(['title' => 'DP 0% dan gratis biaya KPR di semua cluster Arunika.'], [
+        Promo::query()->updateOrCreate(['title' => self::DUMMY_PROMO_TITLES[0]], [
             'label' => 'Promo September',
             'description' => 'Berlaku untuk pembelian hingga [TANGGAL]. Syarat & ketentuan berlaku.',
             'placement' => PromoPlacement::HomeBanner,
@@ -40,7 +45,7 @@ class ContentSeeder extends Seeder
             'is_published' => true,
         ]);
 
-        $detail = Promo::query()->updateOrCreate(['title' => 'Promo rumah ini'], [
+        $detail = Promo::query()->updateOrCreate(['title' => self::DUMMY_PROMO_TITLES[1]], [
             'label' => 'Promo September',
             'period_label' => '[TANGGAL]',
             'placement' => PromoPlacement::Detail,

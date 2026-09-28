@@ -49,6 +49,7 @@ class Cluster extends Model implements HasMedia
         'badge', 'status', 'booking_fee', 'price_note', 'installment_note', 'booking_fee_note', 'specifications',
         'legality', 'video_url', 'tour_360_url', 'marketing_name', 'marketing_title', 'marketing_whatsapp',
         'is_featured', 'sort_order', 'is_published', 'published_at',
+        'facilities', 'launch_year', 'prioritas', 'catatan_internal', 'perlu_dilengkapi',
     ];
 
     protected function casts(): array
@@ -59,6 +60,11 @@ class Cluster extends Model implements HasMedia
             'status' => ClusterStatus::class,
             'booking_fee' => 'integer',
             'specifications' => 'array',
+            'facilities' => 'array',
+            'perlu_dilengkapi' => 'array',
+            'launch_year' => 'integer',
+            'prioritas' => 'integer',
+            'perlu_dilengkapi_count' => 'integer',
             'is_featured' => 'boolean',
             'is_published' => 'boolean',
             'published_at' => 'datetime',
@@ -81,6 +87,9 @@ class Cluster extends Model implements HasMedia
             }
 
             $cluster->description = RichText::sanitize($cluster->description);
+            $cluster->perlu_dilengkapi_count = collect($cluster->perlu_dilengkapi ?? [])
+                ->filter(fn ($item) => filled($item['item'] ?? null) && ! ($item['selesai'] ?? false))
+                ->count();
         });
     }
 

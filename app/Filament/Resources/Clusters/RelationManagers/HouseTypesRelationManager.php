@@ -11,6 +11,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -48,6 +49,8 @@ class HouseTypesRelationManager extends RelationManager
                         'name',
                         'Nama tipe',
                         modifyUniqueRule: fn (Unique $rule) => $rule->where('cluster_id', $this->getOwnerRecord()->getKey()),
+                        // Boleh kosong: harga "mulai" tingkat cluster yang tipenya belum diketahui.
+                        required: false,
                     ),
                     TextInput::make('lot_size')->label('Kavling')->placeholder('7×15')->maxLength(20),
                 ]),
@@ -57,15 +60,21 @@ class HouseTypesRelationManager extends RelationManager
                     TextInput::make('bedrooms')->label('Kamar tidur')->numeric()->minValue(0)->default(0)->required(),
                     TextInput::make('extra_bedrooms')->label('KT tambahan (+1)')->numeric()->minValue(0)->default(0),
                     TextInput::make('bathrooms')->label('Kamar mandi')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'bathrooms', $state)),
-                    TextInput::make('floors')->label('Lantai')->numeric()->minValue(1)->default(1),
+                    TextInput::make('floors')->label('Lantai')->numeric()->minValue(1),
                     TextInput::make('carports')->label('Carport (mobil)')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'carports', $state)),
-                    TextInput::make('units_available')->label('Sisa unit')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'units_available', $state)),
+                    TextInput::make('units_available')->label('Sisa unit')->helperText('Internal, tidak tampil di website.')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'units_available', $state)),
                 ]),
                 Section::make('Harga')->columns(2)->schema([
                     TextInput::make('price_from')->label('Harga mulai')->numeric()->minValue(0)->prefix('Rp')
                         ->helperText('Kosong = tampil "Hubungi kami untuk harga".'),
                     TextInput::make('installment_from')->label('Cicilan mulai / bulan')->numeric()->minValue(0)->prefix('Rp'),
                 ]),
+                Section::make('Catatan internal')
+                    ->description('Hanya terlihat di admin, tidak tampil di website.')
+                    ->schema([
+                        Textarea::make('catatan_internal')->hiddenLabel()->rows(3),
+                    ])
+                    ->collapsible(),
                 Section::make('Denah')->schema(Fields::image('floorplan', 'floorplan_alt', 'Denah')),
                 Toggle::make('is_published')->label('Dipublikasikan')->default(true),
             ]);
@@ -78,7 +87,7 @@ class HouseTypesRelationManager extends RelationManager
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->columns([
-                TextColumn::make('name')->label('Tipe')->searchable(),
+                TextColumn::make('name')->label('Tipe')->searchable()->placeholder('(tanpa nama)'),
                 TextColumn::make('lot_size')->label('Kavling'),
                 TextColumn::make('land_area')->label('LT / LB')
                     ->formatStateUsing(fn ($state, HouseType $record): string => "{$record->land_area} / {$record->building_area} m²"),

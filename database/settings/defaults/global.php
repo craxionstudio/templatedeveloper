@@ -167,7 +167,6 @@ return [
         'area_unit' => 'm²',
         'floors_unit' => 'lantai',
         'carport_unit' => 'mobil',
-        'unit' => 'unit',
         'minutes' => 'menit',
         'gallery_all' => 'Lihat {count} foto',
         'gallery_photo' => 'Foto',

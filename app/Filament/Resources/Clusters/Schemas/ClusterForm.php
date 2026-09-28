@@ -11,6 +11,7 @@ use App\Filament\Forms\SeoTab;
 use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Support\Rupiah;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -26,6 +27,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 
 class ClusterForm
@@ -75,7 +77,10 @@ class ClusterForm
                             RichEditor::make('description')
                                 ->label('Deskripsi rumah')
                                 ->toolbarButtons([['bold', 'italic', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['undo', 'redo']]),
-                            TextInput::make('address')->label('Alamat')->maxLength(255),
+                            Grid::make(3)->schema([
+                                TextInput::make('address')->label('Alamat')->maxLength(255)->columnSpan(2),
+                                TextInput::make('launch_year')->label('Tahun launching')->numeric()->minValue(1900)->maxValue(2100),
+                            ]),
                             TextInput::make('legality')->label('Legalitas')->placeholder('SHGB dipecah per unit · PBG sudah terbit')->maxLength(255),
                         ]),
                         Tab::make('Harga')->schema([
@@ -83,13 +88,12 @@ class ClusterForm
                                 ->description('Rentang harga, luas tanah, kamar tidur, dan cicilan mulai di kartu cluster dihitung otomatis dari tipe rumah yang dipublikasikan (tab Tipe rumah di bawah).')
                                 ->schema([
                                     Text::make(fn (?Cluster $record): string => $record && $record->house_types_count > 0
-                                        ? sprintf(
-                                            '%d tipe · %s · LT %s m² · cicilan mulai %s',
-                                            $record->house_types_count,
-                                            Rupiah::range($record->price_min, $record->price_max),
-                                            $record->land_area_min === $record->land_area_max ? $record->land_area_min : $record->land_area_min.'–'.$record->land_area_max,
-                                            Rupiah::short($record->installment_min).'/bln',
-                                        )
+                                        ? collect([
+                                            $record->house_types_count.' tipe',
+                                            Rupiah::range($record->price_min, $record->price_max) ?? 'belum ada harga',
+                                            $record->land_area_min ? 'LT '.($record->land_area_min === $record->land_area_max ? $record->land_area_min : $record->land_area_min.'–'.$record->land_area_max).' m²' : null,
+                                            $record->installment_min ? 'cicilan mulai '.Rupiah::short($record->installment_min).'/bln' : null,
+                                        ])->filter()->implode(' · ')
                                         : 'Belum ada tipe rumah yang dipublikasikan.'),
                                 ])
                                 ->compact(),
@@ -99,6 +103,13 @@ class ClusterForm
                             TextInput::make('booking_fee_note')->label('Catatan booking fee')->maxLength(255),
                         ]),
                         Tab::make('Spesifikasi')->schema([
+                            Repeater::make('facilities')
+                                ->label('Fasilitas cluster')
+                                ->helperText('Tampil sebagai daftar di Detail Rumah.')
+                                ->simple(TextInput::make('text')->required()->maxLength(200))
+                                ->reorderableWithDragAndDrop()
+                                ->defaultItems(0)
+                                ->addActionLabel('Tambah fasilitas'),
                             Repeater::make('specifications')
                                 ->label('Spesifikasi material')
                                 ->schema([
@@ -150,6 +161,32 @@ class ClusterForm
                             Toggle::make('is_featured')->label('Unggulan (tampil di Beranda)'),
                             TextInput::make('sort_order')->label('Urutan')->numeric()->default(0),
                         ]),
+                        Tab::make('Internal')
+                            ->icon(Heroicon::OutlinedLockClosed)
+                            ->badge(fn (?Cluster $record): ?int => $record?->perlu_dilengkapi_count ?: null)
+                            ->badgeColor('warning')
+                            ->schema([
+                                Text::make('Hanya terlihat di admin, tidak tampil di website.'),
+                                Select::make('prioritas')
+                                    ->label('Prioritas')
+                                    ->options(array_combine(range(1, 10), range(1, 10)))
+                                    ->placeholder('Tanpa prioritas')
+                                    ->helperText('1 = paling diprioritaskan untuk dilengkapi & dipasarkan.'),
+                                Textarea::make('catatan_internal')
+                                    ->label('Catatan internal')
+                                    ->rows(5),
+                                Repeater::make('perlu_dilengkapi')
+                                    ->label('Perlu dilengkapi')
+                                    ->helperText('Centang yang sudah dilengkapi. Item yang belum dicentang dihitung di kolom "Belum lengkap" pada daftar cluster.')
+                                    ->schema([
+                                        Checkbox::make('selesai')->label('Selesai')->inline(),
+                                        TextInput::make('item')->hiddenLabel()->required()->maxLength(255)->columnSpan(5),
+                                    ])
+                                    ->columns(6)
+                                    ->reorderableWithDragAndDrop()
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Tambah item'),
+                            ]),
                         SeoTab::make(fn (Get $get): string => '/properti/'.$get('../slug')),
                     ]),
             ]);

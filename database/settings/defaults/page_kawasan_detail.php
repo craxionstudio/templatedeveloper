@@ -20,6 +20,8 @@ return [
     'facilities' => [
         'enabled' => true,
         'title' => 'Fasilitas kawasan',
+        // Daftar "Lokasi & akses" per kawasan (kosong = tidak tampil).
+        'access_title' => 'Lokasi & akses',
     ],
 
     'clusters' => [

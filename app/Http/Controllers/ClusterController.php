@@ -77,6 +77,10 @@ class ClusterController extends Controller
 
         $marketingWhatsapp = $cluster->marketing_whatsapp ?: ($form['marketing_whatsapp'] ?: $contact['whatsapp']);
         $whatsappTemplate = $form['whatsapp_message'];
+        $clusterWhatsappUrl = SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill(
+            trim((string) preg_replace('/\s*(tipe\s*)?\{type\}/iu', '', $whatsappTemplate)),
+            ['cluster' => $cluster->name],
+        )) ?? '/kontak';
 
         $crumbs = Breadcrumbs::make(array_values(array_filter([
             [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
@@ -108,10 +112,7 @@ class ClusterController extends Controller
                 'badge' => $cluster->badge?->getLabel(),
                 'status' => $cluster->status?->getLabel(),
                 // Tombol WA tetap ada walau cluster belum punya tipe (pesan tanpa nama tipe).
-                'whatsappUrl' => SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill(
-                    trim((string) preg_replace('/\s*(tipe\s*)?\{type\}/iu', '', $whatsappTemplate)),
-                    ['cluster' => $cluster->name],
-                )) ?? '/kontak',
+                'whatsappUrl' => $clusterWhatsappUrl,
                 'address' => $cluster->address,
                 'description' => RichText::sanitize($cluster->description),
                 'legality' => $cluster->legality,
@@ -119,6 +120,7 @@ class ClusterController extends Controller
                 'brochure' => $cluster->getFirstMediaUrl('brochure') ?: null,
                 'pricelist' => $cluster->getFirstMediaUrl('pricelist') ?: null,
                 'specifications' => array_values($cluster->specifications ?? []),
+                'facilities' => array_values(array_filter($cluster->facilities ?? [], 'filled')),
             ],
             'gallery' => [
                 'items' => $cluster->galleryItems->map(fn (GalleryItem $item) => [
@@ -134,7 +136,8 @@ class ClusterController extends Controller
             'types' => $types->map(fn (HouseType $type) => [
                 'id' => $type->id,
                 'slug' => $type->slug,
-                'name' => $type->name,
+                // Null = tipe tanpa nama (harga "mulai" tingkat cluster).
+                'name' => $type->displayName(),
                 'hasData' => $type->price_from > 0 || $type->land_area > 0 || $type->building_area > 0 || $type->bedrooms > 0 || $type->hasMedia('floorplan'),
                 'lotSize' => $type->lot_size,
                 'landArea' => $type->land_area ?: null,
@@ -145,9 +148,10 @@ class ClusterController extends Controller
                 'carports' => $type->carports ?: null,
                 'price' => Rupiah::short($type->price_from),
                 'installment' => Rupiah::short($type->installment_from),
-                'unitsAvailable' => $type->units_available,
-                'floorplan' => Image::media($type, 'floorplan', $type->floorplan_alt, 'Denah tipe '.$type->name),
-                'whatsappUrl' => SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $type->name])) ?? '/kontak',
+                'floorplan' => Image::media($type, 'floorplan', $type->floorplan_alt, trim('Denah '.($type->displayName() ?? $cluster->name))),
+                'whatsappUrl' => $type->displayName()
+                    ? SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $type->displayName()])) ?? '/kontak'
+                    : $clusterWhatsappUrl,
             ])->values()->all(),
             'selectedType' => $selected?->slug,
             'pricing' => [
@@ -165,6 +169,7 @@ class ClusterController extends Controller
                 'specs' => $sections['specs']['enabled'] ? $sections['specs']['title'] : null,
                 'types' => $sections['types']['enabled'] ? PageMeta::fill($sections['types']['title'], ['cluster' => $cluster->name]) : null,
                 'description' => $sections['description']['enabled'] ? $sections['description']['title'] : null,
+                'facilities' => $sections['facilities']['enabled'] ? PageMeta::fill($sections['facilities']['title'], ['cluster' => $cluster->name]) : null,
             ],
             'specLabels' => $settings->section('spec_labels'),
             'downloads' => [
