@@ -48,6 +48,19 @@ jobs:
             echo "=== 5. Menjalankan Migrasi Database ==="
             php artisan migrate --force
 
+            echo "=== 5b. Cek mysqldump untuk backup ==="
+            if ! command -v mysqldump >/dev/null 2>&1; then
+              echo "mysqldump belum ada, mencoba memasang..."
+              if [ "$(id -u)" = "0" ]; then
+                apt-get update -y && (apt-get install -y mysql-client || apt-get install -y mariadb-client) || true
+              elif sudo -n true 2>/dev/null; then
+                sudo apt-get update -y && (sudo apt-get install -y mysql-client || sudo apt-get install -y mariadb-client) || true
+              else
+                echo "PERINGATAN: mysqldump belum terpasang dan user deploy tidak punya akses sudo."
+              fi
+            fi
+            command -v mysqldump >/dev/null 2>&1 && echo "mysqldump OK: $(command -v mysqldump)" || echo "mysqldump TIDAK tersedia"
+
             echo "=== 6. Import Data (hanya jika file data berubah) ==="
             MARK_DIR=storage/app/import-markers
             mkdir -p "$MARK_DIR"
@@ -67,14 +80,20 @@ jobs:
               FLAGS=""
               if [ ! -f "$MARK" ]; then FLAGS="$FIRST_FLAGS"; fi
               echo "Backup database sebelum import $FILE"
-              php artisan backup:run --only-db --disable-notifications || echo "Peringatan: backup gagal, import tetap dilanjutkan"
+              if ! php artisan backup:run --only-db --disable-notifications; then
+                if echo "$FLAGS" | grep -q -- "--fresh"; then
+                  echo "Backup gagal. Import --fresh dibatalkan supaya data tidak hilang."
+                  exit 1
+                fi
+                echo "Peringatan: backup gagal, import (tanpa hapus data) tetap dilanjutkan"
+              fi
               echo "Import $FILE $FLAGS"
               php artisan $CMD "$FILE" $FLAGS --force --no-interaction
               echo "$HASH" > "$MARK"
             }
 
-            # Urutan penting: data utama dulu, lalu update-update berikutnya
-            import_if_changed docs/data/bsd-city-data.json    import:bsd-data   --fresh
+            # Urutan penting: data utama dulu, lalu update berikutnya
+            import_if_changed docs/data/bsd-city-data.json     import:bsd-data   --fresh
             import_if_changed docs/data/bsd-city-update-2.json import:bsd-update ""
 
             echo "=== 7. Memastikan Symlink Storage ==="
