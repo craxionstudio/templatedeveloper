@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "dibuat": "2026-09-29",
+    "catatan": "Update 2: tanggal launching untuk urutan 'Terbaru' dan draft promo. Promo sengaja is_published=false sampai dikonfirmasi ke marketing BSD (periode dan angka diskon)."
+  },
+  "tanggal_launching": [
+    {"cluster_slug": "monard-of-the-armont", "tanggal": "2026-07-07", "sumber": "bsdcity.com news (fase 2)"},
+    {"cluster_slug": "island-villa", "tanggal": "2026-06-03", "sumber": "berita launching"},
+    {"cluster_slug": "castilo-at-terravia", "tanggal": "2026-05-24", "sumber": "sinarmasland.com news"},
+    {"cluster_slug": "vyorelle-at-vireya", "tanggal": "2026-05-22", "sumber": "bsdcity.com news (tahap 2)"},
+    {"cluster_slug": "izzi", "tanggal": "2025-11-27", "sumber": "sinarmasland.com news"},
+    {"cluster_slug": "lynelle", "tanggal": "2025-10-29", "sumber": "artikel agen 29 Okt 2025, tanggal pasti belum ada"},
+    {"cluster_slug": "botanic-villa", "tanggal": "2025-10-01", "sumber": "berita, bulan Okt 2025 (tanggal belum pasti)"},
+    {"cluster_slug": "elyon-by-eonna", "tanggal": "2025-03-12", "sumber": "bsdcity.com news"},
+    {"cluster_slug": "tresor", "tanggal": "2024-03-15", "sumber": "sinarmasland.com news"},
+    {"cluster_slug": "adora", "tanggal": "2023-09-03", "sumber": "berita launching"},
+    {"cluster_slug": "layton", "tanggal": "2023-02-10", "sumber": "berita launching"},
+    {"cluster_slug": "aerra-by-eonna", "tanggal": "2022-12-13", "sumber": "berita launching"},
+    {"cluster_slug": "cozmo-house", "tanggal": "2021-07-01", "sumber": "artikel agen Jul 2021 (bulan)"},
+    {"cluster_slug": "savia-park", "tanggal": "2019-11-07", "sumber": "berita launching"},
+    {"cluster_slug": "kimora", "tanggal": "2018-06-02", "sumber": "artikel agen 2018"},
+    {"cluster_slug": "tevana", "tanggal": "2018-03-11", "sumber": "artikel launching 2018"},
+    {"cluster_slug": "jadeite", "tanggal": "2017-11-09", "sumber": "berita launching"},
+    {"cluster_slug": "alegria-park", "tanggal": "2017-01-01", "sumber": "berita, bulan Jan 2017"},
+    {"cluster_slug": "kireina-park", "tanggal": "2016-05-17", "sumber": "berita launching"},
+    {"cluster_slug": "sevilla-park", "tanggal": "2016-02-01", "sumber": "bsdcity.com, bulan Feb 2016"},
+    {"cluster_slug": "regentown", "tanggal": "2015-04-28", "sumber": "bsdcity.com news"}
+  ],
+  "promos": [
+    {"judul": "Promo Castilo", "cluster_slugs": ["castilo-at-terravia"], "label": "Promo", "deskripsi": "Diskon cash hingga 13%, atau KPR DP 10% dengan diskon hingga 12,5%.", "starts_at": null, "ends_at": null, "sumber": "analisproperti.com (situs agen), Jun 2026", "is_published": false},
+    {"judul": "Promo IZZI", "cluster_slugs": ["izzi"], "label": "Promo", "deskripsi": "Diskon hingga 18,5%, subsidi DP 10%, bebas biaya KPR, dan free kanopi.", "starts_at": null, "ends_at": null, "sumber": "bsd-city.com (situs agen)", "is_published": false},
+    {"judul": "Promo Lynelle", "cluster_slugs": ["lynelle"], "label": "Promo", "deskripsi": "Diskon cash hingga 16,5%, cicilan bertahap 12x diskon hingga 9%, atau KPR DP 10% diskon hingga 15%.", "starts_at": null, "ends_at": null, "sumber": "vireyabsd.co.id (situs agen)", "is_published": false},
+    {"judul": "Promo Vyorelle", "cluster_slugs": ["vyorelle-at-vireya"], "label": "Promo", "deskripsi": "Subsidi DP, diskon langsung, free kanopi, dan voucher. Cicilan mulai Rp6 jutaan per bulan.", "starts_at": "2026-08-01", "ends_at": null, "sumber": "bsdcity.com news (Agu 2026)", "is_published": false},
+    {"judul": "Promo Elyon", "cluster_slugs": ["elyon-by-eonna"], "label": "Promo", "deskripsi": "Diskon cash hingga 16,5%, cicilan bertahap 12x diskon hingga 13,5%, atau KPR Express dengan subsidi DP 10%.", "starts_at": null, "ends_at": null, "sumber": "situs agen", "is_published": false},
+    {"judul": "Promo Adora Primes", "cluster_slugs": ["adora"], "label": "Promo", "deskripsi": "Diskon cash 11,5%, cicilan bertahap 24x diskon hingga 8,5%, atau KPR DP 10% diskon 11%.", "starts_at": null, "ends_at": null, "sumber": "rumah123 (listing agen, 2024)", "is_published": false},
+    {"judul": "Promo Caelus September", "cluster_slugs": ["caelus"], "label": "Promo", "deskripsi": "Diskon hingga 12%, subsidi DP 10%, dan voucher furnitur 5%.", "starts_at": "2026-09-01", "ends_at": "2026-09-30", "sumber": "sinarmasland.com halaman produk (Sep 2026)", "is_published": false},
+    {"judul": "Promo Fleekhauz R September", "cluster_slugs": ["fleekhauz-r"], "label": "Promo", "deskripsi": "Cash keras: diskon 17% dan bebas BPHTB. KPR Express: subsidi DP 10%, diskon 4,5%, dan bebas BPHTB.", "starts_at": "2026-09-01", "ends_at": "2026-09-30", "sumber": "sinarmasland.com halaman produk (Sep 2026)", "is_published": false},
+    {"judul": "Harga Spesial Invensihaus R", "cluster_slugs": ["invensihaus-r"], "label": "Harga spesial", "deskripsi": "Harga spesial mulai Rp1,83 miliar dari harga normal Rp2,41 miliar.", "starts_at": null, "ends_at": null, "sumber": "sinarmasland.com halaman produk (Sep 2026)", "is_published": false}
+  ]
+}
