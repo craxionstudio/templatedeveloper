@@ -286,6 +286,14 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 - **Perbaikan kecil:** nama tipe yang sudah diawali "Tipe" tidak lagi jadi "Tipe Tipe 5" (judul, tab, pesan WA).
 - Test: `tests/Feature/ImportBsdUpdateTest.php`; test urutan lama disesuaikan.
 
+**Keputusan Update 2 (disetujui pemilik 29 Sep 2026)**
+
+1. **Urutan harga vs "Terbaru":** aturan "cluster berharga di atas" hanya berlaku untuk urut harga (terendah/tertinggi). Di "Terbaru", cluster baru yang belum punya harga tetap tampil sesuai tanggal launching-nya.
+2. **Status publikasi promo saat import ulang:** `is_published` dari file hanya dipakai saat promo pertama kali dibuat. `import:bsd-update` yang dijalankan ulang tidak mematikan promo yang sudah dipublikasikan admin.
+3. **Relasi promo ke cluster saat import ulang:** hanya ditambah (`syncWithoutDetaching`), tidak pernah dilepas. Cluster yang ditambahkan admin tetap ada.
+4. **Badge "Promo"** menggantikan badge pilihan admin (mis. "Baru") selama cluster punya promo aktif. Setelah promo berakhir, badge admin tampil lagi.
+5. **Nama tipe berawalan "Tipe"** ("Tipe 5 Standard") tidak diberi awalan "Tipe" lagi di judul Detail Rumah, tab tipe, dan pesan WhatsApp.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd
