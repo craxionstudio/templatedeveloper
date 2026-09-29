@@ -24,9 +24,13 @@ jobs:
           key: ${{ secrets.SSH_KEY || secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script_stop: true
+          command_timeout: 30m
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
+
+            # Kalau ada langkah yang gagal, website tetap dinyalakan lagi
+            trap 'echo "!!! Deploy gagal, menonaktifkan maintenance mode"; php artisan up || true' ERR
 
             echo "=== 1. Mengaktifkan Maintenance Mode ==="
             php artisan down --retry=60 || true
@@ -44,19 +48,48 @@ jobs:
             echo "=== 5. Menjalankan Migrasi Database ==="
             php artisan migrate --force
 
-            echo "=== 6. Memastikan Symlink Storage ==="
+            echo "=== 6. Import Data (hanya jika file data berubah) ==="
+            MARK_DIR=storage/app/import-markers
+            mkdir -p "$MARK_DIR"
+
+            import_if_changed () {
+              FILE="$1"; CMD="$2"; FIRST_FLAGS="$3"
+              if [ ! -f "$FILE" ]; then
+                echo "Lewati: $FILE tidak ditemukan"
+                return 0
+              fi
+              HASH=$(sha256sum "$FILE" | cut -d' ' -f1)
+              MARK="$MARK_DIR/$(basename "$FILE").sha256"
+              if [ -f "$MARK" ] && [ "$(cat "$MARK")" = "$HASH" ]; then
+                echo "Tidak berubah, lewati: $FILE"
+                return 0
+              fi
+              FLAGS=""
+              if [ ! -f "$MARK" ]; then FLAGS="$FIRST_FLAGS"; fi
+              echo "Backup database sebelum import $FILE"
+              php artisan backup:run --only-db --disable-notifications || echo "Peringatan: backup gagal, import tetap dilanjutkan"
+              echo "Import $FILE $FLAGS"
+              php artisan $CMD "$FILE" $FLAGS --force --no-interaction
+              echo "$HASH" > "$MARK"
+            }
+
+            # Urutan penting: data utama dulu, lalu update-update berikutnya
+            import_if_changed docs/data/bsd-city-data.json    import:bsd-data   --fresh
+            import_if_changed docs/data/bsd-city-update-2.json import:bsd-update ""
+
+            echo "=== 7. Memastikan Symlink Storage ==="
             php artisan storage:link || true
 
-            echo "=== 7. Mengoptimalkan Cache Laravel & Filament ==="
+            echo "=== 8. Mengoptimalkan Cache Laravel & Filament ==="
             php artisan optimize:clear
             php artisan optimize
             php artisan filament:optimize
 
-            echo "=== 8. Merestart Inertia SSR & Queue Worker ==="
+            echo "=== 9. Merestart Inertia SSR & Queue Worker ==="
             php artisan inertia:stop-ssr || true
             php artisan queue:restart || true
 
-            echo "=== 9. Menonaktifkan Maintenance Mode ==="
+            echo "=== 10. Menonaktifkan Maintenance Mode ==="
             php artisan up
 
             echo "=== Deployment Berhasil Selesai! ==="
