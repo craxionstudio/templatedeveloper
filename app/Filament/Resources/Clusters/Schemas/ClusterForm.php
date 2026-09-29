@@ -12,6 +12,7 @@ use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Support\Rupiah;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -77,8 +78,13 @@ class ClusterForm
                             RichEditor::make('description')
                                 ->label('Deskripsi rumah')
                                 ->toolbarButtons([['bold', 'italic', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['undo', 'redo']]),
-                            Grid::make(3)->schema([
-                                TextInput::make('address')->label('Alamat')->maxLength(255)->columnSpan(2),
+                            TextInput::make('address')->label('Alamat')->maxLength(255),
+                            Grid::make(2)->schema([
+                                DatePicker::make('tanggal_launching')
+                                    ->label('Tanggal launching')
+                                    ->native(false)
+                                    ->displayFormat('j M Y')
+                                    ->helperText('Dasar urutan "Terbaru" di listing. Kosong = paling bawah.'),
                                 TextInput::make('launch_year')->label('Tahun launching')->numeric()->minValue(1900)->maxValue(2100),
                             ]),
                             TextInput::make('legality')->label('Legalitas')->placeholder('SHGB dipecah per unit · PBG sudah terbit')->maxLength(255),

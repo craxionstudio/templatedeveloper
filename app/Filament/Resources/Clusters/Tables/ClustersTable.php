@@ -51,6 +51,11 @@ class ClustersTable
                     ->tooltip(fn (Cluster $record): ?string => collect($record->perlu_dilengkapi ?? [])
                         ->reject(fn (array $item) => $item['selesai'] ?? false)
                         ->pluck('item')->implode(' · ') ?: null),
+                TextColumn::make('tanggal_launching')->label('Launching')->date('j M Y')->placeholder('—')
+                    // Kosong selalu di bawah, baik urut naik maupun turun.
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query
+                        ->orderByRaw('CASE WHEN tanggal_launching IS NULL THEN 1 ELSE 0 END')
+                        ->orderBy('tanggal_launching', $direction)),
                 TextColumn::make('house_types_count')->label('Tipe')->alignCenter(),
                 TextColumn::make('price_min')->label('Harga')->sortable()
                     ->formatStateUsing(fn ($state, Cluster $record): ?string => Rupiah::range($record->price_min, $record->price_max)),

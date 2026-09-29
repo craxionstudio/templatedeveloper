@@ -89,7 +89,9 @@ Panduan lengkap: `docs/TRACKING.md`.
   ```bash
   php artisan import:bsd-data --fresh   # hapus kawasan/cluster/tipe contoh, nonaktifkan konten contoh, lalu import docs/data/bsd-city-data.json
   ```
+  Lalu `php artisan import:bsd-update docs/data/bsd-city-update-2.json` (tanggal launching + 9 promo draft).
   Cek hasilnya: 23 kawasan, 144 cluster, 87 tipe rumah. Setelah itu cukup `php artisan import:bsd-data` (tanpa `--fresh`) kalau JSON diperbarui. **Jangan** pakai `--fresh` lagi setelah admin mulai melengkapi data: `--fresh` menghapus semua kawasan & cluster.
+- [ ] **Promo:** 9 promo hasil import masih draft. Konfirmasi periode & angka diskon ke marketing BSD, isi **Mulai/Berakhir**, lalu nyalakan **Dipublikasikan** di Admin → Promo. Promo aktif otomatis tampil di Detail Rumah, Detail Kawasan, dan badge "Promo" di kartu; lewat tanggal berakhir otomatis hilang.
 - [ ] Lengkapi data per cluster mulai dari 10 prioritas (`docs/data/BELUM-LENGKAP.md`, atau Admin → Cluster → filter **Belum lengkap**, urutkan **Prioritas**). Centang item di tab **Internal** setelah dilengkapi.
 - [ ] Teks Arunika sudah diganti BSD City otomatis saat `migrate` (hanya teks yang belum diubah admin). Cek sekilas Pengaturan Global (nama brand, tagline) dan hero Beranda.
 - [ ] Setelah ada fasilitas/artikel/pengembangan mendatang yang asli: publikasikan, lalu nyalakan lagi section **Fasilitas**, **Pengembangan Mendatang**, dan **Artikel & Berita** di Pengaturan Halaman → Beranda. Selama kosong, `/fasilitas` dan `/artikel` menampilkan keadaan kosong (teksnya di tab Daftar masing-masing).

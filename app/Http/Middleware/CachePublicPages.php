@@ -52,7 +52,7 @@ class CachePublicPages
                     'Vary' => $response->headers->get('Vary'),
                     'Link' => $response->headers->get('Link'),
                 ]),
-            ], config('site.page_cache.ttl'));
+            ], PageCache::ttl());
             $response->headers->set('X-Page-Cache', 'MISS');
         }
 

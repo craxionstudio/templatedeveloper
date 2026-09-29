@@ -40,8 +40,8 @@ class PromoForm
                     TextInput::make('period_label')->label('Teks periode')->placeholder('[TANGGAL]')->maxLength(80),
                     Fields::button('cta', 'tombol', 'Contoh: /properti'),
                 ]),
-                Section::make('Isi promo (Detail Rumah)')
-                    ->description('Daftar benefit yang tampil di kotak "Promo rumah ini".')
+                Section::make('Isi promo (Detail Rumah & Detail Kawasan)')
+                    ->description('Promo aktif tampil di "Promo rumah ini" (Detail Rumah cluster terpilih) dan "Promo di kawasan ini" (Detail Kawasan). Daftar benefit opsional.')
                     ->visible(fn (Get $get): bool => ($get('placement')?->value ?? $get('placement')) === PromoPlacement::Detail->value)
                     ->schema([
                         Repeater::make('items')
@@ -59,8 +59,19 @@ class PromoForm
                             ->label('Berlaku untuk cluster')
                             ->relationship('clusters', 'name')
                             ->multiple()
-                            ->preload(),
+                            ->preload()
+                            ->helperText('Cluster dengan promo aktif otomatis berbadge "Promo" di kartu.'),
+                        Select::make('kawasans')
+                            ->label('Berlaku untuk kawasan (opsional)')
+                            ->relationship('kawasans', 'name')
+                            ->multiple()
+                            ->preload()
+                            ->helperText('Tampil di Detail Kawasan walau tidak terhubung ke cluster tertentu.'),
                     ]),
+                Section::make('Catatan internal')
+                    ->description('Sumber data, hasil konfirmasi marketing, dll. Tidak tampil di website.')
+                    ->schema([Textarea::make('catatan_internal')->hiddenLabel()->rows(3)])
+                    ->collapsible(),
                 Section::make('Gambar')->schema([
                     ...Fields::image('image_desktop', 'image_alt', 'Gambar desktop'),
                     Fields::image('image_mobile', 'image_alt', 'Gambar mobile (opsional)')[0],

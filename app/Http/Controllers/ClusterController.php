@@ -8,6 +8,7 @@ use App\Models\GalleryItem;
 use App\Models\HouseType;
 use App\Presenters\ClusterCard;
 use App\Presenters\Image;
+use App\Presenters\PromoCard;
 use App\Settings\ClusterDetailPageSettings;
 use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
@@ -150,7 +151,11 @@ class ClusterController extends Controller
                 'installment' => Rupiah::short($type->installment_from),
                 'floorplan' => Image::media($type, 'floorplan', $type->floorplan_alt, trim('Denah '.($type->displayName() ?? $cluster->name))),
                 'whatsappUrl' => $type->displayName()
-                    ? SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $type->displayName()])) ?? '/kontak'
+                    ? SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill(
+                        // Nama tipe yang sudah diawali "Tipe" tidak diberi "tipe" lagi.
+                        preg_match('/^tipe\s/iu', $type->displayName()) ? (string) preg_replace('/tipe\s*\{type\}/iu', '{type}', $whatsappTemplate) : $whatsappTemplate,
+                        ['cluster' => $cluster->name, 'type' => $type->displayName()],
+                    )) ?? '/kontak'
                     : $clusterWhatsappUrl,
             ])->values()->all(),
             'selectedType' => $selected?->slug,
@@ -213,18 +218,12 @@ class ClusterController extends Controller
      */
     private function promo(Cluster $cluster, array $section): ?array
     {
-        $promo = $cluster->promos()->active()->placement(PromoPlacement::Detail)->orderBy('sort_order')->first();
+        // Semua promo aktif (dipublikasikan & dalam periode) yang terhubung ke cluster ini.
+        $promos = $cluster->promos()->active()->placement(PromoPlacement::Detail)->orderBy('sort_order')->orderBy('promos.id')->get();
 
-        if (! $promo || blank($promo->items)) {
-            return null;
-        }
-
-        $period = $promo->period_label ?: $promo->ends_at?->translatedFormat('j F Y');
-
-        return [
+        return $promos->isEmpty() ? null : [
             'title' => $section['title'],
-            'period' => $period ? trim($section['period_prefix'].' '.$period) : null,
-            'items' => array_values($promo->items),
+            'items' => PromoCard::collection($promos, $section['period_prefix']),
         ];
     }
 

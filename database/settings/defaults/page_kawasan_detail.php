@@ -24,6 +24,14 @@ return [
         'access_title' => 'Lokasi & akses',
     ],
 
+    // Promo aktif yang terhubung ke kawasan + promo aktif cluster-cluster di kawasan. Kosong = tidak tampil.
+    'promos' => [
+        'enabled' => true,
+        'eyebrow' => 'Promo',
+        'title' => 'Promo di kawasan ini',
+        'period_prefix' => 'Berlaku s.d.',
+    ],
+
     'clusters' => [
         'enabled' => true,
         // {kawasan}, {clusters}, {types} diganti otomatis.

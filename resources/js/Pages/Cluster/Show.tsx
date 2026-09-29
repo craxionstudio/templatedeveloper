@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import {
     LeadCard,
     PriceBox,
-    PromoBox,
     SpecSection,
     TypeTabs,
+    withTypePrefix,
 } from '@/components/cluster/detail-parts';
 import type {
     HouseTypeData,
@@ -20,6 +20,8 @@ import Breadcrumbs from '@/components/site/breadcrumbs';
 import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
+import PromoSection from '@/components/site/promo-section';
+import type { PromoCardData } from '@/components/site/promo-section';
 import PreviewBanner from '@/components/site/preview-banner';
 import PageHead from '@/components/site/page-head';
 import RichText from '@/components/site/rich-text';
@@ -63,11 +65,8 @@ type Props = {
     types: HouseTypeData[];
     selectedType: string | null;
     pricing: PricingData;
-    promo: {
-        title: string;
-        period: string | null;
-        items: { icon?: string; title: string; description?: string }[];
-    } | null;
+    /** Promo aktif cluster ini; null = section tidak tampil. */
+    promo: { title: string; items: PromoCardData[] } | null;
     sections: {
         specs: string | null;
         types: string | null;
@@ -245,7 +244,7 @@ export default function ClusterShow(props: Props) {
                         <h1 className="font-display text-[34px] leading-[1.1] font-medium xl:text-[52px]">
                             {cluster.name}
                             {type?.name
-                                ? `, ${labels.type_prefix} ${type.name}${type.lotSize ? ` ${type.lotSize}` : ''}`
+                                ? `, ${withTypePrefix(type.name, labels.type_prefix)}${type.lotSize ? ` ${type.lotSize}` : ''}`
                                 : ''}
                         </h1>
                         {cluster.address ? (
@@ -264,7 +263,12 @@ export default function ClusterShow(props: Props) {
                         pricing={pricing}
                         bookingFee={cluster.bookingFee}
                     />
-                    {promo ? <PromoBox promo={promo} /> : null}
+                    {promo ? (
+                        <PromoSection
+                            title={promo.title}
+                            promos={promo.items}
+                        />
+                    ) : null}
                     {sections.specs ? (
                         <SpecSection
                             title={sections.specs}

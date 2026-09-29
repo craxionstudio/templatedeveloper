@@ -145,7 +145,7 @@ it('menampilkan "Hubungi kami untuk harga" di kawasan yang semua clusternya belu
     expect($card['priceFrom'] ?? null)->toBeNull();
 });
 
-it('mengurutkan cluster berharga di atas cluster tanpa harga di listing', function (string $query) {
+it('mengurutkan cluster berharga di atas cluster tanpa harga saat urut harga', function (string $query) {
     clusterWithoutTypes(['published_at' => now()]);
 
     $prices = collect($this->get('/properti'.$query)->inertiaProps('clusters.data'))->pluck('price');
@@ -154,15 +154,15 @@ it('mengurutkan cluster berharga di atas cluster tanpa harga di listing', functi
     expect($prices)->toHaveCount(10)
         ->and($prices->last())->toBeNull()
         ->and($prices->slice(0, -1)->every(fn ($price) => $price !== null))->toBeTrue();
-})->with(['' => [''], 'harga terendah' => ['?urut=harga-terendah'], 'harga tertinggi' => ['?urut=harga-tertinggi']]);
+})->with(['harga terendah' => ['?urut=harga-terendah'], 'harga tertinggi' => ['?urut=harga-tertinggi']]);
 
-it('mengurutkan cluster berharga lebih dulu di Detail Kawasan', function () {
-    // sort_order 0 < cluster seeder (1..3): tanpa aturan harga-dulu, cluster ini akan tampil pertama.
-    clusterWithoutTypes(['kawasan_id' => $this->kawasan->id, 'sort_order' => 0]);
+it('menaruh cluster tanpa tanggal launching di bawah Detail Kawasan', function () {
+    $this->kawasan->clusters()->update(['tanggal_launching' => '2025-01-01']);
+    clusterWithoutTypes(['kawasan_id' => $this->kawasan->id, 'sort_order' => 0, 'tanggal_launching' => null]);
 
-    $prices = collect($this->get('/properti/kawasan/arunika-garden')->inertiaProps('clusters.items'))->pluck('price');
+    $names = collect($this->get('/properti/kawasan/arunika-garden')->inertiaProps('clusters.items'))->pluck('name');
 
-    expect($prices->last())->toBeNull()->and($prices->first())->not->toBeNull();
+    expect($names->last())->toBe('Nusa Indah');
 });
 
 it('memformat harga 0 / kosong sebagai null', function () {

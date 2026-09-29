@@ -15,6 +15,8 @@ class KawasanDetailPageSettings extends PageSettings
 
     public array $clusters;
 
+    public array $promos;
+
     public array $others;
 
     public array $cta;

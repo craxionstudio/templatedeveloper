@@ -109,7 +109,7 @@ describe('cache halaman publik', function () {
         Cluster::query()->where('slug', 'vega-garden')->first()->update(['name' => 'Vega Garden Baru']);
 
         $this->get('/properti')->assertHeader('X-Page-Cache', 'MISS')
-            ->assertInertia(fn (Assert $page) => $page->where('clusters.data.0.name', 'Vega Garden Baru'));
+            ->assertInertia(fn (Assert $page) => $page->where('clusters.data', fn ($clusters) => collect($clusters)->contains('name', 'Vega Garden Baru')));
     });
 
     it('dibuang saat settings halaman disimpan', function () {

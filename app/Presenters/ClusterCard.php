@@ -2,6 +2,7 @@
 
 namespace App\Presenters;
 
+use App\Enums\ClusterBadge;
 use App\Models\Cluster;
 use App\Models\HouseType;
 use App\Support\Rupiah;
@@ -30,7 +31,7 @@ class ClusterCard
             'name' => $cluster->name,
             'url' => $cluster->publicPath(),
             'buildingType' => $cluster->building_type,
-            'badge' => $cluster->badge?->getLabel(),
+            'badge' => self::badge($cluster),
             'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
             'typesCount' => $types->count(),
             // Chip nama tipe; tipe tanpa nama (harga tingkat cluster) tidak dibuat chip.
@@ -61,7 +62,7 @@ class ClusterCard
      */
     public static function with(): array
     {
-        return ['kawasan', 'publishedHouseTypes', 'galleryItems.media'];
+        return ['kawasan', 'publishedHouseTypes', 'galleryItems.media', 'activePromos'];
     }
 
     /**
@@ -73,6 +74,19 @@ class ClusterCard
     private static function positive(Collection $types, string $column): Collection
     {
         return $types->pluck($column)->filter(fn ($value) => $value !== null && $value > 0)->values();
+    }
+
+    /**
+     * Cluster dengan promo aktif otomatis berbadge "Promo" (mengalahkan badge pilihan admin,
+     * karena promo berbatas waktu). Tanpa promo aktif: badge pilihan admin.
+     */
+    private static function badge(Cluster $cluster): ?string
+    {
+        $hasPromo = $cluster->relationLoaded('activePromos')
+            ? $cluster->activePromos->isNotEmpty()
+            : $cluster->activePromos()->exists();
+
+        return $hasPromo ? ClusterBadge::Promo->getLabel() : $cluster->badge?->getLabel();
     }
 
     private static function range(?int $min, ?int $max): ?string

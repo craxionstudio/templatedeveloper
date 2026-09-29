@@ -226,7 +226,15 @@ php artisan import:bsd-data --fresh
 # Setelah JSON diperbarui: upsert per slug, aman diulang, tidak membuat duplikat
 php artisan import:bsd-data
 php artisan import:bsd-data path/ke/file-lain.json
+
+# File update (tanggal launching, promo), setelah import:bsd-data. Upsert, aman diulang.
+php artisan import:bsd-update docs/data/bsd-city-update-2.json
 ```
+
+- `import:bsd-update`: tanggal launching per cluster (dasar urutan "Terbaru"; cluster yang baru punya tahun
+  launching diisi 1 Januari) dan promo (upsert per judul, placement Detail, relasi ke cluster lewat `cluster_slugs`,
+  `sumber` jadi catatan internal). Status publikasi dari file hanya dipakai saat promo dibuat, jadi promo yang sudah
+  dipublikasikan admin tidak dimatikan lagi.
 
 - Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
   kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, Kontak, serta pola

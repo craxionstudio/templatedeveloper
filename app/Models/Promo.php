@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Enums\PromoPlacement;
 use App\Models\Concerns\HasResponsiveImages;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -19,7 +21,7 @@ class Promo extends Model implements HasMedia
 
     protected $fillable = [
         'title', 'label', 'description', 'items', 'starts_at', 'ends_at', 'period_label', 'placement',
-        'cta_label', 'cta_url', 'image_alt', 'sort_order', 'is_published',
+        'cta_label', 'cta_url', 'image_alt', 'sort_order', 'is_published', 'catatan_internal',
     ];
 
     protected function casts(): array
@@ -33,9 +35,41 @@ class Promo extends Model implements HasMedia
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Tanggal berakhir tanpa jam (00:00) = berlaku sampai akhir hari itu.
+        static::saving(function (self $promo): void {
+            if ($promo->ends_at && $promo->ends_at->format('H:i:s') === '00:00:00') {
+                $promo->ends_at = $promo->ends_at->copy()->endOfDay();
+            }
+        });
+    }
+
     public function clusters(): BelongsToMany
     {
         return $this->belongsToMany(Cluster::class);
+    }
+
+    public function kawasans(): BelongsToMany
+    {
+        return $this->belongsToMany(Kawasan::class);
+    }
+
+    /**
+     * Waktu terdekat (mulai atau berakhir) sebuah promo yang dipublikasikan berganti status.
+     * Cache halaman tidak boleh hidup melewati waktu ini supaya promo tampil/hilang tepat waktu.
+     */
+    public static function nextBoundary(): ?CarbonInterface
+    {
+        $now = now();
+        $published = static::query()->where('is_published', true);
+
+        $dates = array_filter([
+            (clone $published)->where('starts_at', '>', $now)->min('starts_at'),
+            (clone $published)->where('ends_at', '>', $now)->min('ends_at'),
+        ]);
+
+        return $dates === [] ? null : Carbon::parse(min($dates));
     }
 
     /**

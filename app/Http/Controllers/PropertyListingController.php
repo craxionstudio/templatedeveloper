@@ -240,13 +240,12 @@ class PropertyListingController extends Controller
 
     private function sorted(Builder $query, string $sort): Builder
     {
-        // Cluster yang sudah punya harga selalu di atas; yang belum punya harga di bawah.
-        $query->pricedFirst();
-
         return match ($sort) {
-            'harga-terendah' => $query->orderBy('price_min')->orderBy('sort_order'),
-            'harga-tertinggi' => $query->orderByDesc('price_max')->orderBy('sort_order'),
-            default => $query->orderByDesc('published_at')->orderBy('sort_order'),
+            // Urut harga: cluster tanpa harga selalu di bawah.
+            'harga-terendah' => $query->pricedFirst()->orderBy('price_min')->orderBy('sort_order'),
+            'harga-tertinggi' => $query->pricedFirst()->orderByDesc('price_max')->orderBy('sort_order'),
+            // "Terbaru" (default): tanggal launching terbaru, kosong paling bawah; lalu prioritas, lalu nama.
+            default => $query->latestLaunched(),
         };
     }
 }

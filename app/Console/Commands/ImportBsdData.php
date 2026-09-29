@@ -260,6 +260,11 @@ class ImportBsdData extends Command
 
             $cluster->perlu_dilengkapi = self::mergeChecklist($cluster->perlu_dilengkapi ?? [], $row['perlu_dilengkapi'] ?? []);
 
+            // Urutan "Terbaru" memakai tanggal launching; kalau baru ada tahunnya: 1 Januari tahun itu.
+            if (! $cluster->tanggal_launching && $cluster->launch_year) {
+                $cluster->tanggal_launching = sprintf('%04d-01-01', $cluster->launch_year);
+            }
+
             if ($isNew) {
                 // Cluster prioritas di urutan teratas, sisanya mengikuti urutan file.
                 $cluster->sort_order = $row['prioritas'] ?? 100 + $index;

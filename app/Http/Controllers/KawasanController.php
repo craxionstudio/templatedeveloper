@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PromoPlacement;
 use App\Models\Cluster;
 use App\Models\Kawasan;
+use App\Models\Promo;
 use App\Presenters\ClusterCard;
 use App\Presenters\Image;
 use App\Presenters\KawasanCard;
+use App\Presenters\PromoCard;
 use App\Settings\GlobalSettings;
 use App\Settings\KawasanDetailPageSettings;
 use App\Settings\ListingPageSettings;
@@ -16,6 +19,8 @@ use App\Support\PageMeta;
 use App\Support\RichText;
 use App\Support\Rupiah;
 use App\Support\StructuredData;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -110,6 +115,7 @@ class KawasanController extends Controller
                 'title' => $settings->section('facilities')['access_title'],
                 'items' => array_values($kawasan->access),
             ] : null,
+            'promos' => $settings->section('promos')['enabled'] ? $this->promos($kawasan, $clusters, $settings->section('promos')) : null,
             'clusters' => $clustersSection['enabled'] ? [
                 'eyebrow' => PageMeta::fill($clustersSection['eyebrow'], $values),
                 'title' => PageMeta::fill($clustersSection['title'], $values),
@@ -119,6 +125,38 @@ class KawasanController extends Controller
             'others' => $others['enabled'] ? $this->others($kawasan, $others) : null,
             'cta' => Cta::resolve($settings->section('cta')),
         ]);
+    }
+
+    /**
+     * Promo aktif yang terhubung langsung ke kawasan, ditambah promo aktif cluster di kawasan
+     * (kartu menautkan cluster-nya). Satu promo satu kartu.
+     *
+     * @param  Collection<int, Cluster>  $clusters  cluster kawasan yang dipublikasikan
+     * @param  array<string, mixed>  $section
+     * @return array<string, mixed>|null
+     */
+    private function promos(Kawasan $kawasan, Collection $clusters, array $section): ?array
+    {
+        $direct = $kawasan->promos()->active()->placement(PromoPlacement::Detail)->get();
+        $fromClusters = Promo::query()->active()->placement(PromoPlacement::Detail)
+            ->whereHas('clusters', fn (Builder $q) => $q->whereKey($clusters->modelKeys()))
+            ->with(['clusters' => fn ($q) => $q->whereKey($clusters->modelKeys())->latestLaunched()])
+            ->get();
+
+        // Promo dari cluster lebih dulu supaya nama cluster tetap ada kalau promo juga terhubung ke kawasan.
+        $promos = $fromClusters->concat($direct)->unique('id')
+            ->sortBy([['sort_order', 'asc'], ['id', 'asc']])
+            ->values();
+
+        return $promos->isEmpty() ? null : [
+            'eyebrow' => $section['eyebrow'],
+            'title' => $section['title'],
+            'items' => $promos->map(fn (Promo $promo) => PromoCard::make(
+                $promo,
+                $section['period_prefix'],
+                $promo->relationLoaded('clusters') ? $promo->clusters : [],
+            ))->all(),
+        ];
     }
 
     /**

@@ -49,7 +49,7 @@ class Cluster extends Model implements HasMedia
         'badge', 'status', 'booking_fee', 'price_note', 'installment_note', 'booking_fee_note', 'specifications',
         'legality', 'video_url', 'tour_360_url', 'marketing_name', 'marketing_title', 'marketing_whatsapp',
         'is_featured', 'sort_order', 'is_published', 'published_at',
-        'facilities', 'launch_year', 'prioritas', 'catatan_internal', 'perlu_dilengkapi',
+        'facilities', 'launch_year', 'tanggal_launching', 'prioritas', 'catatan_internal', 'perlu_dilengkapi',
     ];
 
     protected function casts(): array
@@ -63,6 +63,7 @@ class Cluster extends Model implements HasMedia
             'facilities' => 'array',
             'perlu_dilengkapi' => 'array',
             'launch_year' => 'integer',
+            'tanggal_launching' => 'date',
             'prioritas' => 'integer',
             'perlu_dilengkapi_count' => 'integer',
             'is_featured' => 'boolean',
@@ -113,6 +114,14 @@ class Cluster extends Model implements HasMedia
         return $this->belongsToMany(Promo::class);
     }
 
+    /**
+     * Promo yang sedang berlaku (dipublikasikan & di dalam periode), untuk badge "Promo" di kartu.
+     */
+    public function activePromos(): BelongsToMany
+    {
+        return $this->promos()->active();
+    }
+
     public function galleryItems(): MorphMany
     {
         return $this->morphMany(GalleryItem::class, 'galleryable')->orderBy('sort_order');
@@ -126,6 +135,23 @@ class Cluster extends Model implements HasMedia
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy($this->qualifyColumn('sort_order'))->orderBy($this->qualifyColumn('name'));
+    }
+
+    /**
+     * Urutan "Terbaru": tanggal launching terbaru dulu (kosong paling bawah), lalu prioritas
+     * (kosong paling bawah), lalu nama.
+     */
+    public function scopeLatestLaunched(Builder $query): Builder
+    {
+        $launch = $this->qualifyColumn('tanggal_launching');
+        $priority = $this->qualifyColumn('prioritas');
+
+        return $query
+            ->orderByRaw("CASE WHEN {$launch} IS NULL THEN 1 ELSE 0 END")
+            ->orderByDesc($launch)
+            ->orderByRaw("CASE WHEN {$priority} IS NULL THEN 1 ELSE 0 END")
+            ->orderBy($priority)
+            ->orderBy($this->qualifyColumn('name'));
     }
 
     /**

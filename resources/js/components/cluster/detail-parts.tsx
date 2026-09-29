@@ -2,7 +2,7 @@ import { usePage } from '@inertiajs/react';
 import LeadForm from '@/components/lead/lead-form';
 import type { LeadPosition } from '@/components/lead/lead-form';
 import { useLeadModalTrigger } from '@/components/lead/lead-modal';
-import { ContentIcon, Icon } from '@/components/site/icons';
+import { Icon } from '@/components/site/icons';
 import type { IconName } from '@/components/site/icons';
 import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
@@ -153,51 +153,6 @@ export function PriceBox({
     );
 }
 
-export function PromoBox({
-    promo,
-}: {
-    promo: {
-        title: string;
-        period: string | null;
-        items: { icon?: string; title: string; description?: string }[];
-    };
-}) {
-    return (
-        <section className="rounded-card-sm bg-[#F6E3D8] p-5 md:p-7">
-            <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-                <h2 className="font-display text-[22px] font-medium text-[#6E2E14] xl:text-2xl">
-                    {promo.title}
-                </h2>
-                {promo.period ? (
-                    <p className="text-[13px] font-semibold text-[#8A3A17]">
-                        {promo.period}
-                    </p>
-                ) : null}
-            </div>
-            <ul className="mt-5 grid gap-4 md:grid-cols-2 md:gap-x-6">
-                {promo.items.map((item) => (
-                    <li key={item.title} className="flex gap-3">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-terracotta">
-                            <ContentIcon
-                                name={item.icon}
-                                className="size-[18px]"
-                            />
-                        </span>
-                        <div>
-                            <p className="font-semibold">{item.title}</p>
-                            {item.description ? (
-                                <p className="text-[13px] leading-snug text-body">
-                                    {item.description}
-                                </p>
-                            ) : null}
-                        </div>
-                    </li>
-                ))}
-            </ul>
-        </section>
-    );
-}
-
 export function SpecSection({
     title,
     type,
@@ -304,6 +259,15 @@ export function SpecSection({
 }
 
 /**
+ * "Tipe" + nama, tanpa dobel kalau nama sudah diawali "Tipe" ("Tipe 7", bukan "Tipe Tipe 7").
+ */
+export function withTypePrefix(name: string, prefix: string): string {
+    return name.toLowerCase().startsWith(`${prefix.toLowerCase()} `)
+        ? name
+        : `${prefix} ${name}`;
+}
+
+/**
  * Label tab/judul tipe. Tipe tanpa nama memakai harganya ("Harga mulai Rp 1,5 M"),
  * atau nomor urut kalau harga juga belum ada.
  */
@@ -313,7 +277,7 @@ export function typeLabel(
     labels: Record<string, string>,
 ): string {
     if (type.name) {
-        return `${labels.type_prefix} ${type.name}`;
+        return withTypePrefix(type.name, labels.type_prefix);
     }
 
     return type.price

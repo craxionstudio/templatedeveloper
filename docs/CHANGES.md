@@ -252,6 +252,40 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
    - **Perbaikan kecil:** kolom email newsletter di mobile sebelumnya gepeng (`flex-1` di layout kolom).
 - Test: `tests/Feature/RebrandBsdCityTest.php` (migrasi settings & data, teks admin aman, tidak ada "Arunika" di halaman publik, hero & header Properti, footer, section Beranda, keadaan kosong, sitemap).
 
+**Update 2: tanggal launching & promo** (permintaan pemilik 29 Sep 2026; data di `docs/data/bsd-city-update-2.json`)
+
+1. **Urutan "Terbaru" sesuai tanggal launching:**
+   - Kolom baru `clusters.tanggal_launching` (date, nullable, ber-index).
+   - **Admin:** date picker di form Cluster, dan kolom tabel yang bisa diurutkan (kosong selalu di bawah).
+   - **Isi awal:** migrasi mengisi 1 Januari tahun launching untuk cluster yang sudah punya tahun. `import:bsd-data` melakukan hal yang sama untuk import baru.
+   - **Scope `Cluster::latestLaunched()`:** tanggal launching DESC (kosong paling bawah), lalu prioritas (kosong di bawah), lalu nama.
+   - **Dipakai di:**
+     - Urutan "Terbaru" di `/properti`, yang juga menjadi default (settings `default_sort` dipastikan `terbaru` lewat migrasi settings).
+     - Daftar cluster di Detail Kawasan (`Kawasan::publishedClusters`).
+   - **Aturan "berharga di atas" dari revisi 28 Sep** sekarang hanya berlaku untuk urut harga (terendah/tertinggi). Di "Terbaru", cluster baru tanpa harga tetap tampil sesuai tanggal launching-nya.
+2. **Promo:**
+   - **Bug:** kotak "Promo rumah ini" sebelumnya hanya tampil kalau promo punya daftar benefit (`items`), dan hanya satu promo. Promo hasil import yang hanya berisi deskripsi tidak pernah tampil.
+   - **Komponen baru `PromoSection`:** menampilkan semua promo aktif (label, judul, deskripsi, benefit opsional, periode). Catatan internal tidak dikirim ke browser.
+   - **Detail Rumah:** promo aktif yang terhubung ke cluster. Section disembunyikan kalau tidak ada.
+   - **Detail Kawasan:** section baru "Promo di kawasan ini" (Pengaturan Halaman → Detail Kawasan).
+     - Isinya promo aktif yang terhubung langsung ke kawasan (pivot baru `kawasan_promo`) ditambah promo aktif cluster-cluster di kawasan itu.
+     - Tiap kartu menautkan cluster-nya ke Detail Rumah. Satu promo satu kartu.
+   - **Kartu cluster:** badge **"Promo"** otomatis selama cluster punya promo aktif. Badge ini mengalahkan badge pilihan admin; setelah promo berakhir, badge admin kembali.
+   - **Admin:**
+     - Form Promo: pilihan kawasan (opsional) dan catatan internal (`promos.catatan_internal`, berisi `sumber` dari file).
+     - Form Kawasan: tab Promo.
+   - **Promo kedaluwarsa tidak tampil di mana pun:**
+     - Semua tempat memakai `Promo::active()`.
+     - Tanggal berakhir tanpa jam disimpan sampai 23:59:59.
+     - **Cache halaman** tidak hidup melewati waktu terdekat promo mulai/berakhir (`PageCache::ttl()`), jadi promo muncul/hilang tepat waktu walau halaman di-cache.
+3. **Perintah `php artisan import:bsd-update {path}`** (`App\Console\Commands\ImportBsdUpdate`):
+   - Upsert, aman diulang: tanggal launching per `cluster_slug`, promo per judul.
+   - Relasi promo ke cluster ditambahkan tanpa melepas relasi dari admin.
+   - `is_published` dari file hanya dipakai saat promo dibuat.
+   - **Hasil:** 21 tanggal launching dan 9 promo. Semua promo draft sesuai file, jadi belum ada yang tampil sampai dipublikasikan di admin.
+- **Perbaikan kecil:** nama tipe yang sudah diawali "Tipe" tidak lagi jadi "Tipe Tipe 5" (judul, tab, pesan WA).
+- Test: `tests/Feature/ImportBsdUpdateTest.php`; test urutan lama disesuaikan.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

@@ -11,6 +11,7 @@ use Database\Factories\KawasanFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -62,7 +63,15 @@ class Kawasan extends Model implements HasMedia
 
     public function publishedClusters(): HasMany
     {
-        return $this->clusters()->published()->pricedFirst()->ordered();
+        return $this->clusters()->published()->latestLaunched();
+    }
+
+    /**
+     * Promo yang dihubungkan langsung ke kawasan (opsional; promo cluster di kawasan ikut tampil).
+     */
+    public function promos(): BelongsToMany
+    {
+        return $this->belongsToMany(Promo::class);
     }
 
     public function galleryItems(): MorphMany
