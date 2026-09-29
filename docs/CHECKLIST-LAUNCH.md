@@ -21,6 +21,7 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 - [ ] **SSR** jalan terus lewat Supervisor (`php artisan inertia:start-ssr`). Cek: `curl -s https://domain/ | grep "<h1"` harus mengembalikan judul.
 - [ ] **Scheduler cron:** `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`. Isinya: sitemap harian, backup harian 01.30, pembersihan backup, dan monitor backup.
 - [ ] **Backup:** `mysqldump` tersedia di server dan `BACKUP_NOTIFICATION_EMAIL` diisi.
+- [ ] **`mysqldump` terpasang di server** (paket `mysql-client` atau `mariadb-client`): dipakai `php artisan backup:run --only-db --disable-notifications`, yang juga dijalankan script deploy sebelum setiap import data. Tes sekali: perintah itu harus berakhir dengan "Backup completed!" dan `php artisan backup:list` menampilkan file barunya.
 - [ ] **Backup di luar server** (wajib: kalau server rusak, backup `local` ikut hilang). Pilihan murah yang kompatibel S3 (driver `s3` sudah terpasang):
   - **Cloudflare R2**: tanpa biaya egress, gratis 10 GB/bulan. Dashboard Cloudflare → R2 → buat bucket (mis. `arunika-backup`) → *Manage R2 API Tokens* → token dengan izin *Object Read & Write* untuk bucket itu.
 

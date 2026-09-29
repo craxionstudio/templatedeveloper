@@ -194,3 +194,28 @@ it('tidak menulis "Tipe Tipe" untuk nama tipe yang sudah diawali "Tipe"', functi
 
     expect(urldecode($url))->toContain('Lynelle Tipe 5 Standard')->not->toContain('tipe Tipe');
 });
+
+it('berjalan tanpa pertanyaan di production dengan --force --no-interaction (script deploy)', function () {
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('import:bsd-data', ['path' => 'docs/data/bsd-city-data.json', '--fresh' => true, '--force' => true, '--no-interaction' => true])
+        ->doesntExpectOutputToContain('Lanjutkan?')
+        ->assertSuccessful();
+    $this->artisan('import:bsd-update', ['path' => 'docs/data/bsd-city-update-2.json', '--force' => true, '--no-interaction' => true])
+        ->assertSuccessful();
+
+    expect(Cluster::count())->toBe(144)
+        ->and(Cluster::where('slug', 'monard-of-the-armont')->first()->tanggal_launching->toDateString())->toBe('2026-07-07');
+});
+
+it('meminta konfirmasi --fresh di production tanpa --force dan berhenti kalau ditolak', function () {
+    app()->detectEnvironment(fn () => 'production');
+    $clusters = Cluster::count();
+
+    $this->artisan('import:bsd-data', ['--fresh' => true])
+        ->expectsConfirmation('--fresh menghapus SEMUA kawasan, cluster, dan tipe rumah di database production. Lanjutkan?', 'no')
+        ->expectsOutputToContain('--force')
+        ->assertFailed();
+
+    expect(Cluster::count())->toBe($clusters);
+});

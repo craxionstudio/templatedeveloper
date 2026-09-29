@@ -294,6 +294,16 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 4. **Badge "Promo"** menggantikan badge pilihan admin (mis. "Baru") selama cluster punya promo aktif. Setelah promo berakhir, badge admin tampil lagi.
 5. **Nama tipe berawalan "Tipe"** ("Tipe 5 Standard") tidak diberi awalan "Tipe" lagi di judul Detail Rumah, tab tipe, dan pesan WhatsApp.
 
+**Import otomatis di script deploy** (29 Sep 2026)
+
+- Script deploy menjalankan `import:bsd-data … --fresh --force --no-interaction` (hanya import pertama) dan `import:bsd-update … --force --no-interaction` saat file data berubah.
+- **`import:bsd-update`** sekarang menerima `--force`. Perintah ini memang tidak pernah bertanya (tidak menghapus apa pun), jadi opsinya diterima supaya kedua import bisa dipanggil dengan flag yang sama.
+- **`import:bsd-data`:** satu-satunya konfirmasi (`--fresh` di production) dilewati dengan `--force`. Dengan `--no-interaction` tanpa `--force`, perintah berhenti dengan pesan jelas (exit 1) dan tidak menghapus apa pun.
+- **Diuji:**
+  - Test: `APP_ENV=production` + `--force --no-interaction` berjalan tanpa pertanyaan; tanpa `--force` konfirmasi muncul.
+  - CLI: `APP_ENV=production php artisan import:bsd-data --fresh --no-interaction` → exit 1; dengan `--force` → exit 0.
+- **`php artisan backup:run --only-db --disable-notifications`** berhasil (koneksi `mysql` & `mariadb`, `APP_ENV=production`, disk `local`). Di server butuh `mysqldump` (ditambahkan di CHECKLIST-LAUNCH bagian server).
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

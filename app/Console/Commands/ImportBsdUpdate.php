@@ -21,11 +21,14 @@ use JsonException;
  *   relasi dari admin tidak dilepas). "sumber" disimpan sebagai catatan internal. is_published dari
  *   file hanya dipakai saat promo dibuat, supaya promo yang sudah dipublikasikan admin tidak ikut mati.
  *
- * Aman dijalankan berkali-kali.
+ * Aman dijalankan berkali-kali dan tidak pernah meminta konfirmasi (tidak ada yang dihapus), jadi
+ * --force hanya diterima supaya script deploy bisa memanggil semua import dengan flag yang sama.
  */
 class ImportBsdUpdate extends Command
 {
-    protected $signature = 'import:bsd-update {path : File JSON update (relatif ke root project atau path absolut)}';
+    protected $signature = 'import:bsd-update
+        {path : File JSON update (relatif ke root project atau path absolut)}
+        {--force : Jalankan di production tanpa konfirmasi (untuk script deploy)}';
 
     protected $description = 'Import update data BSD City: tanggal launching dan promo';
 

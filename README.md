@@ -442,8 +442,12 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     > untuk canonical, `og:url`, sitemap, RSS, dan JSON-LD. Salah isi = seluruh URL kanonik salah.
 4. `php artisan migrate --force`; deploy **pertama** saja: `php artisan db:seed --force` (isi awal settings, contoh
    konten, 3 akun admin; catat password yang dicetak, atau set `SEED_ADMIN_PASSWORD` dulu)
-5. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
-6. Jalankan proses SSR dan queue worker tetap hidup pakai **Supervisor**. Keduanya proses
+5. Script deploy otomatis (`.github/workflows/deploy.yml`) juga mengimpor data asli saat file `docs/data/*.json`
+   berubah (dicatat di `storage/app/import-markers/`), didahului `php artisan backup:run --only-db
+   --disable-notifications`: `import:bsd-data … --fresh --force --no-interaction` hanya di import pertama, setelah itu
+   tanpa `--fresh`; `import:bsd-update … --force --no-interaction`. Keduanya tidak pernah bertanya dengan `--force`.
+6. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
+7. Jalankan proses SSR dan queue worker tetap hidup pakai **Supervisor**. Keduanya proses
    terpisah dari PHP-FPM, jangan lupa masuk checklist deployment. Contoh
    `/etc/supervisor/conf.d/arunika.conf`:
 
@@ -468,7 +472,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     Setelah deploy ulang: `php artisan inertia:stop-ssr` (Supervisor menyalakannya lagi dengan
     bundle baru) dan `php artisan queue:restart`.
 
-7. **nginx** (HTTP/2, kompresi, cache aset). Contoh di dalam blok `server { listen 443 ssl http2; … }`:
+8. **nginx** (HTTP/2, kompresi, cache aset). Contoh di dalam blok `server { listen 443 ssl http2; … }`:
 
     ```nginx
     gzip on;
@@ -493,6 +497,6 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     Di belakang Cloudflare: aktifkan Brotli, HTTP/3, "Always Use HTTPS"; jangan cache HTML di edge tanpa
     aturan bypass cookie (halaman sudah di-cache di aplikasi).
 
-8. Scheduler: cron `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
+9. Scheduler: cron `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
    (antara lain `sitemap:refresh` harian pukul 03.00)
-9. Setup SSL (Let's Encrypt) + HTTPS redirect.
+10. Setup SSL (Let's Encrypt) + HTTPS redirect.

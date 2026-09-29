@@ -99,8 +99,12 @@ class ImportBsdData extends Command
             return self::FAILURE;
         }
 
+        // Satu-satunya konfirmasi: --fresh di production tanpa --force. Dengan --force (deploy otomatis)
+        // tidak ada pertanyaan sama sekali; dengan --no-interaction tanpa --force, perintah berhenti.
         if ($this->option('fresh') && app()->isProduction() && ! $this->option('force')
             && ! $this->confirm('--fresh menghapus SEMUA kawasan, cluster, dan tipe rumah di database production. Lanjutkan?')) {
+            $this->error('Dibatalkan. Jalankan dengan --force untuk melewati konfirmasi (mis. di script deploy).');
+
             return self::FAILURE;
         }
 
