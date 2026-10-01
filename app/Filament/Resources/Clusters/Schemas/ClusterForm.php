@@ -4,10 +4,10 @@ namespace App\Filament\Resources\Clusters\Schemas;
 
 use App\Enums\ClusterBadge;
 use App\Enums\ClusterStatus;
-use App\Enums\PromoPlacement;
 use App\Enums\PropertyType;
 use App\Filament\Forms\Fields;
 use App\Filament\Forms\SeoTab;
+use App\Models\Benefit;
 use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Support\Rupiah;
@@ -138,7 +138,37 @@ class ClusterForm
                                 Fields::pdf('pricelist', 'Pricelist (PDF)'),
                             ]),
                         ]),
-                        Tab::make('Marketing & Promo')->schema([
+                        Tab::make('Promo & Benefit')
+                            ->badge(fn (?Cluster $record): ?int => $record?->clusterBenefits()->count() ?: null)
+                            ->schema([
+                                Text::make('Benefit dari Bank Benefit yang berlaku di cluster ini. Tampil di Detail Rumah (dengan tanda *), sebagai chip di kartu, dan memberi badge "Promo". Tanpa tanggal berakhir: lepas benefit kalau sudah tidak berlaku.'),
+                                Repeater::make('clusterBenefits')
+                                    ->label('Benefit')
+                                    ->relationship()
+                                    ->orderColumn('urutan')
+                                    ->reorderableWithDragAndDrop()
+                                    ->schema([
+                                        Select::make('benefit_id')
+                                            ->label('Benefit')
+                                            ->options(fn (): array => Benefit::groupedOptions())
+                                            ->searchable()
+                                            ->required()
+                                            ->distinct()
+                                            ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                                        TextInput::make('teks_tampil')
+                                            ->label('Teks tampil')
+                                            ->placeholder('Opsional, contoh: Diskon hingga 13%')
+                                            ->helperText('Kosong = nama benefit.')
+                                            ->maxLength(40),
+                                    ])
+                                    ->columns(2)
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Tambah benefit')
+                                    ->itemLabel(fn (array $state): ?string => filled($state['benefit_id'] ?? null)
+                                        ? (Benefit::query()->find($state['benefit_id'])?->name ?? null)
+                                        : null),
+                            ]),
+                        Tab::make('Marketing')->schema([
                             Section::make('Marketing cluster')
                                 ->description('Kosongkan untuk memakai marketing default di Pengaturan Halaman → Detail Rumah.')
                                 ->schema([
@@ -155,11 +185,6 @@ class ClusterForm
                                         ->avatar()
                                         ->customProperties(fn (Get $get): array => ['alt' => 'Foto '.($get('marketing_name') ?: 'marketing')]),
                                 ]),
-                            Select::make('promos')
-                                ->label('Promo yang berlaku')
-                                ->relationship('promos', 'title', fn (Builder $query) => $query->where('placement', PromoPlacement::Detail->value))
-                                ->multiple()
-                                ->preload(),
                         ]),
                         Tab::make('Publikasi')->schema([
                             Toggle::make('is_published')->label('Dipublikasikan')->default(true),

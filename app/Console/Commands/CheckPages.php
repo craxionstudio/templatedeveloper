@@ -146,7 +146,10 @@ class CheckPages extends Command
             preg_match_all('#<loc>([^<]+)</loc>#', Sitemaps::render($name), $matches);
 
             foreach ($matches[1] as $url) {
-                $paths[] = (string) (parse_url(html_entity_decode($url), PHP_URL_PATH) ?: '/');
+                // Query ikut dicek (mis. halaman per benefit /properti?benefit=tanpa-dp).
+                $url = html_entity_decode($url);
+                $query = parse_url($url, PHP_URL_QUERY);
+                $paths[] = (string) (parse_url($url, PHP_URL_PATH) ?: '/').($query ? '?'.$query : '');
             }
         }
 

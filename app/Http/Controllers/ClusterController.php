@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PromoPlacement;
+use App\Enums\BenefitCategory;
+use App\Enums\ClusterStatus;
+use App\Models\Benefit;
 use App\Models\Cluster;
 use App\Models\GalleryItem;
 use App\Models\HouseType;
 use App\Presenters\ClusterCard;
 use App\Presenters\Image;
-use App\Presenters\PromoCard;
 use App\Settings\ClusterDetailPageSettings;
 use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
@@ -111,7 +112,8 @@ class ClusterController extends Controller
                 'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
                 'buildingType' => $cluster->building_type,
                 'badge' => $cluster->badge?->getLabel(),
-                'status' => $cluster->status?->getLabel(),
+                // Label "Sold out" tidak pernah ditampilkan di website.
+                'status' => $cluster->status === ClusterStatus::SoldOut ? null : $cluster->status?->getLabel(),
                 // Tombol WA tetap ada walau cluster belum punya tipe (pesan tanpa nama tipe).
                 'whatsappUrl' => $clusterWhatsappUrl,
                 'address' => $cluster->address,
@@ -169,7 +171,7 @@ class ClusterController extends Controller
                 'bookingFeeNote' => $cluster->booking_fee_note ?: $pricing['booking_fee_note'],
                 'kprLink' => $pricing['kpr_link_url'] ? ['label' => $pricing['kpr_link_label'], 'url' => $pricing['kpr_link_url']] : ['label' => $pricing['kpr_link_label'], 'url' => '/kontak'],
             ],
-            'promo' => $sections['promo']['enabled'] ? $this->promo($cluster, $sections['promo']) : null,
+            'benefits' => $sections['benefits']['enabled'] ? $this->benefits($cluster, $sections['benefits'], $marketingWhatsapp) : null,
             'sections' => [
                 'specs' => $sections['specs']['enabled'] ? $sections['specs']['title'] : null,
                 'types' => $sections['types']['enabled'] ? PageMeta::fill($sections['types']['title'], ['cluster' => $cluster->name]) : null,
@@ -213,17 +215,37 @@ class ClusterController extends Controller
     }
 
     /**
+     * Section "Promo & Benefit": benefit aktif cluster, dikelompokkan per kategori (urutan kategori
+     * tetap, urutan benefit dari admin). Tombol WA ke nomor marketing cluster (fallback nomor global).
+     *
      * @param  array<string, mixed>  $section
      * @return array<string, mixed>|null
      */
-    private function promo(Cluster $cluster, array $section): ?array
+    private function benefits(Cluster $cluster, array $section, ?string $whatsapp): ?array
     {
-        // Semua promo aktif (dipublikasikan & dalam periode) yang terhubung ke cluster ini.
-        $promos = $cluster->promos()->active()->placement(PromoPlacement::Detail)->orderBy('sort_order')->orderBy('promos.id')->get();
+        $benefits = $cluster->activeBenefits()->get();
 
-        return $promos->isEmpty() ? null : [
+        if ($benefits->isEmpty()) {
+            return null;
+        }
+
+        return [
             'title' => $section['title'],
-            'items' => PromoCard::collection($promos, $section['period_prefix']),
+            'groups' => $benefits
+                ->groupBy(fn (Benefit $benefit) => $benefit->category->value)
+                ->sortBy(fn ($items, string $category) => BenefitCategory::from($category)->order())
+                ->map(fn ($items, string $category) => [
+                    'category' => BenefitCategory::from($category)->getLabel(),
+                    'items' => $items->map(fn (Benefit $benefit) => [
+                        'icon' => $benefit->icon,
+                        'text' => $benefit->displayText(),
+                    ])->values()->all(),
+                ])
+                ->values()
+                ->all(),
+            'disclaimer' => $section['disclaimer'],
+            'buttonLabel' => $section['button_label'],
+            'whatsappUrl' => SiteLayout::whatsappUrl($whatsapp, PageMeta::fill($section['whatsapp_message'], ['cluster' => $cluster->name])) ?? '/kontak',
         ];
     }
 

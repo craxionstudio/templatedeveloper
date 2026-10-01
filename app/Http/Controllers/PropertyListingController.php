@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ClusterStatus;
 use App\Enums\PropertyType;
 use App\Models\Area;
+use App\Models\Benefit;
 use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Presenters\ClusterCard;
@@ -27,7 +28,7 @@ use Inertia\Response;
  */
 class PropertyListingController extends Controller
 {
-    public const FILTERS = ['kawasan', 'tipe', 'kamar', 'harga', 'status'];
+    public const FILTERS = ['kawasan', 'tipe', 'kamar', 'harga', 'status', 'benefit'];
 
     public function clusters(Request $request, ListingPageSettings $settings): Response
     {
@@ -44,6 +45,23 @@ class PropertyListingController extends Controller
             ->withQueryString();
 
         $header = $settings->section('header');
+        $seo = $settings->section('seo_cluster');
+        $options = $this->filterOptions($view);
+
+        // Satu benefit tanpa filter/urut lain = halaman SEO sendiri ("Rumah Tanpa DP di BSD City"),
+        // self-canonical dan boleh diindex. Kombinasi benefit / filter lain = noindex.
+        $benefitPage = $this->benefitPage($filters, $request, $seo);
+
+        if ($benefitPage) {
+            $header = [...$header, 'title' => $benefitPage['title'], 'description' => $benefitPage['description']];
+            $seo = [...$seo, 'meta_title' => $benefitPage['title'], 'meta_description' => $benefitPage['description'], 'canonical_url' => $benefitPage['canonical']];
+        }
+
+        if (isset($filters['benefit']) && str_contains($filters['benefit'], ',')) {
+            // Kombinasi dari URL: tampil sebagai pilihan sendiri di select filter.
+            $labels = collect(explode(',', $filters['benefit']))->map(fn (string $slug) => collect($options['benefit'])->firstWhere('value', $slug)['label'] ?? $slug);
+            $options['benefit'][] = ['value' => $filters['benefit'], 'label' => $labels->implode(' + ')];
+        }
 
         $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti')]]);
 
@@ -52,20 +70,20 @@ class PropertyListingController extends Controller
             'meta' => PageMeta::make(
                 $header['title'],
                 $header['description'],
-                $settings->section('seo_cluster'),
-                noindex: $filters !== [] || $request->filled('urut'),
+                $seo,
+                noindex: ! $benefitPage && ($filters !== [] || $request->filled('urut')),
                 section: 'properti',
                 breadcrumbs: $crumbs,
                 schema: [StructuredData::itemList($header['title'], collect($paginator->items())->map(fn (Cluster $c) => ['name' => $c->name, 'url' => $c->publicPath()]))],
             ),
             'breadcrumbs' => $crumbs,
-            ...$this->shared($settings, 'cluster'),
+            ...$this->shared($settings, 'cluster', $benefitPage ? ['title' => $benefitPage['title'], 'description' => $benefitPage['description']] : []),
             'filters' => [
                 'active' => $filters,
                 'sort' => $sort,
                 'visible' => array_values(array_intersect(self::FILTERS, $view['filters'])),
                 'labels' => $view['filter_labels'],
-                'options' => $this->filterOptions($view),
+                'options' => $options,
                 'sortOptions' => collect($view['sort_options'])->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values()->all(),
                 'text' => [
                     'all' => $view['all_label'],
@@ -126,13 +144,15 @@ class PropertyListingController extends Controller
     }
 
     /**
-     * Header, toggle, dan CTA yang sama untuk kedua tampilan.
+     * Header, toggle, dan CTA yang sama untuk kedua tampilan. $headerText menimpa judul/deskripsi
+     * header (halaman per benefit).
      *
+     * @param  array{title?: string, description?: string}  $headerText
      * @return array<string, mixed>
      */
-    private function shared(ListingPageSettings $settings, string $active): array
+    private function shared(ListingPageSettings $settings, string $active, array $headerText = []): array
     {
-        $header = $settings->section('header');
+        $header = [...$settings->section('header'), ...$headerText];
         $toggle = $settings->section('toggle');
         $area = Area::current();
 
@@ -164,7 +184,8 @@ class PropertyListingController extends Controller
     }
 
     /**
-     * Filter aktif yang valid dari query string.
+     * Filter aktif yang valid dari query string. ?benefit= menerima beberapa slug dipisah koma
+     * (cluster harus punya semuanya) dan selalu dibaca walau filternya tidak ditampilkan.
      *
      * @param  array<string, mixed>  $view
      * @return array<string, string>
@@ -173,11 +194,50 @@ class PropertyListingController extends Controller
     {
         $options = $this->filterOptions($view);
 
-        return collect(self::FILTERS)
+        $filters = collect(self::FILTERS)
+            ->reject(fn (string $key) => $key === 'benefit')
             ->filter(fn (string $key) => in_array($key, $view['filters'], true))
             ->mapWithKeys(fn (string $key) => [$key => (string) $request->query($key, '')])
             ->filter(fn (string $value, string $key) => $value !== '' && collect($options[$key])->contains('value', $value))
             ->all();
+
+        $benefits = collect(explode(',', (string) $request->query('benefit', '')))
+            ->map(fn (string $slug) => trim($slug))
+            ->filter(fn (string $slug) => collect($options['benefit'])->contains('value', $slug))
+            ->unique()
+            ->values();
+
+        if ($benefits->isNotEmpty()) {
+            $filters['benefit'] = $benefits->implode(',');
+        }
+
+        return $filters;
+    }
+
+    /**
+     * @param  array<string, string>  $filters
+     * @param  array<string, mixed>  $seo
+     * @return array{title: string, description: string, canonical: string}|null
+     */
+    private function benefitPage(array $filters, Request $request, array $seo): ?array
+    {
+        if (array_keys($filters) !== ['benefit'] || str_contains($filters['benefit'], ',') || $request->filled('urut')) {
+            return null;
+        }
+
+        $benefit = Benefit::query()->active()->where('slug', $filters['benefit'])->first();
+
+        if (! $benefit) {
+            return null;
+        }
+
+        $page = (int) $request->query('page');
+
+        return [
+            'title' => PageMeta::fill($seo['benefit_title_pattern'], ['benefit' => $benefit->name]),
+            'description' => PageMeta::fill($seo['benefit_description_pattern'], ['benefit' => $benefit->name]),
+            'canonical' => '/properti?benefit='.$benefit->slug.($page > 1 ? '&page='.$page : ''),
+        ];
     }
 
     /**
@@ -202,7 +262,14 @@ class PropertyListingController extends Controller
             'kamar' => collect($view['bedroom_options'])->values()
                 ->map(fn ($n, $i) => ['value' => (string) $n, 'label' => $n.($i === count($view['bedroom_options']) - 1 ? '+' : '').' KT'])->all(),
             'harga' => collect($view['price_ranges'])->values()->map(fn (array $range, int $i) => ['value' => (string) ($i + 1), 'label' => $range['label']])->all(),
-            'status' => collect(ClusterStatus::cases())->map(fn (ClusterStatus $s) => ['value' => $s->value, 'label' => $s->getLabel()])->all(),
+            // Tanpa "Sold out": label sold out tidak boleh tampil di website.
+            'status' => collect(ClusterStatus::cases())->reject(fn (ClusterStatus $s) => $s === ClusterStatus::SoldOut)
+                ->map(fn (ClusterStatus $s) => ['value' => $s->value, 'label' => $s->getLabel()])->values()->all(),
+            // Benefit aktif yang dipakai minimal satu cluster terbit.
+            'benefit' => Benefit::query()->active()->ordered()
+                ->whereHas('clusters', fn (Builder $q) => $q->published())
+                ->get(['slug', 'name'])
+                ->map(fn (Benefit $b) => ['value' => $b->slug, 'label' => $b->name])->all(),
         ];
     }
 
@@ -220,6 +287,10 @@ class PropertyListingController extends Controller
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['benefit'])) {
+            $query->withBenefits(explode(',', $filters['benefit']));
         }
 
         if (isset($filters['kamar'])) {
@@ -244,6 +315,9 @@ class PropertyListingController extends Controller
             // Urut harga: cluster tanpa harga selalu di bawah.
             'harga-terendah' => $query->pricedFirst()->orderBy('price_min')->orderBy('sort_order'),
             'harga-tertinggi' => $query->pricedFirst()->orderByDesc('price_max')->orderBy('sort_order'),
+            // "Promo": benefit (aktif) terbanyak di atas, lalu urutan Terbaru.
+            'promo' => $query->withCount(['benefits as active_benefits_count' => fn (Builder $q) => $q->active()])
+                ->orderByDesc('active_benefits_count')->latestLaunched(),
             // "Terbaru" (default): tanggal launching terbaru, kosong paling bawah; lalu prioritas, lalu nama.
             default => $query->latestLaunched(),
         };

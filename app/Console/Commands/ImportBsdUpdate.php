@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Enums\PromoPlacement;
+use App\Models\Benefit;
+use App\Models\BenefitCluster;
 use App\Models\Cluster;
 use App\Models\Promo;
 use App\Support\PageCache;
@@ -20,6 +22,9 @@ use JsonException;
  * - promos: upsert per judul, placement "detail", relasi ke cluster lewat cluster_slugs (ditambahkan,
  *   relasi dari admin tidak dilepas). "sumber" disimpan sebagai catatan internal. is_published dari
  *   file hanya dipakai saat promo dibuat, supaya promo yang sudah dipublikasikan admin tidak ikut mati.
+ *
+ * - benefits: benefit per cluster (Bank Benefit), upsert per (cluster, benefit); pivot yang diubah
+ *   atau dilepas di admin setelah import sebelumnya tidak disentuh.
  *
  * Aman dijalankan berkali-kali dan tidak pernah meminta konfirmasi (tidak ada yang dihapus), jadi
  * --force hanya diterima supaya script deploy bisa memanggil semua import dengan flag yang sama.
@@ -57,6 +62,7 @@ class ImportBsdUpdate extends Command
         DB::transaction(function () use ($data): void {
             $this->importLaunchDates($data['tanggal_launching'] ?? []);
             $this->importPromos($data['promos'] ?? []);
+            $this->importBenefits($data['benefits'] ?? []);
         });
 
         Sitemaps::flush();
@@ -137,6 +143,67 @@ class ImportBsdUpdate extends Command
 
             $this->count($isNew ? 'Promo baru' : 'Promo diperbarui', 1);
             $this->count($promo->is_published ? '  dipublikasikan' : '  belum dipublikasikan', 1);
+        }
+    }
+
+    /**
+     * Benefit per cluster (Bank Benefit), upsert per (cluster, benefit). Pivot yang diubah atau
+     * dihapus di admin setelah import sebelumnya tidak ditimpa / tidak dibuat ulang; pivot yang dibuat
+     * admin sendiri juga dibiarkan.
+     *
+     * @param  list<array{cluster_slug: string, benefit_slug: string, teks_tampil?: ?string}>  $rows
+     */
+    private function importBenefits(array $rows): void
+    {
+        $clusters = Cluster::query()->whereIn('slug', array_column($rows, 'cluster_slug'))->pluck('id', 'slug');
+        $benefits = Benefit::query()->whereIn('slug', array_column($rows, 'benefit_slug'))->pluck('id', 'slug');
+
+        foreach ($rows as $row) {
+            $clusterId = $clusters[$row['cluster_slug']] ?? null;
+            $benefitId = $benefits[$row['benefit_slug']] ?? null;
+
+            if (! $clusterId || ! $benefitId) {
+                $this->warn(sprintf('Benefit dilewati: %s ← %s (%s tidak ditemukan)', $row['cluster_slug'], $row['benefit_slug'], $clusterId ? 'benefit' : 'cluster'));
+                $this->count('Benefit dilewati (tidak ditemukan)', 1);
+
+                continue;
+            }
+
+            $text = filled($row['teks_tampil'] ?? null) ? mb_substr(trim($row['teks_tampil']), 0, 40) : null;
+            $pivot = BenefitCluster::query()->where(['cluster_id' => $clusterId, 'benefit_id' => $benefitId])->first();
+            $log = DB::table('benefit_cluster_imports')->where(['cluster_id' => $clusterId, 'benefit_id' => $benefitId])->first();
+
+            if ($pivot && (! $log || $pivot->updated_at->gt(Carbon::parse($log->imported_at)))) {
+                // Dibuat atau diubah admin setelah import terakhir.
+                $this->count('Benefit dilewati (diubah di admin)', 1);
+
+                continue;
+            }
+
+            if (! $pivot && $log) {
+                // Pernah diimport lalu dilepas di admin.
+                $this->count('Benefit dilewati (dilepas di admin)', 1);
+
+                continue;
+            }
+
+            $now = now()->startOfSecond();
+            $pivot ??= new BenefitCluster([
+                'cluster_id' => $clusterId,
+                'benefit_id' => $benefitId,
+                'urutan' => (int) BenefitCluster::query()->where('cluster_id', $clusterId)->max('urutan') + 1,
+            ]);
+            $isNew = ! $pivot->exists;
+            $pivot->teks_tampil = $text;
+            $pivot->updated_at = $now;
+            $pivot->save();
+
+            DB::table('benefit_cluster_imports')->updateOrInsert(
+                ['cluster_id' => $clusterId, 'benefit_id' => $benefitId],
+                ['imported_at' => $pivot->updated_at],
+            );
+
+            $this->count($isNew ? 'Benefit baru' : 'Benefit diperbarui', 1);
         }
     }
 

@@ -6,6 +6,8 @@ use App\Models\Area;
 use App\Models\Article;
 use App\Models\ArticleCategory;
 use App\Models\Author;
+use App\Models\Benefit;
+use App\Models\BenefitCluster;
 use App\Models\Cluster;
 use App\Models\DeveloperProfile;
 use App\Models\Facility;
@@ -35,7 +37,7 @@ class AdminAccess
      * @var list<class-string>
      */
     public const CONTENT_MODELS = [
-        Area::class, Article::class, ArticleCategory::class, Author::class, Cluster::class, DeveloperProfile::class,
+        Area::class, Article::class, ArticleCategory::class, Author::class, Benefit::class, BenefitCluster::class, Cluster::class, DeveloperProfile::class,
         Facility::class, FacilityCategory::class, FutureDevelopment::class, GalleryItem::class, HouseType::class,
         Kawasan::class, Promo::class, Redirect::class, SeoMeta::class, Tag::class,
     ];

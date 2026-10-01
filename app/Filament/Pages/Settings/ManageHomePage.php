@@ -52,11 +52,6 @@ class ManageHomePage extends PageSettingsPage
                     Fields::textarea('about.description', 'Isi (override)', 4)->hidden(fn (Get $get): bool => (bool) $get('about.use_profile')),
                     Fields::button('about.link', 'link "Profil lengkap"'),
                 ]),
-                Tab::make('Banner Promo')->schema([
-                    Fields::enabled('promo'),
-                    ...Fields::dataSource('promo', fn (): array => Options::homePromos(), 'Otomatis (promo aktif di Beranda)', withLimit: false),
-                    Toggle::make('promo.autoplay')->label('Autoplay slider'),
-                ]),
                 Tab::make('Listing Produk')->schema([
                     Fields::enabled('listing'),
                     Fields::text('listing.eyebrow', 'Eyebrow'),

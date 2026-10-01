@@ -4,6 +4,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ClusterController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactEventController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KawasanController;
@@ -48,4 +49,5 @@ Route::middleware('signed')->prefix('pratinjau')->group(function () {
 
 // Form publik (Milestone 4): honeypot + Turnstile di FormRequest, rate limit per IP di sini.
 Route::post('/lead', [LeadController::class, 'store'])->middleware('throttle:leads')->name('lead.store');
+Route::post('/track/contact', ContactEventController::class)->middleware('throttle:contact-events')->name('track.contact');
 Route::post('/newsletter', [NewsletterController::class, 'store'])->middleware('throttle:newsletter')->name('newsletter.store');

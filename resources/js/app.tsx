@@ -1,6 +1,6 @@
 import { createInertiaApp, router } from '@inertiajs/react';
 import SiteLayout from '@/layouts/site-layout';
-import { listenForClicks, pageView } from '@/lib/analytics';
+import { configureTracking, listenForClicks, pageView } from '@/lib/analytics';
 
 void createInertiaApp({
     // Judul lengkap (pola "{Judul} | {Brand}") disusun di server.
@@ -17,9 +17,12 @@ if (typeof window !== 'undefined') {
     pageView();
     // Navigasi berikutnya (bukan reload): event `navigate` Inertia.
     router.on('navigate', (event) => {
-        const meta = event.detail.page.props.meta as
-            | { title?: string }
-            | undefined;
+        const props = event.detail.page.props as {
+            meta?: { title?: string };
+            site?: { tracking?: { capi?: boolean } };
+        };
+        configureTracking(props.site?.tracking);
+        const meta = props.meta;
         pageView(meta?.title);
     });
 }

@@ -37,11 +37,15 @@ class ManageClusterDetailPage extends PageSettingsPage
         return $schema->columns(1)->components([
             Tabs::make('Detail Rumah')->persistTabInQueryString()->tabs([
                 Tab::make('Label & section')->schema([
-                    Section::make('Promo')->columns(2)->schema([
-                        Fields::enabled('sections.promo'),
-                        Fields::text('sections.promo.title', 'Judul'),
-                        Fields::text('sections.promo.period_prefix', 'Awalan periode'),
-                    ]),
+                    Section::make('Promo & Benefit')
+                        ->description('Benefit dari Bank Benefit yang dicentang di cluster. Tidak tampil kalau cluster tanpa benefit.')
+                        ->schema([
+                            Fields::enabled('sections.benefits'),
+                            Fields::text('sections.benefits.title', 'Judul'),
+                            Fields::text('sections.benefits.disclaimer', 'Catatan syarat & ketentuan'),
+                            Fields::text('sections.benefits.button_label', 'Label tombol WhatsApp'),
+                            Fields::textarea('sections.benefits.whatsapp_message', 'Pesan WhatsApp otomatis', 2, '{cluster} diganti nama cluster.'),
+                        ]),
                     Section::make('Spesifikasi')->schema([
                         Fields::enabled('sections.specs'),
                         Fields::text('sections.specs.title', 'Judul'),

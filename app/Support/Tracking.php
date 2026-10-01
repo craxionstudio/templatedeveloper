@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Services\MetaConversions;
 use App\Settings\GlobalSettings;
 
 /**
@@ -70,7 +71,7 @@ class Tracking
     /**
      * Data untuk shared prop `site.tracking`.
      *
-     * @return array{gtmId: ?string, ga4Id: ?string, pixelId: ?string, turnstileSiteKey: ?string}
+     * @return array{gtmId: ?string, ga4Id: ?string, pixelId: ?string, turnstileSiteKey: ?string, capi: bool}
      */
     public static function browser(): array
     {
@@ -79,6 +80,8 @@ class Tracking
             'ga4Id' => self::ga4Id(),
             'pixelId' => self::pixelId(),
             'turnstileSiteKey' => self::turnstileSiteKey(),
+            // Klik WhatsApp juga dikirim ke server (Meta CAPI) hanya kalau CAPI dikonfigurasi.
+            'capi' => MetaConversions::enabled(),
         ];
     }
 

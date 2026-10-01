@@ -112,6 +112,27 @@ export default function ClusterCard({
                     ) : null}
                 </div>
 
+                {cluster.benefits.length > 0 ? (
+                    <ul
+                        className="flex flex-wrap gap-1.5"
+                        aria-label={labels.benefits}
+                    >
+                        {cluster.benefits.map((benefit) => (
+                            <li
+                                key={benefit}
+                                className="rounded-lg bg-[#F6E3D8] px-2.5 py-[5px] text-[13px] font-semibold text-[#6E2E14]"
+                            >
+                                {benefit}
+                            </li>
+                        ))}
+                        {cluster.benefitsMore > 0 ? (
+                            <li className="rounded-lg bg-[#F6E3D8] px-2.5 py-[5px] text-[13px] font-semibold text-[#6E2E14]">
+                                +{cluster.benefitsMore}
+                            </li>
+                        ) : null}
+                    </ul>
+                ) : null}
+
                 <div className="mt-auto flex items-end justify-between gap-3 border-t border-[#ECE6DA] pt-3.5">
                     <div className="flex flex-col gap-0.5">
                         <span className="text-xs text-caption">

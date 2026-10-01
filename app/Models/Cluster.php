@@ -115,11 +115,44 @@ class Cluster extends Model implements HasMedia
     }
 
     /**
-     * Promo yang sedang berlaku (dipublikasikan & di dalam periode), untuk badge "Promo" di kartu.
+     * Benefit yang dicentang di cluster ini (urutan dari admin). Kartu & Detail Rumah memakai
+     * activeBenefits (benefit nonaktif di Bank Benefit tidak tampil).
      */
-    public function activePromos(): BelongsToMany
+    public function benefits(): BelongsToMany
     {
-        return $this->promos()->active();
+        return $this->belongsToMany(Benefit::class)
+            ->using(BenefitCluster::class)
+            ->withPivot(['id', 'teks_tampil', 'urutan'])
+            ->withTimestamps()
+            ->orderByPivot('urutan')
+            ->orderByPivot('id');
+    }
+
+    public function activeBenefits(): BelongsToMany
+    {
+        return $this->benefits()->active();
+    }
+
+    /**
+     * Baris pivot benefit (repeater "Promo & Benefit" di admin).
+     */
+    public function clusterBenefits(): HasMany
+    {
+        return $this->hasMany(BenefitCluster::class)->orderBy('urutan')->orderBy('id');
+    }
+
+    /**
+     * Cluster yang punya SEMUA benefit aktif ini (filter ?benefit=a,b).
+     *
+     * @param  list<string>  $slugs
+     */
+    public function scopeWithBenefits(Builder $query, array $slugs): Builder
+    {
+        foreach ($slugs as $slug) {
+            $query->whereHas('benefits', fn (Builder $q) => $q->active()->where('slug', $slug));
+        }
+
+        return $query;
     }
 
     public function galleryItems(): MorphMany

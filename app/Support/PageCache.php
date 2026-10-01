@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Models\Promo;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -32,19 +31,12 @@ class PageCache
     }
 
     /**
-     * Umur cache (detik): TTL config, tapi tidak melewati waktu terdekat promo mulai/berakhir
-     * supaya promo kedaluwarsa tidak tampil dari cache.
+     * Umur cache (detik). Benefit tidak punya periode, jadi cukup TTL config; perubahan di admin
+     * membuang cache lewat flush().
      */
     public static function ttl(): int
     {
-        $ttl = (int) config('site.page_cache.ttl');
-        $boundary = Promo::nextBoundary();
-
-        if ($boundary) {
-            $ttl = min($ttl, max(1, (int) ceil(now()->diffInSeconds($boundary, absolute: true))));
-        }
-
-        return $ttl;
+        return (int) config('site.page_cache.ttl');
     }
 
     public static function flush(): void

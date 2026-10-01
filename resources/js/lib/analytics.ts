@@ -59,6 +59,69 @@ export function pixel(
     );
 }
 
+/** Klik WhatsApp juga dikirim ke server (Meta CAPI)? Diisi dari props `site.tracking.capi`. */
+let capiEnabled = false;
+
+export function configureTracking(
+    config: { capi?: boolean } | undefined,
+): void {
+    capiEnabled = Boolean(config?.capi);
+}
+
+function newEventId(): string {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+        return crypto.randomUUID();
+    }
+
+    // Cadangan UUID v4 untuk browser lama.
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+
+        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    });
+}
+
+function cookie(name: string): string | null {
+    const match = document.cookie.match(
+        new RegExp(`(?:^|; )${name.replace(/[-.]/g, '\\$&')}=([^;]*)`),
+    );
+
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Event Contact ke server (Meta CAPI) dengan event_id yang sama dengan Pixel. keepalive supaya
+ * tetap terkirim walau tab berpindah ke WhatsApp.
+ */
+function sendContactToServer(
+    eventId: string,
+    cluster?: string,
+    source?: string,
+): void {
+    if (!capiEnabled || typeof fetch === 'undefined') {
+        return;
+    }
+
+    const xsrf = cookie('XSRF-TOKEN');
+
+    void fetch('/track/contact', {
+        method: 'POST',
+        keepalive: true,
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            ...(xsrf ? { 'X-XSRF-TOKEN': xsrf } : {}),
+        },
+        body: JSON.stringify({
+            event_id: eventId,
+            cluster: cluster ?? null,
+            source: source ?? null,
+            page_url: window.location.href,
+        }),
+    }).catch(() => undefined);
+}
+
 let firstPageView = true;
 let lastPageView: string | null = null;
 
@@ -137,11 +200,26 @@ export function listenForClicks(): void {
             ) {
                 track(link.dataset.track, { ...context, file_url: href });
             } else if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(href)) {
-                track('click_whatsapp', context);
-                pixel('Contact', {
-                    content_name: link.dataset.cluster,
-                    method: 'whatsapp',
+                // Satu event_id untuk dataLayer, Pixel, dan CAPI (deduplikasi di Meta).
+                const eventId = newEventId();
+                track('click_whatsapp', {
+                    ...context,
+                    sumber: link.dataset.source,
+                    event_id: eventId,
                 });
+                pixel(
+                    'Contact',
+                    {
+                        content_name: link.dataset.cluster,
+                        method: 'whatsapp',
+                    },
+                    eventId,
+                );
+                sendContactToServer(
+                    eventId,
+                    link.dataset.cluster,
+                    link.dataset.source ?? link.dataset.position,
+                );
             } else if (href.startsWith('tel:')) {
                 track('click_phone', context);
                 pixel('Contact', { method: 'phone' });

@@ -64,6 +64,8 @@ export type SiteLayoutData = {
         ga4Id: string | null;
         pixelId: string | null;
         turnstileSiteKey: string | null;
+        /** Meta CAPI aktif: klik WhatsApp juga dikirim ke server. */
+        capi: boolean;
     };
 };
 

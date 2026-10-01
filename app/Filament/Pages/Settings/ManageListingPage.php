@@ -60,9 +60,9 @@ class ManageListingPage extends PageSettingsPage
                 Tab::make('Tampilan Cluster')->schema([
                     CheckboxList::make('cluster_view.filters')
                         ->label('Filter yang ditampilkan')
-                        ->options(['kawasan' => 'Kawasan', 'tipe' => 'Tipe properti', 'kamar' => 'Kamar tidur', 'harga' => 'Kisaran harga', 'status' => 'Status'])
-                        ->columns(5),
-                    Section::make('Label filter')->columns(5)->schema(collect(['kawasan', 'tipe', 'kamar', 'harga', 'status'])
+                        ->options(['kawasan' => 'Kawasan', 'tipe' => 'Tipe properti', 'kamar' => 'Kamar tidur', 'harga' => 'Kisaran harga', 'status' => 'Status', 'benefit' => 'Promo & benefit'])
+                        ->columns(6),
+                    Section::make('Label filter')->columns(6)->schema(collect(['kawasan', 'tipe', 'kamar', 'harga', 'status', 'benefit'])
                         ->map(fn (string $key) => TextInput::make("cluster_view.filter_labels.{$key}")->label(ucfirst($key)))
                         ->all()),
                     Grid::make(3)->schema([
@@ -87,7 +87,7 @@ class ManageListingPage extends PageSettingsPage
                         ->addable(false)->deletable(false)->editableKeys(false),
                     Grid::make(2)->schema([
                         Select::make('cluster_view.default_sort')->label('Urutan default')
-                            ->options(['terbaru' => 'Terbaru', 'harga-terendah' => 'Harga terendah', 'harga-tertinggi' => 'Harga tertinggi']),
+                            ->options(['terbaru' => 'Terbaru', 'harga-terendah' => 'Harga terendah', 'harga-tertinggi' => 'Harga tertinggi', 'promo' => 'Promo']),
                         TextInput::make('cluster_view.per_page')->label('Jumlah per halaman')->numeric()->minValue(3)->maxValue(48),
                     ]),
                     TextInput::make('cluster_view.result_template')->label('Teks jumlah hasil')->helperText('{clusters} dan {types} diganti angka.'),
@@ -111,7 +111,15 @@ class ManageListingPage extends PageSettingsPage
                     Fields::text('empty_state.button_label', 'Label tombol reset'),
                 ]),
                 Tab::make('CTA')->schema([Fields::cta()]),
-                Tab::make('SEO /properti')->schema(Fields::settingsSeo('seo_cluster', '/properti')),
+                Tab::make('SEO /properti')->schema([
+                    ...Fields::settingsSeo('seo_cluster', '/properti'),
+                    Section::make('Halaman per benefit (/properti?benefit=…)')
+                        ->description('Satu benefit = halaman sendiri yang boleh diindex (mis. "Rumah Tanpa DP di BSD City"). Kombinasi lebih dari satu benefit: noindex.')
+                        ->schema([
+                            Fields::text('seo_cluster.benefit_title_pattern', 'Pola judul', '{benefit} diganti nama benefit.'),
+                            Fields::textarea('seo_cluster.benefit_description_pattern', 'Pola meta description', 2, '{benefit} diganti nama benefit.'),
+                        ]),
+                ]),
                 Tab::make('SEO /properti/kawasan')->schema(Fields::settingsSeo('seo_kawasan', '/properti/kawasan')),
             ]),
         ]);

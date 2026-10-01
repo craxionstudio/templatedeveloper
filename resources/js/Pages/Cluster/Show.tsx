@@ -13,6 +13,8 @@ import type {
     MarketingData,
     PricingData,
 } from '@/components/cluster/detail-parts';
+import BenefitSection from '@/components/cluster/benefit-section';
+import type { BenefitSectionData } from '@/components/cluster/benefit-section';
 import Gallery from '@/components/cluster/gallery';
 import type { GalleryData } from '@/components/cluster/gallery';
 import { useLeadModalTrigger } from '@/components/lead/lead-modal';
@@ -20,8 +22,6 @@ import Breadcrumbs from '@/components/site/breadcrumbs';
 import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
-import PromoSection from '@/components/site/promo-section';
-import type { PromoCardData } from '@/components/site/promo-section';
 import PreviewBanner from '@/components/site/preview-banner';
 import PageHead from '@/components/site/page-head';
 import RichText from '@/components/site/rich-text';
@@ -65,8 +65,8 @@ type Props = {
     types: HouseTypeData[];
     selectedType: string | null;
     pricing: PricingData;
-    /** Promo aktif cluster ini; null = section tidak tampil. */
-    promo: { title: string; items: PromoCardData[] } | null;
+    /** Bank Benefit cluster ini; null = section tidak tampil. */
+    benefits: BenefitSectionData | null;
     sections: {
         specs: string | null;
         types: string | null;
@@ -103,7 +103,7 @@ export default function ClusterShow(props: Props) {
         gallery,
         types,
         pricing,
-        promo,
+        benefits,
         sections,
         specLabels,
         downloads,
@@ -263,10 +263,10 @@ export default function ClusterShow(props: Props) {
                         pricing={pricing}
                         bookingFee={cluster.bookingFee}
                     />
-                    {promo ? (
-                        <PromoSection
-                            title={promo.title}
-                            promos={promo.items}
+                    {benefits ? (
+                        <BenefitSection
+                            benefits={benefits}
+                            clusterName={cluster.name}
                         />
                     ) : null}
                     {sections.specs ? (

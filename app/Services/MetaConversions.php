@@ -51,6 +51,58 @@ class MetaConversions
     }
 
     /**
+     * Event Contact (klik WhatsApp), event_id sama dengan Pixel di browser (deduplikasi).
+     *
+     * @param  array{event_id: string, cluster?: ?string, source?: ?string, event_time?: int}  $event
+     * @param  array{ip?: ?string, user_agent?: ?string, fbp?: ?string, fbc?: ?string, source_url?: ?string}  $context
+     */
+    public static function sendContact(array $event, array $context): ?Response
+    {
+        if (! self::enabled()) {
+            return null;
+        }
+
+        $payload = ['data' => [self::contactEvent($event, $context)]];
+
+        if ($code = Tracking::capiTestCode()) {
+            $payload['test_event_code'] = $code;
+        }
+
+        return Http::timeout(10)
+            ->withQueryParameters(['access_token' => Tracking::capiToken()])
+            ->post(self::endpoint(), $payload)
+            ->throw();
+    }
+
+    /**
+     * @param  array{event_id: string, cluster?: ?string, source?: ?string, event_time?: int}  $event
+     * @param  array{ip?: ?string, user_agent?: ?string, fbp?: ?string, fbc?: ?string, source_url?: ?string}  $context
+     * @return array<string, mixed>
+     */
+    public static function contactEvent(array $event, array $context): array
+    {
+        return [
+            'event_name' => 'Contact',
+            'event_time' => $event['event_time'] ?? now()->getTimestamp(),
+            'event_id' => $event['event_id'],
+            'event_source_url' => $context['source_url'] ?? null,
+            'action_source' => 'website',
+            'user_data' => array_filter([
+                'country' => self::hashList('id'),
+                'client_ip_address' => $context['ip'] ?? null,
+                'client_user_agent' => $context['user_agent'] ?? null,
+                'fbp' => $context['fbp'] ?? null,
+                'fbc' => $context['fbc'] ?? null,
+            ]),
+            'custom_data' => array_filter([
+                'method' => 'whatsapp',
+                'content_name' => $event['cluster'] ?? null,
+                'content_category' => $event['source'] ?? null,
+            ]),
+        ];
+    }
+
+    /**
      * @param  array{ip?: ?string, user_agent?: ?string, fbp?: ?string, fbc?: ?string, source_url?: ?string}  $context
      * @return array<string, mixed>
      */

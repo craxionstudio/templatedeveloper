@@ -24,13 +24,14 @@ return [
 
     'cluster_view' => [
         // Filter yang ditampilkan: kawasan, tipe, kamar, harga, status.
-        'filters' => ['kawasan', 'tipe', 'kamar', 'harga', 'status'],
+        'filters' => ['kawasan', 'tipe', 'kamar', 'harga', 'benefit'],
         'filter_labels' => [
             'kawasan' => 'Kawasan',
             'tipe' => 'Tipe properti',
             'kamar' => 'Kamar tidur',
             'harga' => 'Kisaran harga',
             'status' => 'Status',
+            'benefit' => 'Promo & benefit',
         ],
         'all_kawasan_label' => 'Semua kawasan',
         'standalone_label' => 'Cluster mandiri',
@@ -49,6 +50,8 @@ return [
             'terbaru' => 'Terbaru',
             'harga-terendah' => 'Harga terendah',
             'harga-tertinggi' => 'Harga tertinggi',
+            // Cluster dengan benefit terbanyak di atas.
+            'promo' => 'Promo',
         ],
         'default_sort' => 'terbaru',
         'per_page' => 9,
@@ -81,6 +84,9 @@ return [
         ...$shared['seo'],
         'meta_title' => 'Daftar Cluster Rumah di BSD City',
         'meta_description' => 'Semua cluster rumah di BSD City dalam satu halaman. Saring per kawasan, tipe, jumlah kamar, dan harga. Info LT, LB, dan cicilan tiap tipe.',
+        // /properti?benefit=tanpa-dp (satu benefit) boleh diindex dengan judul sendiri; {benefit} = nama benefit.
+        'benefit_title_pattern' => 'Rumah {benefit} di BSD City',
+        'benefit_description_pattern' => 'Daftar cluster rumah di BSD City dengan promo {benefit}. Bandingkan tipe, luas, dan harga, lalu tanya syarat lengkapnya ke marketing.',
     ],
 
     'seo_kawasan' => [

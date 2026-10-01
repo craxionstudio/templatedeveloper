@@ -3,8 +3,6 @@ import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
 import { ContentIcon, Icon } from '@/components/site/icons';
 import { KawasanCardCompact } from '@/components/site/kawasan-card';
-import PromoSection from '@/components/site/promo-section';
-import type { PromoCardData } from '@/components/site/promo-section';
 import PreviewBanner from '@/components/site/preview-banner';
 import PageHead from '@/components/site/page-head';
 import RichText from '@/components/site/rich-text';
@@ -46,8 +44,6 @@ type Props = {
     } | null;
     /** Daftar "Lokasi & akses" (kosong = null). */
     access: { title: string; items: string[] } | null;
-    /** Promo aktif kawasan + cluster di dalamnya; null = section tidak tampil. */
-    promos: { eyebrow: string; title: string; items: PromoCardData[] } | null;
     clusters: {
         eyebrow: string;
         title: string;
@@ -71,7 +67,6 @@ export default function KawasanShow({
     about,
     facilities,
     access,
-    promos,
     clusters,
     others,
     cta,
@@ -192,22 +187,6 @@ export default function KawasanShow({
                     ) : null}
                     <div className="md:hidden">{buttons}</div>
                 </section>
-            ) : null}
-
-            {promos ? (
-                <div
-                    className={
-                        about || facilities || access
-                            ? 'container-site pb-14 xl:pb-[120px]'
-                            : 'container-site py-14 xl:py-[120px]'
-                    }
-                >
-                    <PromoSection
-                        eyebrow={promos.eyebrow}
-                        title={promos.title}
-                        promos={promos.items}
-                    />
-                </div>
             ) : null}
 
             {clusters ? (
