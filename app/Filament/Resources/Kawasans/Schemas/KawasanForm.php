@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Kawasans\Schemas;
 
-use App\Enums\PromoPlacement;
 use App\Filament\Forms\Fields;
 use App\Filament\Forms\SeoTab;
 use App\Models\Kawasan;
@@ -11,7 +10,6 @@ use App\Support\Rupiah;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -22,7 +20,6 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 
 class KawasanForm
 {
@@ -91,14 +88,6 @@ class KawasanForm
                                 ->reorderableWithDragAndDrop()
                                 ->defaultItems(0)
                                 ->addActionLabel('Tambah poin akses'),
-                        ]),
-                        Tab::make('Promo')->schema([
-                            Select::make('promos')
-                                ->label('Promo untuk kawasan ini')
-                                ->relationship('promos', 'title', fn (Builder $query) => $query->where('placement', PromoPlacement::Detail->value))
-                                ->multiple()
-                                ->preload()
-                                ->helperText('Opsional. Promo aktif cluster di kawasan ini ikut tampil otomatis di "Promo di kawasan ini".'),
                         ]),
                         Tab::make('Peta')->schema([
                             Textarea::make('map_embed_url')

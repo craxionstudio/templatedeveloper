@@ -4,6 +4,8 @@ namespace App\Support;
 
 use App\Models\Article;
 use App\Models\ArticleCategory;
+use App\Models\Benefit;
+use App\Models\BenefitCluster;
 use App\Models\Cluster;
 use App\Models\GalleryItem;
 use App\Models\Kawasan;
@@ -109,6 +111,15 @@ class Sitemaps
         if (! ($listing->section('seo_kawasan')['noindex'] ?? false)) {
             $sitemap->add(Url::create(StructuredData::url('/properti/kawasan'))
                 ->setLastModificationDate(self::latest(Kawasan::query()->visible())));
+        }
+
+        // Halaman per benefit (/properti?benefit=tanpa-dp): diindex selama ada cluster terbit yang memakainya.
+        if (! ($listing->section('seo_cluster')['noindex'] ?? false)) {
+            Benefit::query()->active()->ordered()
+                ->whereHas('clusters', fn (Builder $q) => $q->published())
+                ->get()
+                ->each(fn (Benefit $benefit) => $sitemap->add(Url::create(StructuredData::url('/properti?benefit='.$benefit->slug))
+                    ->setLastModificationDate(self::max($benefit->updated_at, BenefitCluster::query()->where('benefit_id', $benefit->id)->max('updated_at')))));
         }
 
         Kawasan::query()->visible()->ordered()->indexable()->with(['media', 'publishedClusters'])->get()

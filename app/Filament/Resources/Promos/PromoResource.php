@@ -33,6 +33,12 @@ class PromoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMegaphone;
 
+    /**
+     * Sistem promo lama digantikan Bank Benefit: menu disembunyikan, data tetap ada sampai
+     * pemilik mengonfirmasi penghapusan.
+     */
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function form(Schema $schema): Schema
     {
         return PromoForm::configure($schema);

@@ -3,6 +3,7 @@
 namespace App\Presenters;
 
 use App\Enums\ClusterBadge;
+use App\Models\Benefit;
 use App\Models\Cluster;
 use App\Models\HouseType;
 use App\Support\Rupiah;
@@ -32,6 +33,9 @@ class ClusterCard
             'url' => $cluster->publicPath(),
             'buildingType' => $cluster->building_type,
             'badge' => self::badge($cluster),
+            // Maksimal 3 chip benefit + "+N" (tanpa tanda *).
+            'benefits' => self::benefits($cluster)->take(3)->map(fn (Benefit $benefit) => $benefit->displayText())->values()->all(),
+            'benefitsMore' => max(0, self::benefits($cluster)->count() - 3),
             'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
             'typesCount' => $types->count(),
             // Chip nama tipe; tipe tanpa nama (harga tingkat cluster) tidak dibuat chip.
@@ -62,7 +66,7 @@ class ClusterCard
      */
     public static function with(): array
     {
-        return ['kawasan', 'publishedHouseTypes', 'galleryItems.media', 'activePromos'];
+        return ['kawasan', 'publishedHouseTypes', 'galleryItems.media', 'activeBenefits'];
     }
 
     /**
@@ -77,16 +81,24 @@ class ClusterCard
     }
 
     /**
-     * Cluster dengan promo aktif otomatis berbadge "Promo" (mengalahkan badge pilihan admin,
-     * karena promo berbatas waktu). Tanpa promo aktif: badge pilihan admin.
+     * Cluster dengan minimal 1 benefit otomatis berbadge "Promo" (mengalahkan badge pilihan admin).
+     * Tanpa benefit: badge pilihan admin.
      */
     private static function badge(Cluster $cluster): ?string
     {
-        $hasPromo = $cluster->relationLoaded('activePromos')
-            ? $cluster->activePromos->isNotEmpty()
-            : $cluster->activePromos()->exists();
+        return self::benefits($cluster)->isNotEmpty() ? ClusterBadge::Promo->getLabel() : $cluster->badge?->getLabel();
+    }
 
-        return $hasPromo ? ClusterBadge::Promo->getLabel() : $cluster->badge?->getLabel();
+    /**
+     * @return Collection<int, Benefit>
+     */
+    private static function benefits(Cluster $cluster): Collection
+    {
+        if (! $cluster->relationLoaded('activeBenefits')) {
+            $cluster->load('activeBenefits');
+        }
+
+        return $cluster->activeBenefits;
     }
 
     private static function range(?int $min, ?int $max): ?string

@@ -92,6 +92,12 @@ class AppServiceProvider extends ServiceProvider
             Limit::perDay(100)->by('lead-day:'.$request->ip()),
         ]);
 
+        // Klik WhatsApp → event Contact CAPI: cukup longgar untuk pengunjung asli, menahan spam.
+        RateLimiter::for('contact-events', fn (Request $request) => [
+            Limit::perMinute(20)->by('contact-min:'.$request->ip()),
+            Limit::perDay(300)->by('contact-day:'.$request->ip()),
+        ]);
+
         RateLimiter::for('newsletter', fn (Request $request) => [
             Limit::perMinute(5)->by('newsletter-min:'.$request->ip()),
             Limit::perDay(20)->by('newsletter-day:'.$request->ip()),

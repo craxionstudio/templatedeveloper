@@ -27,7 +27,7 @@ Semua event berbentuk `dataLayer.push({ event: '<nama>', ...parameter })`. Param
 | Event | Kapan | Parameter | Meta Pixel (standar) |
 |---|---|---|---|
 | `generate_lead` | Halaman `/terima-kasih`, **sekali** tepat setelah form lead berhasil dikirim (refresh tidak menghitung ulang) | `event_id` (UUID, sama dengan CAPI), `cluster`, `house_type`, `form_position` (`sidebar` / `inline` / `modal` / `kontak` / `sticky`) | `Lead` + `eventID` |
-| `click_whatsapp` | Klik link `wa.me` di mana pun | `page_path`, `link_url`, `link_position` (mis. `cta`, `sidebar`, `sticky`, `terima-kasih`), `cluster` | `Contact` |
+| `click_whatsapp` | Klik link `wa.me` di mana pun | `page_path`, `link_url`, `link_position` (mis. `cta`, `sidebar`, `sticky`, `terima-kasih`, `promo_section`), `cluster`, `sumber` (mis. `promo_section` untuk tombol di section Promo & Benefit), `event_id` (UUID, sama dengan Pixel & CAPI) | `Contact` + `eventID` |
 | `click_phone` | Klik link `tel:` | `page_path`, `link_url` | `Contact` |
 | `download_brochure` | Klik unduh brosur (Detail Rumah) | `page_path`, `cluster`, `file_url` | — |
 | `download_pricelist` | Klik unduh pricelist (Detail Rumah) | `page_path`, `cluster`, `file_url` | — |
@@ -161,6 +161,16 @@ Meta menggabungkan event browser dan server yang punya **nama event sama (`Lead`
 - Pixel ID di GTM harus sama dengan "Pixel ID untuk Conversions API" di admin.
 
 `event_id` juga terlihat di admin: **Lead → detail → Sumber → Event ID (Pixel/CAPI)**.
+
+### Klik WhatsApp (event `Contact`)
+
+Setiap klik link `wa.me` membuat `event_id` (UUID) di browser, lalu dipakai di tiga tempat:
+
+1. **dataLayer:** `click_whatsapp` dengan parameter `event_id` (dan `sumber`, `cluster`).
+2. **Pixel langsung** (kalau Meta Pixel ID diisi): `fbq('track', 'Contact', {...}, { eventID })`. Kalau Pixel lewat GTM, kirim `eventID: {{DLV - event_id}}` di tag Contact.
+3. **Server → Conversions API** (hanya kalau CAPI dikonfigurasi): browser mengirim `POST /track/contact` (`keepalive`, dibatasi 20/menit per IP), server mengirim event `Contact` lewat job `SendMetaContactEvent` dengan `event_id` yang sama.
+
+Meta menggabungkan event `Contact` browser + server dengan `event_id` sama, jadi klik hanya terhitung satu kali.
 
 Data pribadi yang dikirim CAPI (nomor WA, email, nama) dinormalisasi lalu di-hash SHA-256. `fbp` (cookie `_fbp`), `fbc` (cookie `_fbc`, atau dibentuk dari `fbclid`), IP, dan user agent ikut dikirim untuk pencocokan.
 

@@ -304,6 +304,69 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
   - CLI: `APP_ENV=production php artisan import:bsd-data --fresh --no-interaction` → exit 1; dengan `--force` → exit 0.
 - **`php artisan backup:run --only-db --disable-notifications`** berhasil (koneksi `mysql` & `mariadb`, `APP_ENV=production`, disk `local`). Di server butuh `mysqldump` (ditambahkan di CHECKLIST-LAUNCH bagian server).
 
+**Bank Benefit menggantikan Promo** (permintaan pemilik 1 Okt 2026, branch `feature/bank-benefit`)
+
+**Data**
+- Tabel `benefits` (nama, slug unik, kategori `pembayaran` / `bonus_unit` / `material` / `diskon`, ikon dari set ikon yang ada, urutan, aktif).
+- Pivot `benefit_cluster` (`teks_tampil` maks 40 karakter, kosong = nama benefit; `urutan`; timestamps). Tanpa tanggal berakhir dan tanpa keterangan: benefit tampil selama dicentang di cluster.
+- **Isi awal 15 benefit** (`App\Support\BenefitCatalog`), dijalankan oleh migrasi, jadi otomatis ada di production saat deploy.
+  - Idempotent per slug: benefit yang belum ada dibuat; yang sudah ada (mungkin diubah admin) tidak ditimpa.
+  - "Free Biaya Surat (AJB/BBN)" memakai slug `free-biaya-surat`.
+- **Promo lama tidak dihapus:** tabel, model, dan halaman admin tetap ada.
+  - Menu Promo disembunyikan.
+  - Banner promo Beranda, "Promo rumah ini", dan "Promo di kawasan ini" tidak tampil lagi.
+  - Pengaturan section promo lama dihapus dari Pengaturan Halaman.
+  - Field promo di form Cluster/Kawasan dihapus.
+  - Komponen `promo-section` dan presenter `PromoCard` dihapus. `PageCache::ttl()` kembali ke TTL config, karena benefit tidak punya periode.
+  - Penghapusan tabel menunggu konfirmasi pemilik.
+
+**Admin**
+- Menu **Properti → Bank Benefit**: CRUD, drag untuk mengurutkan, kolom "Dipakai di X cluster", filter kategori, toggle aktif.
+- **Cluster:**
+  - Tab baru **Promo & Benefit**: repeater ke pivot (Select benefit searchable dikelompokkan per kategori, tidak bisa dobel; Teks tampil dengan placeholder "Opsional, contoh: Diskon hingga 13%"; bisa diurutkan). Tab "Marketing & Promo" jadi "Marketing".
+  - Tabel cluster: kolom **Benefit** (jumlah) dan **Benefit diperbarui** (updated_at pivot terakhir), filter **Benefit**.
+  - Bulk action **Tambah benefit ke cluster terpilih** (teks tampil opsional) dan **Lepas benefit dari cluster terpilih**.
+- **Pengaturan Halaman → Detail Rumah → Promo & Benefit:** toggle, judul, teks syarat & ketentuan, label tombol, template pesan WA (`{cluster}`).
+  - Migrasi settings melengkapi key `sections.*` yang belum tersimpan. Sebelumnya, section baru seperti "Fasilitas cluster" tampil dengan toggle mati di form admin dan bisa ikut tersimpan mati.
+
+**Website**
+- **Detail Rumah, section "Promo & Benefit":**
+  - Benefit aktif dikelompokkan per kategori (urutan: pembayaran, bonus unit, material, diskon), ikon + teks + "*".
+  - Di bawahnya teks syarat & ketentuan dan tombol **Dapatkan informasi lengkapnya via WhatsApp** ke nomor WA cluster (fallback nomor global) dengan pesan otomatis.
+  - Tersembunyi kalau cluster tanpa benefit.
+- **Tracking tombol WA (dan semua link WA):**
+  - `click_whatsapp` di dataLayer dengan `event_id`, `cluster`, `sumber="promo_section"`.
+  - Pixel `Contact` dengan `eventID` yang sama.
+  - Kalau Meta CAPI aktif, browser mengirim `POST /track/contact` lalu job `SendMetaContactEvent` mengirim event `Contact` ke CAPI dengan `event_id` sama (deduplikasi). Endpoint dibatasi 20/menit per IP.
+  - Sebelumnya klik WA hanya sampai ke Pixel browser, tanpa CAPI. Logika konteks CAPI (IP, UA, `_fbp`, `_fbc`/fbclid) dipindah ke `App\Support\MetaContext` dan dipakai juga oleh lead.
+- **Kartu cluster:** chip maks 3 benefit (teks tampil atau nama, tanpa "*") + "+N". Badge **Promo** kalau ada minimal 1 benefit aktif, menggantikan badge promo lama.
+- **`/properti?benefit=tanpa-dp,free-bphtb`:**
+  - Cluster harus punya semua benefit yang dipilih. Filter "Promo & benefit" tampil di bar filter.
+  - **Satu benefit** tanpa filter/urut lain = halaman sendiri yang boleh diindex: judul & H1 "Rumah Tanpa DP di BSD City" (pola di Pengaturan Halaman → Properti → SEO), meta description sendiri, self-canonical, dan masuk sitemap selama ada cluster terbit yang memakainya.
+  - Kombinasi lebih dari satu benefit, atau benefit + filter lain: noindex, canonical ke `/properti`.
+- **Urutan "Promo":** cluster dengan benefit aktif terbanyak di atas, lalu urutan Terbaru.
+- **Label "Sold out" tidak tampil di mana pun:**
+  - Badge status Detail Rumah kosong untuk sold out.
+  - Opsi "Sold out" dihapus dari filter status, dan filter status dikeluarkan dari bar filter default (diganti filter benefit).
+  - Sisa unit dan periode harga tetap tidak tampil.
+- **`qa:pages`** sekarang ikut mengecek URL sitemap yang ber-query (halaman per benefit). Sebelumnya query dibuang sehingga URL itu tidak pernah dicek.
+
+**Import**
+- `import:bsd-update` membaca `"benefits": [{"cluster_slug", "benefit_slug", "teks_tampil"}]`. Upsert per (cluster, benefit).
+- Jejak import disimpan di `benefit_cluster_imports`. Pivot yang **diubah di admin** setelah import terakhir, **dilepas di admin**, atau **dibuat admin sendiri** tidak ditimpa dan tidak dibuat ulang. Slug yang tidak ditemukan dilewati dengan peringatan.
+
+**Test:** `tests/Feature/BankBenefitTest.php` (12 test).
+- Isi awal idempotent.
+- Section Detail Rumah: grup, teks, WA cluster/global, settings, benefit nonaktif.
+- Chip & badge kartu.
+- Filter + SEO satu/kombinasi benefit.
+- Urutan Promo dan sitemap.
+- Sold out.
+- `/track/contact` + payload CAPI.
+- Import benefit (idempoten, tidak menimpa ubahan admin).
+- Admin: Bank Benefit, repeater, kolom, filter, bulk action.
+- 5 test promo lama di `ImportBsdUpdateTest` diganti 1 test bahwa promo lama tidak tampil lagi walau dipublikasikan.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

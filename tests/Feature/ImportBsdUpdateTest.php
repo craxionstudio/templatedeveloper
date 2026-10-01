@@ -8,7 +8,6 @@ use App\Models\Kawasan;
 use App\Models\Promo;
 use App\Models\User;
 use App\Settings\GlobalSettings;
-use App\Support\PageCache;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
 
@@ -91,78 +90,17 @@ it('memakai urutan Terbaru di daftar cluster Detail Kawasan', function () {
     expect($names->search('Vyorelle at Vireya'))->toBeLessThan($names->search('Lynelle'));
 });
 
-it('menampilkan promo aktif di Detail Rumah tanpa catatan internal, termasuk promo tanpa daftar benefit', function () {
-    $this->get('/properti/izzi')->assertInertia(fn (Assert $page) => $page->where('promo', null));
-
+it('tidak lagi menampilkan promo lama di website walau dipublikasikan (diganti Bank Benefit)', function () {
     publishPromo('Promo IZZI');
-
-    $response = $this->get('/properti/izzi')->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->where('promo.title', 'Promo rumah ini')
-        ->has('promo.items', 1)
-        ->where('promo.items.0.title', 'Promo IZZI')
-        ->where('promo.items.0.description', 'Diskon hingga 18,5%, subsidi DP 10%, bebas biaya KPR, dan free kanopi.'));
-
-    expect(json_encode($response->inertiaProps()))->not->toContain('bsd-city.com (situs agen)');
-});
-
-it('menyembunyikan promo yang belum mulai atau sudah lewat ends_at', function () {
-    publishPromo('Promo Caelus September');
-    // Data import terbit "sekarang"; mundurkan supaya halaman tetap terbit saat waktu dimundurkan.
-    Cluster::query()->update(['published_at' => '2026-01-01 00:00:00']);
-    Kawasan::query()->update(['published_at' => '2026-01-01 00:00:00']);
-
-    $this->travelTo('2026-09-15 10:00');
-    $this->get('/properti/caelus')->assertInertia(fn (Assert $page) => $page->has('promo.items', 1)->where('promo.items.0.period', 'Berlaku s.d. 30 September 2026'));
-
-    // Masih berlaku sepanjang hari terakhir.
-    $this->travelTo('2026-09-30 22:00');
-    $this->get('/properti/caelus')->assertInertia(fn (Assert $page) => $page->has('promo.items', 1));
-
-    $this->travelTo('2026-10-01 00:00:01');
-    $this->get('/properti/caelus')->assertInertia(fn (Assert $page) => $page->where('promo', null));
-    $this->get('/properti/kawasan/greenwich-park')->assertInertia(fn (Assert $page) => $page->where('promos', null));
-
-    $this->travelTo('2026-08-31 23:00');
-    $this->get('/properti/caelus')->assertInertia(fn (Assert $page) => $page->where('promo', null));
-});
-
-it('menampilkan promo kawasan dan promo cluster di Detail Kawasan dengan nama cluster', function () {
-    $this->get('/properti/kawasan/vireya')->assertInertia(fn (Assert $page) => $page->where('promos', null));
-
     publishPromo('Promo Lynelle');
-    $direct = Promo::query()->create(['title' => 'Promo kawasan Vireya', 'placement' => PromoPlacement::Detail, 'description' => 'Gratis biaya AJB.', 'is_published' => true]);
-    $direct->kawasans()->attach(Kawasan::where('slug', 'vireya')->value('id'));
-    // Promo kawasan lain & promo cluster di kawasan lain tidak ikut.
-    publishPromo('Promo Castilo');
 
-    $this->get('/properti/kawasan/vireya')->assertInertia(fn (Assert $page) => $page
-        ->where('promos.title', 'Promo di kawasan ini')
-        ->has('promos.items', 2)
-        ->where('promos.items', fn ($items) => collect($items)->pluck('title')->sort()->values()->all() === ['Promo Lynelle', 'Promo kawasan Vireya']
-            && collect($items)->firstWhere('title', 'Promo Lynelle')['clusters'] === [['name' => 'Lynelle', 'url' => '/properti/lynelle']]
-            && collect($items)->firstWhere('title', 'Promo kawasan Vireya')['clusters'] === []));
-});
+    $this->get('/properti/izzi')->assertOk()->assertInertia(fn (Assert $page) => $page->missing('promo'));
+    $this->get('/properti/kawasan/vireya')->assertOk()->assertInertia(fn (Assert $page) => $page->missing('promos'));
+    $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->where('promos', null));
 
-it('memberi badge Promo otomatis di kartu cluster selama promo aktif', function () {
-    $card = fn () => collect($this->get('/properti')->inertiaProps('clusters.data'))->firstWhere('name', 'IZZI');
-
-    expect($card()['badge'])->toBe('Baru');
-
-    publishPromo('Promo IZZI', ['ends_at' => now()->addDay()]);
-    expect($card()['badge'])->toBe('Promo');
-
-    $this->travel(2)->days();
-    expect($card()['badge'])->toBe('Baru');
-});
-
-it('membatasi umur cache halaman sampai promo berikutnya mulai atau berakhir', function () {
-    config(['site.page_cache.ttl' => 3600]);
-    expect(PageCache::ttl())->toBe(3600);
-
-    publishPromo('Promo IZZI', ['ends_at' => now()->addMinutes(10)]);
-
-    expect(PageCache::ttl())->toBeLessThanOrEqual(600)->toBeGreaterThan(0);
+    // Badge "Promo" sekarang dari Bank Benefit, bukan dari promo lama.
+    $card = collect($this->get('/properti')->inertiaProps('clusters.data'))->firstWhere('name', 'IZZI');
+    expect($card['badge'])->toBe('Baru');
 });
 
 it('bisa mengurutkan tabel cluster admin berdasarkan tanggal launching dan menghubungkan promo ke kawasan', function () {

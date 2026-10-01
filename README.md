@@ -193,8 +193,14 @@ Login ke `/admin`, lalu isi lewat menu:
       urutkan dengan drag). Rentang harga/LT/KT dan cicilan mulai di kartu cluster dihitung dari
       tipe yang dipublikasikan. Slug `kawasan` ditolak karena bentrok dengan `/properti/kawasan`.
     - **Profil Lokasi** — kota mandiri: deskripsi, foto aerial, peta, poin keunggulan wilayah.
-- **Konten** — Promo (banner Beranda / "Promo rumah ini" di Detail Rumah, kedaluwarsa otomatis
-  tidak tampil), Fasilitas + Kategori, Pengembangan Mendatang, Profil Developer.
+    - **Bank Benefit** — daftar benefit tetap (Tanpa DP, Free BPHTB, Free Kitchen Set, Diskon, …) per kategori
+      (pembayaran / bonus unit / material / diskon), ikon, urutan (drag), aktif/nonaktif, dan jumlah cluster pemakainya.
+      Benefit dipilih per cluster di tab **Promo & Benefit** (teks tampil opsional, maks 40 karakter, bisa diurutkan),
+      atau sekaligus untuk banyak cluster lewat bulk action di tabel Cluster. Tanpa tanggal berakhir: benefit tampil
+      selama dicentang. Tampil di Detail Rumah (section "Promo & Benefit" + tombol WA), chip di kartu (maks 3 + "+N"),
+      badge "Promo", filter `/properti?benefit=tanpa-dp` (satu benefit = halaman SEO sendiri), dan urutan "Promo".
+- **Konten** — Fasilitas + Kategori, Pengembangan Mendatang, Profil Developer. (Menu Promo lama disembunyikan sejak
+  Bank Benefit; datanya belum dihapus.)
 - **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight, tab SEO),
   Kategori, Tag, Penulis.
 - **Pengaturan Halaman** — satu menu per halaman: Beranda, Properti (dipakai `/properti` dan
@@ -235,6 +241,10 @@ php artisan import:bsd-update docs/data/bsd-city-update-2.json
   launching diisi 1 Januari) dan promo (upsert per judul, placement Detail, relasi ke cluster lewat `cluster_slugs`,
   `sumber` jadi catatan internal). Status publikasi dari file hanya dipakai saat promo dibuat, jadi promo yang sudah
   dipublikasikan admin tidak dimatikan lagi.
+- `import:bsd-update` juga membaca benefit per cluster (Bank Benefit):
+  `"benefits": [{"cluster_slug": "castilo-at-terravia", "benefit_slug": "diskon", "teks_tampil": "Diskon hingga 13%"}]`.
+  Upsert per (cluster, benefit). Benefit yang diubah atau dilepas di admin setelah import sebelumnya, atau ditambahkan
+  admin sendiri, tidak ditimpa dan tidak dibuat ulang.
 
 - Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
   kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, Kontak, serta pola
@@ -444,7 +454,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
    konten, 3 akun admin; catat password yang dicetak, atau set `SEED_ADMIN_PASSWORD` dulu)
 5. Script deploy otomatis (`.github/workflows/deploy.yml`) juga mengimpor data asli saat file `docs/data/*.json`
    berubah (dicatat di `storage/app/import-markers/`), didahului `php artisan backup:run --only-db
-   --disable-notifications`: `import:bsd-data … --fresh --force --no-interaction` hanya di import pertama, setelah itu
+--disable-notifications`: `import:bsd-data … --fresh --force --no-interaction` hanya di import pertama, setelah itu
    tanpa `--fresh`; `import:bsd-update … --force --no-interaction`. Keduanya tidak pernah bertanya dengan `--force`.
 6. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
 7. Jalankan proses SSR dan queue worker tetap hidup pakai **Supervisor**. Keduanya proses

@@ -56,14 +56,6 @@ class ManageKawasanDetailPage extends PageSettingsPage
                         Fields::text('facilities.title', 'Judul'),
                         Fields::text('facilities.access_title', 'Judul daftar lokasi & akses'),
                     ]),
-                    Section::make('Promo di kawasan ini')
-                        ->description('Promo aktif yang dihubungkan ke kawasan, ditambah promo aktif cluster di kawasan ini. Tidak tampil kalau kosong.')
-                        ->schema([
-                            Fields::enabled('promos'),
-                            Fields::text('promos.eyebrow', 'Eyebrow'),
-                            Fields::text('promos.title', 'Judul'),
-                            Fields::text('promos.period_prefix', 'Awalan periode'),
-                        ]),
                     Section::make('Cluster di kawasan')->schema([
                         Fields::enabled('clusters'),
                         Fields::text('clusters.eyebrow', 'Eyebrow', '{kawasan} diganti nama kawasan.'),

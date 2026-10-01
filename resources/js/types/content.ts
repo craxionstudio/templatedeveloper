@@ -27,6 +27,9 @@ export type ClusterCardData = {
     kawasan: { name: string; url: string } | null;
     typesCount: number;
     types: string[];
+    /** Maksimal 3 benefit (teks tampil), sisanya dihitung di benefitsMore. */
+    benefits: string[];
+    benefitsMore: number;
     landArea: string | null;
     bedrooms: string | null;
     price: string | null;

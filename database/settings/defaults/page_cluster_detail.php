@@ -4,7 +4,17 @@ $shared = require __DIR__.'/_shared.php';
 
 return [
     'sections' => [
+        // Sistem promo lama (tabel promos), disembunyikan dari website sejak Bank Benefit.
         'promo' => ['enabled' => true, 'title' => 'Promo rumah ini', 'period_prefix' => 'Berlaku s.d.'],
+        // Bank Benefit: benefit yang dicentang di cluster. Tidak tampil kalau cluster tanpa benefit.
+        // {cluster} di whatsapp_message diganti nama cluster.
+        'benefits' => [
+            'enabled' => true,
+            'title' => 'Promo & Benefit',
+            'disclaimer' => '*Syarat dan ketentuan berlaku dan dapat berubah sewaktu-waktu.',
+            'button_label' => 'Dapatkan informasi lengkapnya via WhatsApp',
+            'whatsapp_message' => 'Halo, saya tertarik dengan promo di {cluster}. Boleh minta informasi lengkapnya?',
+        ],
         'specs' => ['enabled' => true, 'title' => 'Spesifikasi rumah'],
         // {cluster} diganti nama cluster.
         'types' => ['enabled' => true, 'title' => 'Tipe-tipe rumah di {cluster}'],
