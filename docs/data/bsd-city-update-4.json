@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "dibuat": "2026-10-05",
+    "catatan": "Update 4: benefit awal per cluster (format 'benefits' Bank Benefit). Sumber: halaman produk resmi sinarmasland.com, promo periode September 2026 (halaman resmi belum diperbarui ke Oktober saat dicek 5 Okt 2026). Hanya cluster yang promonya tercantum resmi. Website hanya menampilkan judul benefit + tanda *, detail cara bayar dijelaskan sales.",
+    "slug_benefit_dipakai": [
+      "tanpa-dp",
+      "diskon",
+      "free-bphtb"
+    ]
+  },
+  "benefits": [
+    {
+      "cluster_slug": "castilo-at-terravia",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "castilo-at-terravia",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 13% + 0,5%"
+    },
+    {
+      "cluster_slug": "vyorelle-at-vireya",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "vyorelle-at-vireya",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 12,5%"
+    },
+    {
+      "cluster_slug": "lynelle",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "lynelle",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 13%"
+    },
+    {
+      "cluster_slug": "izzi",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "izzi",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 11% + 6% + 2%"
+    },
+    {
+      "cluster_slug": "elyon-by-eonna",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "elyon-by-eonna",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 12,5%"
+    },
+    {
+      "cluster_slug": "namee-by-eonna",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "namee-by-eonna",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 10% + 3,5%"
+    },
+    {
+      "cluster_slug": "monard-of-the-armont",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 12,5% + 3,5%"
+    },
+    {
+      "cluster_slug": "the-armont-residences",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 16,5%"
+    },
+    {
+      "cluster_slug": "fleekhauz-r",
+      "benefit_slug": "tanpa-dp",
+      "teks_tampil": null
+    },
+    {
+      "cluster_slug": "fleekhauz-r",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Diskon hingga 17%"
+    },
+    {
+      "cluster_slug": "invensihaus-r",
+      "benefit_slug": "diskon",
+      "teks_tampil": "Harga spesial"
+    },
+    {
+      "cluster_slug": "fleekhauz-r",
+      "benefit_slug": "free-bphtb",
+      "teks_tampil": null
+    }
+  ]
+}
