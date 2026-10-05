@@ -6,7 +6,7 @@
 set -uo pipefail
 
 APP_DIR="$(pwd)"
-LOCK="$APP_DIR/storage/framework/ssr-watchdog.lock"
+LOCK="$APP_DIR/storage/framework/cache/ssr-watchdog.lock"
 URL="$(grep -E '^INERTIA_SSR_URL=' .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '"'"'"' ')"
 URL="${URL:-http://127.0.0.1:13714}"
 

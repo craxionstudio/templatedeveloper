@@ -10,7 +10,7 @@ set -uo pipefail
 
 MODE="${1:-verify}"
 BACKUP="${2:-}"
-STATE="storage/framework/env-baseline"
+STATE="storage/framework/cache/env-baseline"
 URL="$(grep -E '^APP_URL=' .env | tail -n1 | cut -d= -f2- | tr -d '"'"'"' \r')"
 URL="${URL%/}"
 

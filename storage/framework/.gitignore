@@ -8,5 +8,3 @@ routes.php
 routes.scanned.php
 schedule-*
 services.json
-env-baseline
-ssr-watchdog.lock

@@ -557,6 +557,7 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - Password admin baru wajib kuat (12+ karakter, huruf besar/kecil, angka, simbol, belum bocor).
   - Halaman error tanpa detail.
   - Cookie session belum diberi flag Secure (`SESSION_SECURE_COOKIE` tidak diatur).
+- **Deploy pertama gagal di `git pull`:** `storage/framework/.gitignore` di server punya perubahan lokal, dan commit ini ikut mengubah file itu. Perubahan file tersebut dibatalkan (perubahan lokal di server tidak disentuh), dan file sementara deploy dipindah ke `storage/framework/cache/` yang sudah di-ignore. Website tetap live dengan versi sebelumnya selama itu.
 - **Diuji di container:** `.env` kotor (key dobel, tanda kutip, tanpa newline), dua kali jalan (kedua tanpa perubahan), `SITE_INDEXABLE=true` tidak disentuh, rollback saat situs error, dan simulasi langkah 4b + 12 dengan `script_stop`.
 
 ---
