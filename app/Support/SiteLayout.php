@@ -44,6 +44,8 @@ class SiteLayout
         $footer = $global->section('footer');
 
         $whatsappUrl = WhatsApp::url();
+        // Halaman Kontak dihapus: menu "Kontak" (header, drawer, footer) langsung membuka WhatsApp.
+        $contactLink = ['label' => 'Kontak', 'url' => $whatsappUrl, 'new_tab' => str_starts_with($whatsappUrl, 'https://'), 'position' => 'menu_kontak'];
 
         return [
             'brand' => [
@@ -60,6 +62,8 @@ class SiteLayout
                 'officeAddress' => $contact['office_address'],
                 'openingHours' => $contact['opening_hours'],
             ],
+            // Info kontak di footer semua halaman (pengganti halaman Kontak). Teks contoh [..] / kosong tidak tampil.
+            'footerContact' => self::footerContact($contact),
             'header' => [
                 'showHotline' => (bool) $header['show_hotline'] && self::telUrl($contact['hotline']) !== null,
                 'ctaLabel' => $header['cta_label'],
@@ -68,10 +72,16 @@ class SiteLayout
             'mobile' => [
                 'showWhatsappIcon' => (bool) $global->section('mobile')['show_whatsapp_icon'],
             ],
-            'navigation' => array_values(app(NavigationSettings::class)->header_items),
+            'navigation' => [
+                ...collect(app(NavigationSettings::class)->header_items)->reject(fn (array $item): bool => self::isContactPage($item['url'] ?? ''))->values()->all(),
+                $contactLink,
+            ],
             'footer' => [
                 'description' => $footer['description'],
-                'columns' => [self::propertyColumn($footer), ...$footer['columns']],
+                'columns' => [self::propertyColumn($footer), ...array_map(fn (array $column): array => [
+                    ...$column,
+                    'links' => array_map(fn (array $link): array => self::isContactPage($link['url'] ?? '') ? [...$contactLink, 'label' => $link['label']] : $link, $column['links'] ?? []),
+                ], $footer['columns'])],
                 'socialTitle' => $footer['social_title'],
                 'social' => collect($footer['social'] ?? [])->filter(fn ($item): bool => is_array($item) && filled($item['url'] ?? null) && $item['url'] !== '#')->values()->all(),
                 'officeTitle' => $footer['office_title'],
@@ -116,6 +126,57 @@ class SiteLayout
         }
 
         return ['title' => $footer['property_title'], 'links' => $links->values()->all()];
+    }
+
+    /**
+     * @param  array<string, mixed>  $contact  section "contact" Pengaturan Umum
+     * @return array<string, array{value: string, url: ?string}|null>
+     */
+    private static function footerContact(array $contact): array
+    {
+        $filled = fn (string $key): ?string => Content::filled($contact[$key] ?? null) ? trim((string) $contact[$key]) : null;
+        $whatsapp = $filled('whatsapp');
+        $phone = $filled('phone');
+        $email = $filled('email');
+        $maps = $filled('maps_url');
+
+        if (! $maps && is_numeric($contact['latitude'] ?? null) && is_numeric($contact['longitude'] ?? null)) {
+            $maps = 'https://www.google.com/maps/search/?api=1&query='.$contact['latitude'].','.$contact['longitude'];
+        }
+
+        return [
+            'address' => ($address = $filled('office_address')) ? ['value' => $address, 'url' => null] : null,
+            'phone' => $phone ? ['value' => $phone, 'url' => self::telUrl($phone)] : null,
+            'whatsapp' => $whatsapp ? ['value' => self::displayPhone($whatsapp), 'url' => WhatsApp::url()] : null,
+            'email' => $email ? ['value' => $email, 'url' => filter_var($email, FILTER_VALIDATE_EMAIL) ? 'mailto:'.$email : null] : null,
+            'hours' => ($hours = $filled('opening_hours')) ? ['value' => $hours, 'url' => null] : null,
+            'maps' => $maps && filter_var($maps, FILTER_VALIDATE_URL) ? ['value' => 'Lihat di Google Maps', 'url' => $maps] : null,
+        ];
+    }
+
+    /**
+     * 6281234567890 → +62 812-3456-7890 (untuk dibaca; link tetap wa.me).
+     */
+    public static function displayPhone(string $number): string
+    {
+        $digits = preg_replace('/\D+/', '', $number);
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        }
+
+        if (! str_starts_with($digits, '62') || strlen($digits) < 10) {
+            return $number;
+        }
+
+        $local = substr($digits, 2);
+
+        return '+62 '.implode('-', array_filter([substr($local, 0, 3), substr($local, 3, 4), substr($local, 7)], 'strlen'));
+    }
+
+    private static function isContactPage(string $url): bool
+    {
+        return (bool) preg_match('#^(https?://[^/]+)?/kontak/?(\?.*|\#.*)?$#', trim($url));
     }
 
     /**

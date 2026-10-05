@@ -40,13 +40,14 @@ Semua pengaturan ada di **Admin → Pengaturan → Pengaturan Umum**.
 
 | Nilai | Tombol |
 | --- | --- |
-| `floating` | Tombol WhatsApp melayang (mobile & tablet, semua halaman) |
+| `floating` | Tombol WhatsApp melayang (semua halaman; mobile ikon saja, desktop ikon + "Chat via WhatsApp") |
 | `header` | Tombol CTA di header desktop |
 | `sidebar` / `inline` | Kartu marketing Detail Rumah (desktop / mobile) |
 | `sidebar_survey` / `inline_survey` / `sticky_survey` | Tombol "Jadwalkan Survey" di Detail Rumah |
 | `promo_section` | Tombol section Promo & Benefit |
 | `cta` / `cta_survey` | Section CTA di bawah halaman |
-| `kontak` / `kontak_info` | Halaman Kontak |
+| `menu_kontak` | Menu "Kontak" di header, menu mobile, dan kolom footer (halaman Kontak sudah dihapus) |
+| `footer` | Nomor WhatsApp di info kontak footer |
 | `lainnya` | Link WhatsApp lain (mis. di teks artikel) |
 
 Parameter `cluster` hanya terisi di tombol yang berkaitan dengan cluster tertentu. `halaman` = path halaman (mis. `/properti/vireya`).
@@ -62,7 +63,7 @@ Parameter `cluster` hanya terisi di tombol yang berkaitan dengan cluster tertent
 
 ## WhatsApp
 
-- **Nomor:** nomor WA cluster (form Cluster → Marketing) kalau diisi. Kalau kosong, nomor global di Pengaturan Umum. Kalau nomor global juga kosong, tombol diarahkan ke halaman Kontak.
+- **Nomor:** nomor WA cluster (form Cluster → Marketing) kalau diisi. Kalau kosong, nomor global di Pengaturan Umum. Kalau nomor global juga kosong, tombol diarahkan ke info kontak di footer (`#info-kontak`).
 - **Template pesan** (Pengaturan Umum, placeholder `{nama_cluster}`):
 
 | Konteks | Bawaan |
@@ -70,7 +71,7 @@ Parameter `cluster` hanya terisi di tombol yang berkaitan dengan cluster tertent
 | Detail cluster | Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya? |
 | Section Promo & Benefit | Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya? |
 | Tombol jadwal survey | Halo, saya ingin jadwalkan survey ke {nama_cluster}. |
-| Halaman Kontak / global | Halo, saya ingin konsultasi rumah di BSD City. |
+| Menu Kontak, tombol melayang, header / global | Halo, saya ingin konsultasi rumah di BSD City. |
 
 Di luar Detail Rumah, `{nama_cluster}` diisi nama brand ("BSD City").
 
@@ -81,7 +82,7 @@ CSP halaman publik memakai nonce + `strict-dynamic`. Domain bawaan (`App\Support
 - **GA4:** `www.googletagmanager.com` (gtag.js), `*.google-analytics.com`, `*.analytics.google.com`, `*.googletagmanager.com`.
 - **Embed:** Google Maps (`www.google.com`, `maps.google.com`), YouTube.
 
-Domain embed peta Kontak dan disk file publik (CDN/S3) ditambahkan otomatis.
+Domain disk file publik (CDN/S3) ditambahkan otomatis.
 
 ## Cara menguji
 

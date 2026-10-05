@@ -11,7 +11,6 @@ use App\Models\GalleryItem;
 use App\Models\Kawasan;
 use App\Settings\AboutPageSettings;
 use App\Settings\ArticleIndexPageSettings;
-use App\Settings\ContactPageSettings;
 use App\Settings\FacilityPageSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\ListingPageSettings;
@@ -89,7 +88,6 @@ class Sitemaps
             '/fasilitas' => [FacilityPageSettings::class, 'seo'],
             '/artikel' => [ArticleIndexPageSettings::class, 'seo'],
             '/tentang-kami' => [AboutPageSettings::class, 'seo'],
-            '/kontak' => [ContactPageSettings::class, 'seo'],
             '/kebijakan-privasi' => [PrivacyPageSettings::class, 'seo'],
         ] as $path => [$settings, $seoKey]) {
             /** @var PageSettings $instance */

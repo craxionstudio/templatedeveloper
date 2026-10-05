@@ -14,7 +14,6 @@ use App\Models\SeoMeta;
 use App\Settings\AboutPageSettings;
 use App\Settings\ArticleIndexPageSettings;
 use App\Settings\ClusterDetailPageSettings;
-use App\Settings\ContactPageSettings;
 use App\Settings\FacilityPageSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\KawasanDetailPageSettings;
@@ -55,10 +54,12 @@ class ImportBsdData extends Command
         '/fasilitas' => [FacilityPageSettings::class, 'seo'],
         '/artikel' => [ArticleIndexPageSettings::class, 'seo'],
         '/tentang-kami' => [AboutPageSettings::class, 'seo'],
-        '/kontak' => [ContactPageSettings::class, 'seo'],
         '/properti/kawasan/{slug}' => [KawasanDetailPageSettings::class, 'seo'],
         '/properti/{slug}' => [ClusterDetailPageSettings::class, 'seo'],
     ];
+
+    /** Halaman yang sudah dihapus; baris SEO-nya di file JSON dilewati tanpa peringatan. */
+    private const REMOVED_PAGES = ['/kontak'];
 
     /** Kata kunci → ikon (App\Support\IconOptions) untuk fasilitas & keunggulan wilayah. */
     private const ICON_KEYWORDS = [
@@ -368,6 +369,11 @@ class ImportBsdData extends Command
     {
         foreach ($rows as $row) {
             [$class, $key] = self::PAGE_SEO[$row['url']] ?? [null, null];
+
+            // Halaman yang sudah dihapus (Kontak, Okt 2026): SEO-nya tidak dipakai lagi.
+            if (in_array($row['url'], self::REMOVED_PAGES, true)) {
+                continue;
+            }
 
             if (! $class) {
                 $this->warn("SEO halaman dilewati (URL tidak dikenal): {$row['url']}");

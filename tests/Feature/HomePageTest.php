@@ -14,8 +14,10 @@ it('merender beranda dengan data layout global', function () {
             ->where('meta.title', 'BSD City — Kota mandiri Sinar Mas Land di Serpong')
             ->has('hero.title')
             ->where('site.brand.name', 'BSD City')
-            ->has('site.navigation', 5)
+            // 5 menu dari Menu Navigasi + "Kontak" (WhatsApp) di akhir.
+            ->has('site.navigation', 6)
             ->where('site.navigation.0', ['label' => 'Beranda', 'url' => '/', 'new_tab' => false])
+            ->where('site.navigation.5.label', 'Kontak')
             ->has('site.footer.columns', 2)
             ->where('site.footer.columns.0.title', 'Properti')
             // Link media sosial contoh ("#") tidak ditampilkan.

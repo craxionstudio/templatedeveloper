@@ -85,7 +85,8 @@ class StructuredData
     }
 
     /**
-     * Kantor pemasaran sebagai RealEstateAgent (LocalBusiness).
+     * Kantor pemasaran sebagai RealEstateAgent (LocalBusiness). Dipasang di semua halaman (PageMeta),
+     * sama dengan info kontak di footer.
      *
      * @return array<string, mixed>
      */
@@ -97,9 +98,9 @@ class StructuredData
         $telephone = self::telephone($contact['phone']) ?? self::telephone($contact['hotline']);
 
         $office = Schema::realEstateAgent()
-            ->identifier(self::url('/kontak').'#kantor-pemasaran')
+            ->identifier(self::url('/').'#kantor-pemasaran')
             ->name($identity['brand_name'].' — '.$global->section('footer')['office_title'])
-            ->url(self::url('/kontak'))
+            ->url(self::url('/'))
             ->image(self::logo())
             ->parentOrganization(Schema::organization()->identifier(self::organizationId()))
             ->address(self::address($contact['office_address']))

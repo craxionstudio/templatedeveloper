@@ -202,8 +202,8 @@ Login ke `/admin`, lalu isi lewat menu:
 - **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight; tag dibuat langsung dari form),
   Kategori, Penulis.
 - **Pengaturan** (4 menu) — **Beranda**; **Properti** (listing, Detail Kawasan, Detail Rumah); **Halaman Lain**
-  (Tentang Kami, Kontak, Artikel, Fasilitas, Kebijakan Privasi); **Pengaturan Umum** (nomor & pesan WhatsApp,
-  kontak, logo, GA4 Measurement ID, verifikasi Search Console). Hanya judul, subjudul, dan teks yang sering
+  (Tentang Kami, Artikel, Fasilitas, Kebijakan Privasi); **Pengaturan Umum** (nomor & pesan WhatsApp,
+  kontak di footer + link Google Maps, logo, GA4 Measurement ID, verifikasi Search Console). Hanya judul, subjudul, dan teks yang sering
   diubah yang tampil di admin; sisanya teks tetap di kode (`database/settings/defaults/*.php`, daftar field yang
   bisa diubah ada di `editable()` tiap kelas `App\Settings`). Tidak ada toggle "Tampilkan section": section
   tersembunyi otomatis kalau datanya kosong (teks contoh `[...]` dianggap kosong).
@@ -246,7 +246,7 @@ php artisan import:bsd-update docs/data/bsd-city-update-2.json
   admin sendiri, tidak ditimpa dan tidak dibuat ulang.
 
 - Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
-  kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, Kontak, serta pola
+  kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, serta pola
   judul Detail Kawasan & Detail Rumah).
 - `--fresh` **tidak** menghapus user, artikel, fasilitas, atau settings. Konten contoh
   (fasilitas, pengembangan mendatang, artikel, promo) hanya dinonaktifkan (`is_published = false`).
@@ -261,8 +261,8 @@ php artisan import:bsd-update docs/data/bsd-city-update-2.json
 - Admin → Cluster: kolom **Kelengkapan** ("Belum lengkap (N)"), filter **Belum lengkap**, dan kolom **Prioritas**
   (1–10, bisa diurutkan).
 
-Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarahkan ke
-`/kontak`. Hotline placeholder tampil sebagai teks tanpa link `tel:`.
+Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing"/menu Kontak diarahkan ke
+info kontak di footer (`#info-kontak`). Hotline placeholder tampil sebagai teks tanpa link `tel:`.
 
 ## Desain
 
@@ -290,7 +290,8 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
     | `/fasilitas`                                                                   | `Pages/Fasilitas/Index.tsx`                             | 04                                          |
     | `/artikel`, `/artikel/kategori/{slug}`                                         | `Pages/Artikel/Index.tsx`                               | 05                                          |
     | `/artikel/{slug}`                                                              | `Pages/Artikel/Show.tsx`                                | 06                                          |
-    | `/tentang-kami`, `/kontak`, `/kebijakan-privasi`                               | `About`, `Contact`, `Privacy`                           | tanpa desain, memakai pola section yang ada |
+    | `/tentang-kami`, `/kebijakan-privasi`                                          | `About`, `Privacy`                                      | tanpa desain, memakai pola section yang ada |
+    | `/kontak` (dihapus Okt 2026)                                                   | 301 ke beranda; menu Kontak membuka WhatsApp            | info kontak di footer semua halaman         |
     | URL tidak dikenal                                                              | `Pages/Errors/NotFound.tsx` (status 404 asli, SSR)      | —                                           |
 
 - Foto yang belum diunggah tampil sebagai placeholder bergaris dengan alt text (`components/site/picture.tsx`).
@@ -340,7 +341,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
   Gambar bawaan dibuat ulang dengan `npm i --no-save playwright && node scripts/og-images.mjs` (teks di
   dalam script; ubah kalau nama brand berubah).
 - **JSON-LD** (`App\Support\StructuredData`, spatie/schema-org): `Organization` + `WebSite` di semua halaman,
-  `RealEstateAgent` (kantor pemasaran, jam buka) di Beranda & Kontak, `BreadcrumbList` di semua halaman selain
+  `RealEstateAgent` (kantor pemasaran: alamat, telepon, email, jam buka) di semua halaman, `BreadcrumbList` di semua halaman selain
   Beranda, `ItemList` di kedua tampilan listing & Detail Kawasan, `Place` di Detail Kawasan, `Residence` berisi
   tiap tipe (`Product` + `SingleFamilyResidence`, luas, kamar, `Offer` IDR) di Detail Rumah, `BlogPosting` di artikel.
 - **Sitemap:** `/sitemap.xml` (index) → `sitemap-pages.xml`, `sitemap-properti.xml`, `sitemap-artikel.xml`, dengan
@@ -375,7 +376,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
   bundle Vite dan loader GA4 (bertanda nonce) yang boleh jalan, dan script yang mereka muat (gtag.js, chunk
   halaman) ikut dipercaya. Default aktif di semua environment selain `local` (`CSP_ENABLED`).
   Admin Filament tidak diberi CSP. `connect-src`/`img-src`/`frame-src` memakai daftar domain bawaan (GA4, Google
-  Maps, YouTube) + domain embed peta Kontak dan disk file publik (otomatis).
+  Maps, YouTube) + disk file publik (otomatis).
 - **Rich text** disanitasi saat disimpan dan saat dikirim ke browser (`App\Support\RichText`, hanya tag yang diizinkan).
 - **Backup** harian database + file unggahan (`spatie/laravel-backup`): `backup:run` 01.30, `backup:clean` 01.00,
   `backup:monitor` 09.00. Tujuan `BACKUP_DISKS` (default `local` → `storage/app/private`), email hanya kalau gagal

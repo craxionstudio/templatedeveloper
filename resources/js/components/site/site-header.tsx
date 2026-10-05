@@ -41,6 +41,7 @@ export default function SiteHeader() {
                                 key={item.url}
                                 href={item.url}
                                 newTab={item.new_tab}
+                                data-position={item.position}
                                 aria-current={active ? 'page' : undefined}
                                 className={cn(
                                     'border-b-2 py-2 whitespace-nowrap text-ink no-underline transition-colors',

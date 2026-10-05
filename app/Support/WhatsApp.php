@@ -40,10 +40,10 @@ class WhatsApp
     }
 
     /**
-     * Link wa.me; tanpa nomor sama sekali = halaman Kontak.
+     * Link wa.me; tanpa nomor sama sekali = info kontak di footer (halaman Kontak sudah dihapus).
      */
     public static function url(string $context = self::GENERAL, ?Cluster $cluster = null, ?string $subject = null): string
     {
-        return SiteLayout::whatsappUrl(self::number($cluster), self::message($context, $cluster, $subject)) ?? '/kontak';
+        return SiteLayout::whatsappUrl(self::number($cluster), self::message($context, $cluster, $subject)) ?? '#info-kontak';
     }
 }

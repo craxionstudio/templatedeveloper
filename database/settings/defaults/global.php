@@ -16,7 +16,7 @@ return [
 
     'contact' => [
         'hotline' => '[NO. HOTLINE]',
-        // Format 62xxxxxxxxxx. Kosong = tombol WA diarahkan ke halaman kontak.
+        // Format 62xxxxxxxxxx. Kosong = tombol WA diarahkan ke info kontak di footer.
         'whatsapp' => '',
         // Template pesan WhatsApp otomatis per konteks. {nama_cluster} = nama cluster.
         'whatsapp_message' => 'Halo, saya ingin konsultasi rumah di BSD City.',
@@ -28,6 +28,8 @@ return [
         'office_address' => '[ALAMAT KANTOR PEMASARAN]',
         'latitude' => null,
         'longitude' => null,
+        // Link Google Maps kantor pemasaran di footer. Kosong = dari latitude/longitude, kalau ada.
+        'maps_url' => '',
         'opening_hours' => 'Setiap hari, 09.00–17.00',
     ],
 

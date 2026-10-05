@@ -59,11 +59,11 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 
 ## 3. Kontak & WhatsApp
 
-- [ ] **Nomor WhatsApp** format `62…` di Admin → Pengaturan Umum → WhatsApp. Selama kosong, semua tombol WA diarahkan ke halaman Kontak. Cluster dengan marketing sendiri: isi WhatsApp di form Cluster → Marketing. Cek juga 4 template pesan (cluster, promo, survey, global).
+- [ ] **Nomor WhatsApp** format `62…` di Admin → Pengaturan Umum → WhatsApp. Selama kosong, semua tombol WA dan menu Kontak diarahkan ke info kontak di footer. Cluster dengan marketing sendiri: isi WhatsApp di form Cluster → Marketing. Cek juga 4 template pesan (cluster, promo, survey, global).
 - [ ] Nomor WA marketing per cluster (opsional): Admin → Properti → Cluster → Marketing.
-- [ ] Hotline, telepon, email, alamat kantor pemasaran, jam buka, dan koordinat (untuk peta dan JSON-LD).
+- [ ] Hotline, telepon, email, alamat kantor pemasaran, dan jam buka (tampil di footer semua halaman & JSON-LD). Teks contoh `[...]` tidak tampil di footer.
 - [ ] Template pesan WA default dan per halaman (Detail Rumah menyebut nama cluster & tipe).
-- [ ] URL embed Google Maps di Admin → Pengaturan → Halaman Lain → Kontak.
+- [ ] Link Google Maps kantor di Admin → Pengaturan Umum → Kontak (tampil di footer; kosong = tidak tampil).
 
 ## 4. Tracking (GA4)
 
@@ -106,8 +106,8 @@ Panduan lengkap: `docs/TRACKING.md`.
 
 ## 7. Tes end-to-end
 
-- [ ] Tombol WhatsApp di header, tombol melayang (mobile), CTA, kartu marketing, section Promo & Benefit, Jadwalkan Survey, dan halaman Kontak membuka nomor yang benar (nomor cluster kalau diisi) dengan pesan otomatis yang sesuai.
-- [ ] `/terima-kasih` diarahkan ke beranda (301).
+- [ ] Tombol WhatsApp di header, tombol melayang (mobile & desktop), menu Kontak (header, menu mobile, footer), nomor WhatsApp di footer, CTA, kartu marketing, section Promo & Benefit, dan Jadwalkan Survey membuka nomor yang benar (nomor cluster kalau diisi) dengan pesan otomatis yang sesuai.
+- [ ] `/terima-kasih` dan `/kontak` diarahkan ke beranda (301).
 - [ ] Buka website di HP sungguhan (Android & iPhone): menu, galeri, tab tipe, filter listing, tombol WhatsApp melayang, peta.
 
 ## 8. Performa

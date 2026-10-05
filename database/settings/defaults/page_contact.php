@@ -1,5 +1,9 @@
 <?php
 
+// Halaman Kontak sudah dihapus (Okt 2026): info kontak pindah ke footer, menu Kontak membuka WhatsApp.
+// File ini hanya dipakai migrasi settings lama (2026_09_24_100110); propertinya dihapus lagi oleh
+// 2026_10_06_100000_remove_contact_page.
+
 $shared = require __DIR__.'/_shared.php';
 
 return [

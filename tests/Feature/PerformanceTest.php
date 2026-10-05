@@ -146,11 +146,11 @@ describe('cache halaman publik', function () {
     });
 
     it('tidak meng-cache request Inertia dan user login', function () {
-        $this->get('/kontak', ['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request())])
+        $this->get('/tentang-kami', ['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request())])
             ->assertHeaderMissing('X-Page-Cache');
 
         $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
-        $this->get('/kontak')->assertHeaderMissing('X-Page-Cache');
+        $this->get('/tentang-kami')->assertHeaderMissing('X-Page-Cache');
     });
 });
 

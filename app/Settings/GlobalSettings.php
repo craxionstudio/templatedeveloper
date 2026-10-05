@@ -53,6 +53,7 @@ class GlobalSettings extends PageSettings
             'contact.opening_hours',
             'contact.latitude',
             'contact.longitude',
+            'contact.maps_url',
             'footer.social',
             'tracking.ga4_id',
             'tracking.google_verification',

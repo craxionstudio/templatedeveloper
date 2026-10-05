@@ -44,12 +44,12 @@ class ManageGlobalSettings extends PageSettingsPage
                 TextInput::make('contact.whatsapp')->label('Nomor WhatsApp (62…)')->tel()->regex('/^62\d{8,13}$/')
                     ->placeholder('6281234567890')
                     ->validationMessages(['regex' => 'Format nomor: 62 diikuti 8–13 digit, tanpa spasi.'])
-                    ->helperText('Nomor global. Cluster yang punya nomor WA sendiri (form Cluster → Marketing) memakai nomornya sendiri. Kosong = tombol WhatsApp diarahkan ke halaman Kontak.'),
+                    ->helperText('Nomor global. Cluster yang punya nomor WA sendiri (form Cluster → Marketing) memakai nomornya sendiri. Kosong = tombol WhatsApp diarahkan ke info kontak di footer.'),
                 Section::make('Template pesan otomatis')
                     ->description('{nama_cluster} diganti nama cluster. Kosong = pakai teks bawaan.')
                     ->compact()
                     ->schema([
-                        Fields::textarea('contact.whatsapp_message', 'Global (halaman Kontak, header, tombol umum)', 2)
+                        Fields::textarea('contact.whatsapp_message', 'Global (menu Kontak, header, tombol melayang, tombol umum)', 2)
                             ->placeholder('Halo, saya ingin konsultasi rumah di BSD City.'),
                         Fields::textarea('contact.whatsapp_cluster_message', 'Detail cluster', 2)
                             ->placeholder('Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?'),
@@ -68,6 +68,9 @@ class ManageGlobalSettings extends PageSettingsPage
                 ]),
                 Fields::textarea('contact.office_address', 'Alamat kantor pemasaran', 2)
                     ->placeholder('Marketing Gallery BSD City, Jl. Grand Boulevard, BSD City, Tangerang 15345'),
+                TextInput::make('contact.maps_url')->label('Link Google Maps kantor')->url()->maxLength(500)
+                    ->placeholder('https://maps.app.goo.gl/…')
+                    ->helperText('Tampil di footer semua halaman. Kosong = link tidak tampil.'),
                 TextInput::make('identity.company_name')->label('Nama perusahaan (footer & data Google)')->maxLength(120)->placeholder('PT Bumi Serpong Damai Tbk'),
                 Repeater::make('footer.social')->label('Media sosial')
                     ->schema([

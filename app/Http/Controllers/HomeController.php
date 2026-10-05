@@ -18,7 +18,6 @@ use App\Support\Content;
 use App\Support\Cta;
 use App\Support\DataSource;
 use App\Support\PageMeta;
-use App\Support\StructuredData;
 use Illuminate\Database\Eloquent\Builder;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,7 +36,6 @@ class HomeController extends Controller
                 isHome: true,
                 image: Image::path($hero['image'], null)['url'],
                 section: 'home',
-                schema: [StructuredData::marketingOffice()],
             ),
             'hero' => [
                 'eyebrow' => $hero['eyebrow'],

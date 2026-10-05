@@ -118,6 +118,7 @@ export default function MobileDrawer({ id, open, onClose }: MobileDrawerProps) {
                                     <SmartLink
                                         href={item.url}
                                         newTab={item.new_tab}
+                                        data-position={item.position}
                                         onClick={onClose}
                                         aria-current={
                                             active ? 'page' : undefined

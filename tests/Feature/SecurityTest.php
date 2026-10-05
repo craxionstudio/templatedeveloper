@@ -4,7 +4,6 @@ use App\Console\Commands\CheckPages;
 use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Models\User;
-use App\Settings\ContactPageSettings;
 use App\Settings\PrivacyPageSettings;
 use App\Support\PageCache;
 use Database\Seeders\UserSeeder;
@@ -123,12 +122,4 @@ it('tidak memakai password "password" untuk akun seeder di production dan tidak 
     (new UserSeeder)->run();
 
     expect(Hash::check('Rahasia-Baru-123', $admin->fresh()->password))->toBeTrue();
-});
-
-it('mengizinkan domain embed peta Kontak di frame-src secara otomatis', function () {
-    $contact = app(ContactPageSettings::class);
-    $contact->map = [...$contact->map, 'embed_url' => 'https://maps.example-embed.com/embed?pb=123'];
-    $contact->save();
-
-    expect($this->get('/kontak')->headers->get('Content-Security-Policy'))->toContain('https://maps.example-embed.com');
 });

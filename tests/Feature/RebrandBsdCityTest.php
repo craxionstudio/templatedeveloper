@@ -87,7 +87,7 @@ it('tidak menyebut Arunika di halaman publik setelah import data asli', function
     $response = $this->get($path)->assertOk();
 
     expect(json_encode($response->inertiaProps(), JSON_UNESCAPED_UNICODE))->not->toContain('Arunika')->not->toContain('arunika');
-})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/vireya', '/properti/monard-of-the-armont', '/fasilitas', '/artikel', '/tentang-kami', '/kontak']);
+})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/vireya', '/properti/monard-of-the-armont', '/fasilitas', '/artikel', '/tentang-kami']);
 
 it('memakai hero dan header Properti yang baru', function () {
     $this->get('/')->assertInertia(fn (Assert $page) => $page

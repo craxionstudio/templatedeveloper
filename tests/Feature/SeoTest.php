@@ -66,7 +66,7 @@ it('mengisi Open Graph & Twitter lengkap dengan OG image default per tipe halama
         ->where('meta.og.imageHeight', 630)
         ->has('meta.og.description'));
 
-    foreach (['/' => 'home', '/properti' => 'properti', '/properti/kawasan' => 'kawasan', '/fasilitas' => 'fasilitas', '/artikel' => 'artikel', '/tentang-kami' => 'tentang', '/kontak' => 'kontak'] as $url => $image) {
+    foreach (['/' => 'home', '/properti' => 'properti', '/properti/kawasan' => 'kawasan', '/fasilitas' => 'fasilitas', '/artikel' => 'artikel', '/tentang-kami' => 'tentang'] as $url => $image) {
         $this->get($url)->assertInertia(fn (Assert $page) => $page->where('meta.og.image', url("/og/{$image}.png")));
         expect(public_path("og/{$image}.png"))->toBeFile();
     }
@@ -92,8 +92,8 @@ it('memasang Organization & WebSite di semua halaman dan BreadcrumbList selain h
         ->and(ofType($home, 'RealEstateAgent'))->not->toBeNull()
         ->and(ofType($home, 'BreadcrumbList'))->toBeNull();
 
-    $contact = jsonLd($this->get('/kontak'));
-    $office = ofType($contact, 'RealEstateAgent');
+    // Kantor pemasaran (LocalBusiness) di layout global: ada di semua halaman, bukan hanya beranda.
+    $office = ofType(jsonLd($this->get('/fasilitas')), 'RealEstateAgent');
     expect($office['openingHoursSpecification'][0])->toMatchArray(['opens' => '09:00', 'closes' => '17:00'])
         ->and($office['openingHoursSpecification'][0]['dayOfWeek'])->toHaveCount(7)
         ->and($office['address']['addressCountry'])->toBe('ID');
@@ -161,7 +161,7 @@ it('menghasilkan JSON-LD yang valid (JSON & @context) di semua tipe halaman', fu
             ->and($graph)->toHaveKey('@type')
             ->and(json_decode(json_encode($graph), true))->toBe($graph);
     }
-})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/arunika-garden', '/properti/vega-garden', '/fasilitas', '/artikel', '/tentang-kami', '/kontak', '/kebijakan-privasi']);
+})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/arunika-garden', '/properti/vega-garden', '/fasilitas', '/artikel', '/tentang-kami', '/kebijakan-privasi']);
 
 it('menyediakan sitemap index dengan tiga sitemap', function () {
     $xml = simplexml_load_string($this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8')->getContent());
@@ -201,7 +201,7 @@ it('hanya memuat URL yang dipublikasikan dan tidak noindex di sitemap', function
         ->toContain(url(Article::query()->published()->firstOrFail()->publicPath()));
 
     $pages = $this->get('/sitemap-pages.xml')->getContent();
-    expect($pages)->toContain('<loc>'.url('/').'/</loc>')->toContain(url('/kontak'))->not->toContain('terima-kasih');
+    expect($pages)->toContain('<loc>'.url('/').'/</loc>')->toContain(url('/tentang-kami'))->not->toContain('terima-kasih')->not->toContain(url('/kontak'));
 });
 
 it('memperbarui sitemap otomatis saat konten berubah', function () {

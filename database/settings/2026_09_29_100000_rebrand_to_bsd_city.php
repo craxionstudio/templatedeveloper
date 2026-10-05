@@ -55,6 +55,11 @@ return new class extends SettingsMigration
     public function up(): void
     {
         foreach (collect(self::TEXTS)->groupBy(0) as $property => $rows) {
+            // Settings yang sudah dihapus belakangan (mis. halaman Kontak) dilewati kalau migrasi dijalankan ulang.
+            if (! $this->migrator->exists($property)) {
+                continue;
+            }
+
             $this->migrator->update($property, function (array|object $value) use ($rows): array {
                 // Nilai tersimpan di-decode sebagai objek; ubah ke array dulu.
                 $value = json_decode(json_encode($value), true);

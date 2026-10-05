@@ -5,7 +5,6 @@ namespace App\Filament\Pages\Settings;
 use App\Filament\Forms\Fields;
 use App\Settings\AboutPageSettings;
 use App\Settings\ArticleIndexPageSettings;
-use App\Settings\ContactPageSettings;
 use App\Settings\FacilityPageSettings;
 use App\Settings\PrivacyPageSettings;
 use BackedEnum;
@@ -19,7 +18,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Halaman Lain: Tentang Kami, Kontak, Artikel, Fasilitas, Kebijakan Privasi.
+ * Halaman Lain: Tentang Kami, Artikel, Fasilitas, Kebijakan Privasi.
+ * (Halaman Kontak dihapus Okt 2026: info kontak di footer diambil dari Pengaturan Umum.)
  */
 class ManageOtherPages extends GroupedSettingsPage
 {
@@ -39,7 +39,6 @@ class ManageOtherPages extends GroupedSettingsPage
     {
         return [
             'about' => AboutPageSettings::class,
-            'contact' => ContactPageSettings::class,
             'articles' => ArticleIndexPageSettings::class,
             'facility' => FacilityPageSettings::class,
             'privacy' => PrivacyPageSettings::class,
@@ -66,14 +65,6 @@ class ManageOtherPages extends GroupedSettingsPage
                         ])
                         ->columns(2)->reorderableWithDragAndDrop()->defaultItems(0)->collapsible()->addActionLabel('Tambah tonggak'),
                     Fields::advanced(Fields::settingsMeta('about.seo')),
-                ]),
-                Tab::make('Kontak')->schema([
-                    Fields::text('contact.header.title', 'Judul (H1)')->placeholder('Ngobrol langsung dengan tim marketing'),
-                    Fields::textarea('contact.header.description', 'Teks di bawah judul', 2)->placeholder('Datang ke kantor pemasaran atau chat WhatsApp tim kami.'),
-                    TextInput::make('contact.map.embed_url')->label('URL embed Google Maps')->url()->maxLength(1000)
-                        ->placeholder('https://www.google.com/maps/embed?pb=…')
-                        ->helperText('Kosong = peta tidak tampil.'),
-                    Fields::advanced(Fields::settingsMeta('contact.seo')),
                 ]),
                 Tab::make('Artikel')->schema([
                     Fields::text('articles.header.title', 'Judul (H1)')->placeholder('Info & Tips Properti BSD City'),

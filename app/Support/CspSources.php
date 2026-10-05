@@ -2,13 +2,12 @@
 
 namespace App\Support;
 
-use App\Settings\ContactPageSettings;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
  * Daftar domain CSP halaman publik: bawaan (GA4 / gtag.js, Google Maps, YouTube) + domain yang diturunkan
- * otomatis dari settings (embed peta Kontak, disk file publik bila memakai CDN/S3).
+ * otomatis dari settings (disk file publik bila memakai CDN/S3).
  * Tanpa Meta Pixel, GTM, dan Turnstile (dihapus Okt 2026: tidak beriklan di Meta, semua lead lewat WhatsApp).
  */
 class CspSources
@@ -95,12 +94,6 @@ class CspSources
         $auto = ['frame_src' => [], 'img_src' => []];
 
         try {
-            $embed = app(ContactPageSettings::class)->section('map')['embed_url'] ?? null;
-
-            if ($origin = self::origin($embed)) {
-                $auto['frame_src'][] = $origin;
-            }
-
             // Foto di CDN / bucket S3 (disk public dengan URL domain lain).
             if ($origin = self::origin(Storage::disk('public')->url('x'))) {
                 $auto['img_src'][] = $origin;

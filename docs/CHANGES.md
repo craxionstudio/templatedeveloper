@@ -573,6 +573,34 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - Sudah direproduksi di container (file kompilasi milik root, PHP berjalan sebagai `nobody`): error muncul saat pengecekan aktif dan hilang saat dimatikan. Ada test regresi.
 - **Diuji di container:** `.env` kotor (key dobel, tanda kutip, tanpa newline), dua kali jalan (kedua tanpa perubahan), `SITE_INDEXABLE=true` tidak disentuh, rollback saat situs error, dan simulasi langkah 4b + 12 dengan `script_stop`.
 
+
+**Tombol WhatsApp melayang di semua layar + halaman Kontak dihapus** (permintaan pemilik 6 Okt 2026)
+
+1. **Tombol WhatsApp melayang** di semua halaman, mobile dan desktop, pojok kanan bawah:
+   - Mobile & tablet (< 1280px): ikon saja, 56px. Desktop: ikon + "Chat via WhatsApp".
+   - Pesan dan nomor mengikuti halaman: di Detail Rumah memakai nomor WA cluster (kalau diisi) dan template cluster yang menyebut nama cluster. Di halaman lain memakai nomor global dan "Halo, saya ingin konsultasi rumah di BSD City."
+   - Klik tercatat sebagai `click_whatsapp` dengan `posisi_tombol = floating`. Link dibuka di tab baru.
+   - Tidak menutupi konten penting:
+     - Footer diberi ruang bawah, jadi baris terakhir footer tidak tertutup.
+     - Di Detail Rumah mobile, tombol tetap di atas bar harga sticky.
+     - Di Detail Rumah desktop, kalau tombol menabrak kartu marketing yang sticky, tombol mengecil jadi ikon di margin kanan halaman. Elemen yang dihindari ditandai `data-floating-avoid`.
+2. **Halaman Kontak dihapus:**
+   - `/kontak` **301 ke beranda**.
+   - Dihapus dari sitemap, dari tab "Kontak" di Pengaturan → Halaman Lain (judul, deskripsi, URL embed peta, SEO), dan dari import SEO halaman. Baris `/kontak` di JSON import dilewati tanpa peringatan.
+   - Settings migrasi `2026_10_06_100000_remove_contact_page` membuang settings `page_contact.*`. Di Kebijakan Privasi, kalimat "lewat halaman Kontak" diganti "lewat WhatsApp atau email di bagian bawah situs"; sisa teks admin tidak diubah.
+   - Ikut dihapus: `ContactController`, `Pages/Contact.tsx`, `ContactPageSettings`, dan domain embed peta Kontak di CSP.
+3. **Menu "Kontak" langsung membuka WhatsApp** (nomor global, pesan "Halo, saya ingin konsultasi rumah di BSD City.", tab baru, `posisi_tombol = menu_kontak`):
+   - Berlaku di header desktop, menu mobile, dan kolom "Perusahaan" di footer.
+   - Menu Kontak selalu ada di akhir menu header. Item `/kontak` lama yang tersimpan di Menu Navigasi diabaikan supaya tidak dobel.
+   - Kalau nomor WA global kosong, menu Kontak dan tombol WA mengarah ke info kontak di footer (`#info-kontak`), bukan lagi ke `/kontak`.
+4. **Info kontak di footer semua halaman** (kolom "Kantor Pemasaran", isi dari Pengaturan Umum):
+   - Isi: alamat, telepon (link `tel:`), WhatsApp (nomor global, `posisi_tombol = footer`), email (link `mailto:`), jam buka, dan link Google Maps.
+   - Field baru **Link Google Maps kantor** di Pengaturan Umum → Kontak. Kalau kosong tapi koordinat ada, link dibuat dari koordinat; kalau keduanya kosong, link tidak tampil.
+   - Teks contoh `[...]` dan field kosong tidak tampil.
+5. **JSON-LD kantor pemasaran** (`RealEstateAgent`: alamat, telepon, email, jam buka, koordinat) sekarang ada di layout global, yaitu semua halaman, bukan hanya Beranda & Kontak. `@id`/`url` menunjuk ke beranda. `Organization` tetap di semua halaman.
+- **Catatan migrasi lama:** migrasi rebrand (`2026_09_29_100000`) sekarang melewati settings yang sudah dihapus, supaya tetap bisa dijalankan ulang. `database/settings/defaults/page_contact.php` tetap ada karena dipakai migrasi lama (pola sama dengan Terima Kasih).
+- **Test:** `tests/Feature/WhatsAppTest.php` (+6): 301 & sitemap, menu Kontak WA di header/drawer/footer (tanpa dobel), fallback tanpa nomor, info kontak footer (placeholder disembunyikan, link Maps dari koordinat), JSON-LD di semua halaman, dan settings/field admin Kontak terhapus. Test lama yang membuka `/kontak` disesuaikan.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

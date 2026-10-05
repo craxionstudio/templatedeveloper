@@ -5,7 +5,11 @@ export type NavLink = {
     label: string;
     url: string;
     new_tab?: boolean;
+    /** posisi_tombol GA4 untuk link WhatsApp (mis. menu Kontak = "menu_kontak"). */
+    position?: string;
 };
+
+export type ContactItem = { value: string; url: string | null } | null;
 
 export type FooterColumn = {
     title: string;
@@ -26,6 +30,15 @@ export type SiteLayoutData = {
         email: string;
         officeAddress: string;
         openingHours: string;
+    };
+    /** Info kontak footer (Pengaturan Umum); null = kosong / masih teks contoh. */
+    footerContact: {
+        address: ContactItem;
+        phone: ContactItem;
+        whatsapp: ContactItem;
+        email: ContactItem;
+        hours: ContactItem;
+        maps: ContactItem;
     };
     header: {
         showHotline: boolean;

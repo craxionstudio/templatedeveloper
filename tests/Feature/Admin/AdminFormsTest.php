@@ -12,8 +12,8 @@ use App\Models\Facility;
 use App\Models\Kawasan;
 use App\Models\Redirect;
 use App\Models\User;
+use App\Settings\ArticleIndexPageSettings;
 use App\Settings\ClusterDetailPageSettings;
-use App\Settings\ContactPageSettings;
 use App\Settings\GlobalSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\ListingPageSettings;
@@ -160,11 +160,11 @@ it('menyimpan beberapa settings halaman dari satu menu Properti dan Halaman Lain
     $this->get('/properti')->assertInertia(fn ($page) => $page->where('header.title', 'Rumah di BSD'));
 
     Livewire::test(ManageOtherPages::class)
-        ->fillForm(['contact.header.title' => 'Hubungi kami', 'about.vision.vision' => 'Kota yang nyaman.'])
+        ->fillForm(['articles.header.title' => 'Kabar BSD', 'about.vision.vision' => 'Kota yang nyaman.'])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(app(ContactPageSettings::class)->header['title'])->toBe('Hubungi kami');
+    expect(app(ArticleIndexPageSettings::class)->header['title'])->toBe('Kabar BSD');
     $this->get('/tentang-kami')->assertInertia(fn ($page) => $page->where('vision.vision', 'Kota yang nyaman.'));
 });
 

@@ -1,14 +1,18 @@
 <?php
 
+use App\Filament\Pages\Settings\ManageOtherPages;
 use App\Models\Benefit;
 use App\Models\Cluster;
+use App\Models\User;
 use App\Settings\GlobalSettings;
+use App\Settings\NavigationSettings;
 use App\Settings\PrivacyPageSettings;
 use App\Support\WhatsApp;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia as Assert;
+use Livewire\Livewire;
 
 /*
  * Tahap C: semua lead lewat WhatsApp (tanpa form), tracking organik GA4 langsung.
@@ -47,8 +51,7 @@ it('memakai template pesan per konteks dengan {nama_cluster}', function () {
     expect(waText($this->get('/properti/vega-garden')->inertiaProps('benefits.whatsappUrl')))
         ->toBe('Halo, saya tertarik dengan promo di Vega Garden. Boleh minta informasi lengkapnya?');
 
-    $this->get('/kontak')->assertInertia(fn (Assert $page) => $page
-        ->where('whatsapp.url', fn (string $url) => waText($url) === 'Halo, saya ingin konsultasi rumah di BSD City.')
+    $this->get('/tentang-kami')->assertInertia(fn (Assert $page) => $page
         ->where('site.contact.whatsappUrl', fn (string $url) => waText($url) === 'Halo, saya ingin konsultasi rumah di BSD City.'));
 });
 
@@ -75,7 +78,6 @@ it('tidak lagi punya form lead, Turnstile, endpoint CAPI, atau halaman terima ka
 
     $this->get('/terima-kasih')->assertStatus(301)->assertRedirect('/');
 
-    $this->get('/kontak')->assertInertia(fn (Assert $page) => $page->missing('form')->has('whatsapp.url'));
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page->missing('form')->has('contact.surveyUrl'));
 
     $html = $this->get('/properti/vega-garden')->getContent();
@@ -160,4 +162,99 @@ it('menampilkan tombol WhatsApp melayang dengan konteks cluster', function () {
         ->component('Cluster/Show')
         ->where('cluster.name', 'Vega Garden')
         ->where('cluster.whatsappUrl', fn (string $url) => str_starts_with($url, 'https://wa.me/')));
+});
+
+/*
+ * Halaman Kontak dihapus (6 Okt 2026): menu Kontak membuka WhatsApp, info kontak di footer.
+ */
+
+it('mengalihkan /kontak ke beranda dan tidak memuatnya di sitemap', function () {
+    $this->get('/kontak')->assertStatus(301)->assertRedirect('/');
+
+    expect($this->get('/sitemap-pages.xml')->getContent())->not->toContain('/kontak');
+});
+
+it('membuat menu Kontak di header, drawer, dan footer langsung membuka WhatsApp', function () {
+    // Item /kontak lama yang tersimpan di Menu Navigasi tidak dobel.
+    $navigation = app(NavigationSettings::class);
+    $navigation->header_items = [...$navigation->header_items, ['label' => 'Hubungi Kami', 'url' => '/kontak', 'new_tab' => false]];
+    $navigation->save();
+
+    $props = $this->get('/')->inertiaProps('site');
+    $kontak = collect($props['navigation'])->last();
+
+    expect(collect($props['navigation'])->pluck('url'))->not->toContain('/kontak')
+        ->and($kontak)->toMatchArray(['label' => 'Kontak', 'new_tab' => true, 'position' => 'menu_kontak'])
+        ->and(waNumber($kontak['url']))->toBe('6281111111111')
+        ->and(waText($kontak['url']))->toBe('Halo, saya ingin konsultasi rumah di BSD City.');
+
+    $footerKontak = collect($props['footer']['columns'])->flatMap(fn (array $column) => $column['links'])->firstWhere('label', 'Kontak');
+    expect($footerKontak)->toMatchArray(['url' => $kontak['url'], 'new_tab' => true, 'position' => 'menu_kontak']);
+});
+
+it('mengarahkan menu Kontak ke info kontak di footer kalau nomor WhatsApp global kosong', function () {
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact, 'whatsapp' => ''];
+    $global->save();
+
+    expect(collect($this->get('/')->inertiaProps('site.navigation'))->last())
+        ->toMatchArray(['label' => 'Kontak', 'url' => '#info-kontak', 'new_tab' => false]);
+});
+
+it('menampilkan info kontak dari Pengaturan Umum di footer semua halaman', function () {
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact,
+        'office_address' => 'Marketing Gallery BSD City, Jl. Grand Boulevard',
+        'phone' => '021 5315 9000',
+        'email' => 'marketing@bsdcity.com',
+        'opening_hours' => 'Setiap hari, 09.00–17.00',
+        'maps_url' => 'https://maps.app.goo.gl/abc123',
+    ];
+    $global->save();
+
+    foreach (['/', '/properti', '/properti/vega-garden', '/artikel'] as $path) {
+        $this->get($path)->assertInertia(fn (Assert $page) => $page
+            ->where('site.footerContact.address.value', 'Marketing Gallery BSD City, Jl. Grand Boulevard')
+            ->where('site.footerContact.phone', ['value' => '021 5315 9000', 'url' => 'tel:02153159000'])
+            ->where('site.footerContact.whatsapp.value', '+62 811-1111-1111')
+            ->where('site.footerContact.whatsapp.url', fn (string $url) => waNumber($url) === '6281111111111')
+            ->where('site.footerContact.email', ['value' => 'marketing@bsdcity.com', 'url' => 'mailto:marketing@bsdcity.com'])
+            ->where('site.footerContact.hours.value', 'Setiap hari, 09.00–17.00')
+            ->where('site.footerContact.maps.url', 'https://maps.app.goo.gl/abc123'));
+    }
+
+    // Teks contoh [..] dan kosong tidak tampil; tanpa link Maps dipakai koordinat kalau ada.
+    $global->contact = [...$global->contact, 'phone' => '[NO. TELEPON]', 'email' => '', 'maps_url' => '', 'latitude' => -6.3, 'longitude' => 106.65];
+    $global->save();
+
+    $this->get('/')->assertInertia(fn (Assert $page) => $page
+        ->where('site.footerContact.phone', null)
+        ->where('site.footerContact.email', null)
+        ->where('site.footerContact.maps.url', 'https://www.google.com/maps/search/?api=1&query=-6.3,106.65'));
+});
+
+it('memasang kantor pemasaran (LocalBusiness) dengan alamat & kontak di JSON-LD semua halaman', function () {
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact, 'office_address' => 'Jl. Grand Boulevard, BSD City', 'phone' => '021 5315 9000', 'email' => 'marketing@bsdcity.com'];
+    $global->save();
+
+    foreach (['/', '/properti', '/properti/vega-garden', '/tentang-kami'] as $path) {
+        expect(ofType(jsonLd($this->get($path)), 'RealEstateAgent'))
+            ->toMatchArray(['@id' => url('/').'/#kantor-pemasaran', 'url' => url('/').'/', 'telephone' => '02153159000', 'email' => 'marketing@bsdcity.com'])
+            ->and(ofType(jsonLd($this->get($path)), 'RealEstateAgent')['address']['streetAddress'])->toBe('Jl. Grand Boulevard, BSD City');
+    }
+});
+
+it('menghapus pengaturan halaman Kontak dari admin dan database', function () {
+    (require base_path('database/settings/2026_10_06_100000_remove_contact_page.php'))->up();
+
+    expect(DB::table('settings')->where('group', 'page_contact')->count())->toBe(0)
+        ->and(class_exists('App\\Settings\\ContactPageSettings'))->toBeFalse()
+        ->and(app(PrivacyPageSettings::class)->refresh()->content['body'])->not->toContain('halaman Kontak');
+
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    Livewire::test(ManageOtherPages::class)
+        ->assertFormFieldDoesNotExist('contact.header.title')
+        ->assertFormFieldDoesNotExist('contact.map.embed_url');
 });

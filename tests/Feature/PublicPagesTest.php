@@ -22,7 +22,6 @@ it('merender semua halaman publik', function (string $path, string $component) {
     ['/fasilitas', 'Fasilitas/Index'],
     ['/artikel', 'Artikel/Index'],
     ['/tentang-kami', 'About'],
-    ['/kontak', 'Contact'],
     ['/kebijakan-privasi', 'Privacy'],
 ]);
 
@@ -125,13 +124,12 @@ it('mengarahkan halaman terima kasih lama ke beranda (301)', function () {
     $this->get('/terima-kasih')->assertStatus(301)->assertRedirect('/');
 });
 
-it('selalu memakai CTA global di listing (toggle lama diabaikan) dan tanpa CTA di Kontak', function () {
+it('selalu memakai CTA global di listing (toggle lama diabaikan)', function () {
     $settings = app(ListingPageSettings::class);
     $settings->cta = [...$settings->cta, 'enabled' => false];
     $settings->save();
 
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page->has('cta.title'));
-    $this->get('/kontak')->assertInertia(fn (Assert $page) => $page->where('cta', null));
 });
 
 it('merender H1, canonical, dan JSON-LD di HTML awal lewat SSR (tanpa JavaScript)', function (string $path) {
@@ -150,5 +148,8 @@ it('merender H1, canonical, dan JSON-LD di HTML awal lewat SSR (tanpa JavaScript
         ->and($head)->toContain('rel="canonical"')
         ->and($head)->toContain('application/ld+json')
         ->and($head)->toContain('property="og:image"')
-        ->and($html)->toMatch('/<a [^>]*href="\/properti/');
-})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/arunika-garden', '/properti/vega-garden', '/fasilitas', '/artikel', '/artikel/5-hal-yang-perlu-dicek-sebelum-mengajukan-kpr-rumah-pertama', '/tentang-kami', '/kontak']);
+        ->and($html)->toMatch('/<a [^>]*href="\/properti/')
+        // Tombol WhatsApp melayang + info kontak footer ikut di HTML SSR semua halaman.
+        ->and($html)->toMatch('/<a [^>]*data-position="floating"/')
+        ->and($html)->toContain('id="info-kontak"');
+})->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/arunika-garden', '/properti/vega-garden', '/fasilitas', '/artikel', '/artikel/5-hal-yang-perlu-dicek-sebelum-mengajukan-kpr-rumah-pertama', '/tentang-kami']);

@@ -3,7 +3,6 @@
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ClusterController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KawasanController;
@@ -33,10 +32,11 @@ Route::get('/artikel/kategori/{slug}', [ArticleController::class, 'category'])->
 Route::get('/artikel/{slug}', [ArticleController::class, 'show'])->name('artikel.show');
 
 Route::get('/tentang-kami', AboutController::class)->name('tentang');
-Route::get('/kontak', ContactController::class)->name('kontak');
 Route::get('/kebijakan-privasi', [LegalController::class, 'privacy'])->name('privasi');
 // Form lead dihapus (semua lewat WhatsApp): halaman terima kasih lama diarahkan ke beranda.
 Route::permanentRedirect('/terima-kasih', '/');
+// Halaman Kontak dihapus: info kontak ada di footer semua halaman, menu Kontak membuka WhatsApp.
+Route::permanentRedirect('/kontak', '/');
 
 // Pratinjau draft untuk admin: URL bertanda tangan (1 jam, dari tombol "Pratinjau" di form admin), selalu noindex.
 Route::middleware('signed')->prefix('pratinjau')->group(function () {

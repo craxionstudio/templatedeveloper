@@ -1,16 +1,36 @@
 import { usePage } from '@inertiajs/react';
 import SmartLink from '@/components/site/smart-link';
+import { cn } from '@/lib/utils';
 
 const linkClass =
     'flex min-h-11 items-center text-mist no-underline transition-colors hover:text-ground xl:min-h-0';
 
 export default function SiteFooter() {
-    const { site } = usePage().props;
-    const { footer, contact, brand } = site;
+    const { site, cluster } = usePage<{
+        cluster?: { whatsappUrl?: string };
+    }>().props;
+    const onCluster = Boolean(cluster?.whatsappUrl);
+    const { footer, footerContact: office, brand } = site;
+    const contactRows = (
+        [
+            ['phone', 'Telp', office.phone],
+            ['whatsapp', 'WhatsApp', office.whatsapp],
+            ['email', 'Email', office.email],
+        ] as const
+    ).filter(
+        (row): row is typeof row & { 2: NonNullable<(typeof row)[2]> } =>
+            row[2] !== null,
+    );
 
     return (
         <footer className="bg-ink text-mist">
-            <div className="container-site flex flex-col gap-8 pt-12 pb-8 xl:gap-14 xl:pt-20 xl:pb-12">
+            <div
+                className={cn(
+                    // Ruang bawah untuk tombol WhatsApp melayang (+ bar harga sticky Detail Rumah di mobile).
+                    'container-site flex flex-col gap-8 pt-12 xl:gap-14 xl:pt-20 xl:pb-32',
+                    onCluster ? 'pb-[172px] md:pb-24' : 'pb-24',
+                )}
+            >
                 <div className="flex flex-col gap-8 xl:grid xl:grid-cols-[2fr_1fr_1fr_1fr_1.4fr] xl:gap-12">
                     {/* Profil singkat */}
                     <div className="order-1 flex flex-col gap-2.5 xl:gap-4">
@@ -38,6 +58,7 @@ export default function SiteFooter() {
                                         key={`${link.label}-${link.url}`}
                                         href={link.url}
                                         newTab={link.new_tab}
+                                        data-position={link.position}
                                         className={linkClass}
                                     >
                                         {link.label}
@@ -68,16 +89,50 @@ export default function SiteFooter() {
                         ))}
                     </nav>
 
-                    {/* Kantor pemasaran */}
-                    <address className="order-3 flex flex-col gap-1.5 text-sm leading-[1.6] not-italic xl:order-4 xl:gap-3 xl:text-[15px]">
+                    {/* Kantor pemasaran: pengganti halaman Kontak (isi dari Pengaturan Umum). */}
+                    <address
+                        id="info-kontak"
+                        className="order-3 flex scroll-mt-6 flex-col gap-1.5 text-sm leading-[1.6] not-italic xl:order-4 xl:gap-3 xl:text-[15px]"
+                    >
                         <h2 className="font-bold text-ground">
                             {footer.officeTitle}
                         </h2>
-                        <span>{contact.officeAddress}</span>
-                        <span>
-                            {contact.phone} · {contact.email}
-                        </span>
-                        <span>{contact.openingHours}</span>
+                        {office.address ? (
+                            <span>{office.address.value}</span>
+                        ) : null}
+                        {contactRows.map(([key, label, item]) => (
+                            <span key={key}>
+                                {label}{' '}
+                                {item.url ? (
+                                    <SmartLink
+                                        href={item.url}
+                                        newTab={key === 'whatsapp'}
+                                        data-position={
+                                            key === 'whatsapp'
+                                                ? 'footer'
+                                                : undefined
+                                        }
+                                        className="break-words text-ground underline underline-offset-4 transition-colors hover:text-peach"
+                                    >
+                                        {item.value}
+                                    </SmartLink>
+                                ) : (
+                                    item.value
+                                )}
+                            </span>
+                        ))}
+                        {office.hours ? (
+                            <span>{office.hours.value}</span>
+                        ) : null}
+                        {office.maps?.url ? (
+                            <SmartLink
+                                href={office.maps.url}
+                                newTab
+                                className="self-start text-ground underline underline-offset-4 transition-colors hover:text-peach"
+                            >
+                                {office.maps.value}
+                            </SmartLink>
+                        ) : null}
                     </address>
                 </div>
 

@@ -15,7 +15,7 @@ class PageMeta
     /**
      * OG image default per tipe halaman (public/og/{section}.png, 1200×630).
      */
-    public const OG_SECTIONS = ['home', 'properti', 'kawasan', 'rumah', 'fasilitas', 'artikel', 'tentang', 'kontak', 'default'];
+    public const OG_SECTIONS = ['home', 'properti', 'kawasan', 'rumah', 'fasilitas', 'artikel', 'tentang', 'default'];
 
     /**
      * @param  array<string, mixed>  $seo  field SEO dari settings / seo_meta (boleh kosong)
@@ -72,6 +72,7 @@ class PageMeta
             'jsonLd' => array_values(array_filter([
                 StructuredData::organization(),
                 StructuredData::website(),
+                StructuredData::marketingOffice(),
                 $isHome ? null : StructuredData::breadcrumbs($breadcrumbs, $canonical),
                 ...$schema,
             ])),

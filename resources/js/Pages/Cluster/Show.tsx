@@ -327,7 +327,8 @@ export default function ClusterShow(props: Props) {
                 </div>
 
                 <aside className="hidden xl:block">
-                    <div className="sticky top-6">
+                    {/* data-floating-avoid: tombol WhatsApp melayang mengecil kalau menabrak kartu ini. */}
+                    <div className="sticky top-6" data-floating-avoid>
                         <ContactCard
                             marketing={marketing}
                             contact={contact}

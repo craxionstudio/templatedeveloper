@@ -17,7 +17,7 @@ return [
             .'<h2>Penyimpanan &amp; keamanan</h2>'
             .'<p>Percakapan WhatsApp disimpan oleh tim marketing selama masih diperlukan untuk melayani kamu. Data Google Analytics disimpan sesuai pengaturan retensi akun Google Analytics kami.</p>'
             .'<h2>Hak kamu</h2>'
-            .'<p>Kamu bisa meminta akses, koreksi, atau penghapusan data sesuai UU Pelindungan Data Pribadi dengan menghubungi kami lewat halaman Kontak. Kamu juga bisa menolak cookie analitik lewat pengaturan browser atau add-on penonaktifan Google Analytics.</p>',
+            .'<p>Kamu bisa meminta akses, koreksi, atau penghapusan data sesuai UU Pelindungan Data Pribadi dengan menghubungi kami lewat WhatsApp atau email di bagian bawah situs. Kamu juga bisa menolak cookie analitik lewat pengaturan browser atau add-on penonaktifan Google Analytics.</p>',
     ],
 
     'seo' => [
