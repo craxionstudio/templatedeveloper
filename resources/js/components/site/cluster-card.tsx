@@ -33,10 +33,17 @@ export default function ClusterCard({
                 image={cluster.image}
                 className="aspect-[16/10] xl:aspect-auto xl:h-60"
             >
-                {cluster.badge ? (
-                    <Badge className="absolute top-3.5 left-3.5">
-                        {cluster.badge}
-                    </Badge>
+                {cluster.badges.length > 0 ? (
+                    <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-1.5">
+                        {cluster.badges.map((badge, index) => (
+                            <Badge
+                                key={badge}
+                                tone={index === 0 ? 'terracotta' : 'warning'}
+                            >
+                                {badge}
+                            </Badge>
+                        ))}
+                    </div>
                 ) : null}
                 {cluster.typesCount > 0 ? (
                     <Badge

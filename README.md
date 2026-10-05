@@ -198,7 +198,7 @@ Login ke `/admin`, lalu isi lewat menu:
       Benefit dipilih per cluster di tab **Promo & Benefit** (teks tampil opsional, maks 40 karakter, bisa diurutkan),
       atau sekaligus untuk banyak cluster lewat bulk action di tabel Cluster. Tanpa tanggal berakhir: benefit tampil
       selama dicentang. Tampil di Detail Rumah (section "Promo & Benefit" + tombol WA), chip di kartu (maks 3 + "+N"),
-      badge "Promo", filter `/properti?benefit=tanpa-dp` (satu benefit = halaman SEO sendiri), dan urutan "Promo".
+      badge "Promo" (kedua, setelah badge admin seperti "Baru"), filter `/properti?benefit=tanpa-dp` (satu benefit = halaman SEO sendiri), dan urutan "Promo".
 - **Konten** — Fasilitas + Kategori, Pengembangan Mendatang, Profil Developer. (Menu Promo lama disembunyikan sejak
   Bank Benefit; datanya belum dihapus.)
 - **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight, tab SEO),

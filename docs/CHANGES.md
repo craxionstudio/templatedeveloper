@@ -291,7 +291,7 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 1. **Urutan harga vs "Terbaru":** aturan "cluster berharga di atas" hanya berlaku untuk urut harga (terendah/tertinggi). Di "Terbaru", cluster baru yang belum punya harga tetap tampil sesuai tanggal launching-nya.
 2. **Status publikasi promo saat import ulang:** `is_published` dari file hanya dipakai saat promo pertama kali dibuat. `import:bsd-update` yang dijalankan ulang tidak mematikan promo yang sudah dipublikasikan admin.
 3. **Relasi promo ke cluster saat import ulang:** hanya ditambah (`syncWithoutDetaching`), tidak pernah dilepas. Cluster yang ditambahkan admin tetap ada.
-4. **Badge "Promo"** menggantikan badge pilihan admin (mis. "Baru") selama cluster punya promo aktif. Setelah promo berakhir, badge admin tampil lagi.
+4. **Badge "Promo"** menggantikan badge pilihan admin (mis. "Baru") selama cluster punya promo aktif. Setelah promo berakhir, badge admin tampil lagi. *(Diubah 5 Okt 2026 untuk Bank Benefit: badge admin tetap pertama, "Promo" jadi badge kedua.)*
 5. **Nama tipe berawalan "Tipe"** ("Tipe 5 Standard") tidak diberi awalan "Tipe" lagi di judul Detail Rumah, tab tipe, dan pesan WhatsApp.
 
 **Import otomatis di script deploy** (29 Sep 2026)
@@ -340,6 +340,7 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
   - Kalau Meta CAPI aktif, browser mengirim `POST /track/contact` lalu job `SendMetaContactEvent` mengirim event `Contact` ke CAPI dengan `event_id` sama (deduplikasi). Endpoint dibatasi 20/menit per IP.
   - Sebelumnya klik WA hanya sampai ke Pixel browser, tanpa CAPI. Logika konteks CAPI (IP, UA, `_fbp`, `_fbc`/fbclid) dipindah ke `App\Support\MetaContext` dan dipakai juga oleh lead.
 - **Kartu cluster:** chip maks 3 benefit (teks tampil atau nama, tanpa "*") + "+N". Badge **Promo** kalau ada minimal 1 benefit aktif, menggantikan badge promo lama.
+  - **Revisi 5 Okt 2026 (permintaan pemilik):** badge pilihan admin (mis. "Baru") tetap prioritas dan tampil pertama; "Promo" jadi badge kedua (warna lebih lembut). Kalau badge admin sudah "Promo", tidak dobel. Props kartu: `badge` diganti `badges` (list, maks 2).
 - **`/properti?benefit=tanpa-dp,free-bphtb`:**
   - Cluster harus punya semua benefit yang dipilih. Filter "Promo & benefit" tampil di bar filter.
   - **Satu benefit** tanpa filter/urut lain = halaman sendiri yang boleh diindex: judul & H1 "Rumah Tanpa DP di BSD City" (pola di Pengaturan Halaman → Properti → SEO), meta description sendiri, self-canonical, dan masuk sitemap selama ada cluster terbit yang memakainya.

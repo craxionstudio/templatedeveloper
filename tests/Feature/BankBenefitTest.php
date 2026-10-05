@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\BenefitCategory;
+use App\Enums\ClusterBadge;
 use App\Enums\ClusterStatus;
 use App\Filament\Resources\Benefits\Pages\ListBenefits;
 use App\Filament\Resources\Clusters\Pages\EditCluster;
@@ -123,16 +124,34 @@ it('menampilkan teks syarat & pesan WA dari settings admin', function () {
 });
 
 it('menampilkan maksimal 3 chip benefit tanpa tanda * dan badge Promo di kartu cluster', function () {
+    benefitCluster('vega-garden')->update(['badge' => null]);
     giveBenefits('vega-garden', ['tanpa-dp' => null, 'free-bphtb' => null, 'diskon' => 'Diskon 10%', 'free-cctv' => null, 'free-ipl' => null]);
 
     $cards = collect($this->get('/properti')->inertiaProps('clusters.data'));
     $vega = $cards->firstWhere('name', 'Vega Garden');
     $other = $cards->firstWhere('name', 'Hana Residence');
 
-    expect($vega)->toMatchArray(['benefits' => ['Tanpa DP', 'Free BPHTB', 'Diskon 10%'], 'benefitsMore' => 2, 'badge' => 'Promo'])
+    expect($vega)->toMatchArray(['benefits' => ['Tanpa DP', 'Free BPHTB', 'Diskon 10%'], 'benefitsMore' => 2, 'badges' => ['Promo']])
         ->and(json_encode($vega['benefits']))->not->toContain('*')
         ->and($other['benefits'])->toBe([])
-        ->and($other['badge'])->not->toBe('Promo');
+        ->and($other['badges'])->not->toContain('Promo');
+});
+
+it('tetap memprioritaskan badge admin (mis. "Baru") dengan "Promo" sebagai badge kedua', function () {
+    benefitCluster('vega-garden')->update(['badge' => ClusterBadge::Baru]);
+    benefitCluster('hana-residence')->update(['badge' => ClusterBadge::Promo]);
+    giveBenefits('vega-garden', ['tanpa-dp' => null]);
+    giveBenefits('hana-residence', ['free-bphtb' => null]);
+
+    $cards = collect($this->get('/properti')->inertiaProps('clusters.data'));
+
+    expect($cards->firstWhere('name', 'Vega Garden')['badges'])->toBe(['Baru', 'Promo'])
+        // Badge admin sudah "Promo": tidak dobel.
+        ->and($cards->firstWhere('name', 'Hana Residence')['badges'])->toBe(['Promo']);
+
+    BenefitCluster::query()->where('cluster_id', benefitCluster('vega-garden')->id)->delete();
+
+    expect(collect($this->get('/properti')->inertiaProps('clusters.data'))->firstWhere('name', 'Vega Garden')['badges'])->toBe(['Baru']);
 });
 
 it('memfilter /properti per benefit: satu benefit diindex dengan judul sendiri, kombinasi noindex', function () {

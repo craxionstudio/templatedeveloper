@@ -23,7 +23,8 @@ export type ClusterCardData = {
     name: string;
     url: string;
     buildingType: string | null;
-    badge: string | null;
+    /** Maks 2: badge admin dulu (mis. "Baru"), lalu "Promo" otomatis dari Bank Benefit. */
+    badges: string[];
     kawasan: { name: string; url: string } | null;
     typesCount: number;
     types: string[];

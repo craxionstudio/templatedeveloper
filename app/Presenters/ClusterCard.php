@@ -32,7 +32,7 @@ class ClusterCard
             'name' => $cluster->name,
             'url' => $cluster->publicPath(),
             'buildingType' => $cluster->building_type,
-            'badge' => self::badge($cluster),
+            'badges' => self::badges($cluster),
             // Maksimal 3 chip benefit + "+N" (tanpa tanda *).
             'benefits' => self::benefits($cluster)->take(3)->map(fn (Benefit $benefit) => $benefit->displayText())->values()->all(),
             'benefitsMore' => max(0, self::benefits($cluster)->count() - 3),
@@ -81,12 +81,20 @@ class ClusterCard
     }
 
     /**
-     * Cluster dengan minimal 1 benefit otomatis berbadge "Promo" (mengalahkan badge pilihan admin).
-     * Tanpa benefit: badge pilihan admin.
+     * Maksimal 2 badge: badge pilihan admin (mis. "Baru") tetap pertama, lalu "Promo" otomatis
+     * kalau cluster punya minimal 1 benefit (tidak dobel kalau badge admin sudah "Promo").
+     *
+     * @return list<string>
      */
-    private static function badge(Cluster $cluster): ?string
+    private static function badges(Cluster $cluster): array
     {
-        return self::benefits($cluster)->isNotEmpty() ? ClusterBadge::Promo->getLabel() : $cluster->badge?->getLabel();
+        $badges = $cluster->badge ? [$cluster->badge->getLabel()] : [];
+
+        if (self::benefits($cluster)->isNotEmpty() && $cluster->badge !== ClusterBadge::Promo) {
+            $badges[] = ClusterBadge::Promo->getLabel();
+        }
+
+        return $badges;
     }
 
     /**

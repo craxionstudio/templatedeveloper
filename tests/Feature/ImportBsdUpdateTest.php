@@ -100,7 +100,7 @@ it('tidak lagi menampilkan promo lama di website walau dipublikasikan (diganti B
 
     // Badge "Promo" sekarang dari Bank Benefit, bukan dari promo lama.
     $card = collect($this->get('/properti')->inertiaProps('clusters.data'))->firstWhere('name', 'IZZI');
-    expect($card['badge'])->toBe('Baru');
+    expect($card['badges'])->toBe(['Baru']);
 });
 
 it('bisa mengurutkan tabel cluster admin berdasarkan tanggal launching dan menghubungkan promo ke kawasan', function () {
