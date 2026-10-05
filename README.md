@@ -436,34 +436,21 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 --disable-notifications`: `import:bsd-data … --fresh --force --no-interaction` hanya di import pertama, setelah itu
    tanpa `--fresh`; `import:bsd-update … --force --no-interaction`. Keduanya tidak pernah bertanya dengan `--force`.
 6. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
-7. **Queue tanpa Supervisor (cara bawaan):** scheduler menyalakan `queue:work --stop-when-empty` tiap menit
-   (`routes/console.php`), jadi cukup cron `schedule:run` di langkah 9: konversi foto WebP/AVIF
-   diproses paling lambat ±1 menit setelah upload/submit. Script deploy mengecek cron ini dan menampilkan
-   peringatan di ringkasan GitHub Actions kalau belum terpasang.
-
-    Opsional, SSR dan/atau queue worker yang hidup terus pakai **Supervisor** (worker Supervisor aman berdampingan
-    dengan worker dari scheduler). Contoh `/etc/supervisor/conf.d/arunika.conf`:
-
-    ```ini
-    [program:arunika-ssr]
-    command=php /var/www/arunika/artisan inertia:start-ssr
-    autostart=true
-    autorestart=true
-    user=www-data
-    redirect_stderr=true
-    stdout_logfile=/var/www/arunika/storage/logs/ssr.log
-
-    [program:arunika-queue]
-    command=php /var/www/arunika/artisan queue:work --sleep=3 --tries=3 --max-time=3600
-    autostart=true
-    autorestart=true
-    user=www-data
-    redirect_stderr=true
-    stdout_logfile=/var/www/arunika/storage/logs/queue.log
-    ```
-
-    Setelah deploy ulang: `php artisan inertia:stop-ssr` (Supervisor menyalakannya lagi dengan
-    bundle baru) dan `php artisan queue:restart`.
+7. **Cron, queue, dan SSR dipasang otomatis oleh script deploy** (tanpa SSH manual, idempotent, hanya menyentuh
+   milik aplikasi ini):
+    - `scripts/server/ensure-cron.sh`: menambahkan baris cron `schedule:run` untuk folder aplikasi ini kalau belum
+      ada. Baris cron aplikasi lain tidak diubah. Scheduler menyalakan `queue:work --stop-when-empty` tiap menit
+      (konversi foto WebP/AVIF), plus sitemap & backup. Saat deploy, job yang tertunda diproses sekali
+      (`queue:work --force`, karena aplikasi masih maintenance).
+    - `scripts/server/ensure-ssr.sh`: server SSR Inertia (`127.0.0.1:13714`) lewat **Supervisor** kalau ada atau bisa
+      dipasang (root / sudo tanpa password), dengan program `ssr-<nama-folder>` di
+      `/etc/supervisor/conf.d/ssr-<nama-folder>.conf` (autostart, autorestart). Tanpa root: cron `@reboot` + penjaga
+      tiap menit (`scripts/server/ssr-watchdog.sh`). Setiap deploy SSR di-restart dengan bundle baru. Kalau port
+      dipakai aplikasi lain, prosesnya tidak disentuh dan deploy memberi peringatan (ganti port lewat
+      `INERTIA_SSR_URL` di `.env` + `INERTIA_SSR_PORT` saat build).
+    - Di akhir deploy: `php artisan ssr:check /properti` (HTML harus dirender server dan berisi H1) dan cek heartbeat
+      scheduler; hasilnya tampil sebagai notice/peringatan di ringkasan GitHub Actions.
+    - Halaman yang gagal dirender server tidak disimpan di cache halaman.
 
 8. **nginx** (HTTP/2, kompresi, cache aset). Contoh di dalam blok `server { listen 443 ssl http2; … }`:
 
@@ -490,7 +477,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     Di belakang Cloudflare: aktifkan Brotli, HTTP/3, "Always Use HTTPS"; jangan cache HTML di edge tanpa
     aturan bypass cookie (halaman sudah di-cache di aplikasi).
 
-9. Scheduler (**wajib**, 1 baris crontab untuk user yang menjalankan aplikasi, `crontab -e`):
-   `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
-   (queue worker tiap menit, `sitemap:refresh` 03.00, backup 01.30, pembersihan & monitor backup)
+9. Scheduler: baris crontab `* * * * * cd <folder aplikasi> && php artisan schedule:run >> /dev/null 2>&1` dipasang
+   otomatis oleh deploy (langkah 7). Isinya: queue worker tiap menit, `sitemap:refresh` 03.00, backup 01.30,
+   pembersihan & monitor backup.
 10. Setup SSL (Let's Encrypt) + HTTPS redirect.

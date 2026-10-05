@@ -43,7 +43,7 @@ class CachePublicPages
 
         $response = $next($request);
 
-        if ($response->getStatusCode() === 200 && str_contains((string) $response->headers->get('Content-Type'), 'text/html') && ! $response->headers->getCookies()) {
+        if ($response->getStatusCode() === 200 && str_contains((string) $response->headers->get('Content-Type'), 'text/html') && ! $response->headers->getCookies() && self::renderedOnServer((string) $response->getContent())) {
             PageCache::store()->put($key, [
                 'content' => $response->getContent(),
                 'nonce' => Vite::cspNonce(),
@@ -57,6 +57,15 @@ class CachePublicPages
         }
 
         return $response;
+    }
+
+    /**
+     * Halaman yang gagal dirender server (SSR mati / sedang restart) tidak di-cache, supaya versi
+     * "div kosong" tidak tertahan di cache setelah SSR hidup lagi.
+     */
+    public static function renderedOnServer(string $html): bool
+    {
+        return ! config('inertia.ssr.enabled') || ! str_contains($html, 'id="app"') || str_contains($html, 'data-server-rendered="true"');
     }
 
     private function cacheable(Request $request): bool

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CachePublicPages;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Article;
 use App\Models\Cluster;
@@ -92,8 +93,19 @@ it('membuat varian untuk gambar yang diunggah lewat settings halaman', function 
 
 describe('cache halaman publik', function () {
     beforeEach(function () {
-        config(['site.page_cache.enabled' => true]);
+        // SSR dimatikan supaya hasil test sama dengan atau tanpa server SSR (lihat test SSR di bawah).
+        config(['site.page_cache.enabled' => true, 'inertia.ssr.enabled' => false]);
         PageCache::flush();
+    });
+
+    it('tidak meng-cache halaman yang gagal dirender server (SSR mati)', function () {
+        config(['inertia.ssr.enabled' => true, 'inertia.ssr.url' => 'http://127.0.0.1:1']);
+
+        $this->get('/properti')->assertOk()->assertHeaderMissing('X-Page-Cache');
+        $this->get('/properti')->assertOk()->assertHeaderMissing('X-Page-Cache');
+
+        expect(CachePublicPages::renderedOnServer('<div id="app" data-page="{}"></div>'))->toBeFalse()
+            ->and(CachePublicPages::renderedOnServer('<div data-server-rendered="true" id="app"><h1>Properti</h1></div>'))->toBeTrue();
     });
 
     it('menyimpan HTML tamu dan dibuang saat konten berubah', function () {

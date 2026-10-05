@@ -40,6 +40,19 @@ Schedule::command('queue:work', [
 Schedule::call(fn () => Storage::disk('local')->put('scheduler-heartbeat', now()->toIso8601String()))
     ->name('scheduler-heartbeat')->everyMinute();
 
+Artisan::command('ops:queue-status', function () {
+    $oldest = DB::table('jobs')->min('created_at');
+    $heartbeat = Storage::disk('local')->exists('scheduler-heartbeat') ? Storage::disk('local')->get('scheduler-heartbeat') : 'belum ada';
+
+    $this->line(sprintf(
+        '%d job antre (tertua: %s), %d job gagal; heartbeat scheduler: %s',
+        DB::table('jobs')->count(),
+        $oldest ? date('Y-m-d H:i', (int) $oldest) : '-',
+        DB::table('failed_jobs')->count(),
+        $heartbeat,
+    ));
+})->purpose('Ringkasan antrean (jumlah job, job gagal, heartbeat scheduler) untuk laporan deploy');
+
 Artisan::command('images:variants', function () {
     // Settings halaman: varian di storage/app/public/_variants.
     $paths = collect(DB::table('settings')->pluck('payload'))

@@ -46,7 +46,7 @@ it('tidak memasang CSP di admin (Filament butuh Alpine/Livewire)', function () {
 });
 
 it('memakai nonce baru untuk halaman dari cache', function () {
-    config(['site.page_cache.enabled' => true]);
+    config(['site.page_cache.enabled' => true, 'inertia.ssr.enabled' => false]);
     PageCache::flush();
 
     $first = $this->get('/fasilitas')->assertHeader('X-Page-Cache', 'MISS');

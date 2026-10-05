@@ -503,6 +503,27 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 
 Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entry + import statis + chunk halaman), sama untuk kedua build. Field/menu dihitung dengan skrip audit yang sama.
 
+**Cron, queue, dan SSR otomatis lewat deploy** (permintaan pemilik 5 Okt 2026; tidak ada akses SSH manual)
+
+- **Cron** (`scripts/server/ensure-cron.sh`):
+  - Baris `* * * * * cd <folder aplikasi> && php artisan schedule:run …` ditambahkan kalau belum ada. Crontab lama dibaca lalu ditambah di bawahnya; baris lain, termasuk milik aplikasi `craxionstudio`, tidak diubah.
+  - Saat deploy, job yang tertunda diproses sekali dengan `queue:work --force --stop-when-empty`. `--force` diperlukan karena tanpa itu worker langsung berhenti selama maintenance mode (ditemukan saat simulasi).
+- **SSR** (`scripts/server/ensure-ssr.sh`):
+  - **Supervisor** kalau ada atau bisa dipasang (root / sudo tanpa password): program `ssr-<nama-folder>`, autostart + autorestart, di-restart setiap deploy.
+  - Tanpa root: cron `@reboot` + penjaga tiap menit (`scripts/server/ssr-watchdog.sh`, `setsid nohup`, `flock`).
+  - Server SSR sekarang hanya mendengarkan `127.0.0.1` (sebelumnya `0.0.0.0`). Port bisa diganti lewat `INERTIA_SSR_PORT` / `INERTIA_SSR_URL`.
+  - Kalau port SSR dipakai proses aplikasi lain (dicek lewat folder kerja proses), proses itu tidak dihentikan dan deploy memberi peringatan.
+- **Cek akhir deploy:**
+  - `php artisan ssr:check /properti` (baru) merender halaman lewat kernel aplikasi tanpa cache, lalu memastikan ada `data-server-rendered` dan H1. Kalau gagal, muncul peringatan "SSR GAGAL" di ringkasan Actions.
+  - Heartbeat scheduler ditunggu paling lama 75 detik sebagai bukti cron jalan.
+  - `php artisan ops:queue-status` (baru) dipakai untuk laporan antrean.
+- **Cache halaman:** HTML yang gagal dirender server tidak lagi disimpan, supaya versi "div kosong" tidak tertahan setelah SSR hidup lagi.
+- **Diuji di container:**
+  - Jalur tanpa root (user biasa + cron daemon): cron ditambah sekali, baris aplikasi lain utuh, 4 job diproses, SSR hidup lagi setelah proses dibunuh, port milik proses lain tidak disentuh.
+  - Jalur Supervisor (root): pemasangan otomatis, konfigurasi ditulis sekali, restart per deploy, autorestart setelah crash.
+  - Simulasi langkah 9–12 deploy berakhir dengan notice SSR OK dan heartbeat.
+- **Test:** `tests/Feature/ServerOpsTest.php` (ssr:check gagal/lolos, ops:queue-status, jadwal scheduler) dan test cache halaman tanpa SSR.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

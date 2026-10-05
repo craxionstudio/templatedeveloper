@@ -17,9 +17,9 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 - [ ] `php artisan storage:link` dan `php artisan optimize`.
 - [ ] `npm ci && npm run build` (aset + bundle SSR).
 - [ ] **MAIL_*** diisi (SMTP / layanan email) dan `MAIL_FROM_ADDRESS` memakai domain sendiri. Dipakai untuk email notifikasi backup gagal.
-- [ ] **Queue worker**: dijalankan scheduler tiap menit (`queue:work --stop-when-empty`), cukup cron di bawah. Supervisor opsional. Tanpa worker: foto tidak dibuatkan versi AVIF/WebP. Cek di ringkasan deploy GitHub Actions ("Queue & scheduler").
-- [ ] **SSR** jalan terus lewat Supervisor (`php artisan inertia:start-ssr`). Cek: `curl -s https://domain/ | grep "<h1"` harus mengembalikan judul.
-- [ ] **Scheduler cron:** `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`. Isinya: queue worker tiap menit, sitemap harian, backup harian 01.30, pembersihan backup, dan monitor backup.
+- [ ] **Queue worker**: dijalankan scheduler tiap menit (`queue:work --stop-when-empty`). Cron-nya dipasang otomatis oleh deploy. Cek ringkasan deploy GitHub Actions: notice "Queue" (job sebelum/sesudah) dan "Cron" (heartbeat scheduler).
+- [ ] **SSR** dipasang otomatis oleh deploy (Supervisor, atau penjaga cron tanpa root). Cek ringkasan deploy: notice "SSR OK /properti". Cek manual: `curl -s https://domain/properti | grep "<h1"` harus mengembalikan judul.
+- [ ] **Scheduler cron** dipasang otomatis oleh deploy (`scripts/server/ensure-cron.sh`): `* * * * * cd <folder aplikasi> && php artisan schedule:run >> /dev/null 2>&1`. Isinya: queue worker tiap menit, sitemap harian, backup harian 01.30, pembersihan backup, dan monitor backup.
 - [ ] **Backup:** `mysqldump` tersedia di server dan `BACKUP_NOTIFICATION_EMAIL` diisi.
 - [ ] **`mysqldump` terpasang di server** (paket `mysql-client` atau `mariadb-client`): dipakai `php artisan backup:run --only-db --disable-notifications`, yang juga dijalankan script deploy sebelum setiap import data. Tes sekali: perintah itu harus berakhir dengan "Backup completed!" dan `php artisan backup:list` menampilkan file barunya.
 - [ ] **Backup di luar server** (wajib: kalau server rusak, backup `local` ikut hilang). Pilihan murah yang kompatibel S3 (driver `s3` sudah terpasang):

@@ -36,7 +36,14 @@ export default defineConfig({
                 }),
             ],
         }),
-        inertia(),
+        inertia({
+            // Server SSR hanya untuk aplikasi ini (localhost), tidak terbuka ke publik. Port bisa diganti
+            // saat build (INERTIA_SSR_PORT) kalau bentrok dengan aplikasi lain; samakan INERTIA_SSR_URL di .env.
+            ssr: {
+                host: '127.0.0.1',
+                port: Number(process.env.INERTIA_SSR_PORT ?? 13714),
+            },
+        }),
         react(),
         babel({
             presets: [reactCompilerPreset()],
