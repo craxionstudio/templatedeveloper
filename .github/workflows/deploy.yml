@@ -148,6 +148,7 @@ jobs:
             SITE_STATUS=$(php artisan ops:site-status 2>&1) || true
             echo "$SITE_STATUS"
             echo "::notice title=Status server::$(printf '%s' "$SITE_STATUS" | sed ':a;N;$!ba;s/\n/%0A/g')"
+            printf '%s' "$SITE_STATUS" | grep -q "Nomor WhatsApp: KOSONG" && echo "::warning title=Nomor WhatsApp kosong::Semua tombol WhatsApp membuka wa.me tanpa nomor. Isi nomor di Admin → Pengaturan Umum → WhatsApp." || echo "Nomor WhatsApp OK"
             # Selama SITE_INDEXABLE=false beranda WAJIB noindex.
             printf '%s' "$SITE_STATUS" | grep -q "SITE_INDEXABLE: true" || { printf '%s' "$SITE_STATUS" | grep -q "X-Robots-Tag: noindex" && echo "Noindex OK" || echo "::error title=Noindex hilang::SITE_INDEXABLE=false tetapi beranda tidak mengirim X-Robots-Tag noindex."; }
             # Bukti cron berjalan: heartbeat scheduler ditulis tiap menit. Tunggu paling lama 75 detik.

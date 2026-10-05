@@ -51,7 +51,7 @@ class Cluster extends Model implements HasMedia
     protected $fillable = [
         'kawasan_id', 'name', 'slug', 'building_type', 'property_type', 'summary', 'description', 'address',
         'badge', 'status', 'booking_fee', 'price_note', 'installment_note', 'booking_fee_note', 'specifications',
-        'legality', 'video_url', 'tour_360_url', 'marketing_name', 'marketing_title', 'marketing_whatsapp',
+        'legality', 'video_url', 'tour_360_url', 'marketing_name', 'marketing_title',
         'is_featured', 'sort_order', 'is_published', 'published_at',
         'facilities', 'launch_year', 'tanggal_launching', 'prioritas', 'catatan_internal', 'perlu_dilengkapi',
     ];

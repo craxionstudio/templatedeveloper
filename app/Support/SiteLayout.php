@@ -15,6 +15,12 @@ use Throwable;
 class SiteLayout
 {
     /**
+     * Penanda link WhatsApp umum di data layout yang di-cache. Diganti per request dengan link wa.me
+     * berisi {judul_halaman}/{link_halaman} halaman yang sedang dibuka (lihat data()).
+     */
+    private const WHATSAPP = '__whatsapp_url__';
+
+    /**
      * @return array<string, mixed>
      */
     public static function data(): array
@@ -22,14 +28,25 @@ class SiteLayout
         // Sama untuk semua pengunjung; di-cache per versi konten (dibuang saat konten/settings berubah).
         // Cache gagal (izin file, store mati) = susun langsung, bukan error 500.
         try {
-            return PageCache::store()->remember(
-                'site-layout:'.PageCache::store()->get(PageCache::VERSION_KEY, 0),
+            $layout = PageCache::store()->remember(
+                // "v2": format dengan penanda link WhatsApp; cache format lama tidak dipakai lagi.
+                'site-layout:v2:'.PageCache::store()->get(PageCache::VERSION_KEY, 0),
                 3600,
                 fn (): array => self::build(),
             );
         } catch (Throwable) {
-            return self::build();
+            $layout = self::build();
         }
+
+        // Dipanggil saat respons dirender (shared prop lazy), jadi judul halaman sudah diketahui.
+        $whatsappUrl = WhatsApp::url();
+        array_walk_recursive($layout, function (mixed &$value) use ($whatsappUrl): void {
+            if ($value === self::WHATSAPP) {
+                $value = $whatsappUrl;
+            }
+        });
+
+        return $layout;
     }
 
     /**
@@ -43,9 +60,9 @@ class SiteLayout
         $header = $global->section('header');
         $footer = $global->section('footer');
 
-        $whatsappUrl = WhatsApp::url();
-        // Halaman Kontak dihapus: menu "Kontak" (header, drawer, footer) langsung membuka WhatsApp.
-        $contactLink = ['label' => 'Kontak', 'url' => $whatsappUrl, 'new_tab' => str_starts_with($whatsappUrl, 'https://'), 'position' => 'menu_kontak'];
+        $whatsappUrl = self::WHATSAPP;
+        // Halaman Kontak dihapus: menu "Kontak" (header, drawer, footer) langsung membuka WhatsApp di tab baru.
+        $contactLink = ['label' => 'Kontak', 'url' => $whatsappUrl, 'new_tab' => true, 'position' => 'menu_kontak'];
 
         return [
             'brand' => [
@@ -147,7 +164,7 @@ class SiteLayout
         return [
             'address' => ($address = $filled('office_address')) ? ['value' => $address, 'url' => null] : null,
             'phone' => $phone ? ['value' => $phone, 'url' => self::telUrl($phone)] : null,
-            'whatsapp' => $whatsapp ? ['value' => self::displayPhone($whatsapp), 'url' => WhatsApp::url()] : null,
+            'whatsapp' => $whatsapp ? ['value' => self::displayPhone($whatsapp), 'url' => self::WHATSAPP] : null,
             'email' => $email ? ['value' => $email, 'url' => filter_var($email, FILTER_VALIDATE_EMAIL) ? 'mailto:'.$email : null] : null,
             'hours' => ($hours = $filled('opening_hours')) ? ['value' => $hours, 'url' => null] : null,
             'maps' => $maps && filter_var($maps, FILTER_VALIDATE_URL) ? ['value' => 'Lihat di Google Maps', 'url' => $maps] : null,
@@ -177,26 +194,6 @@ class SiteLayout
     private static function isContactPage(string $url): bool
     {
         return (bool) preg_match('#^(https?://[^/]+)?/kontak/?(\?.*|\#.*)?$#', trim($url));
-    }
-
-    /**
-     * Nomor WA Indonesia dinormalisasi ke 62…; null bila nomor belum diisi.
-     */
-    public static function whatsappUrl(?string $number, ?string $message = null): ?string
-    {
-        $digits = preg_replace('/\D+/', '', (string) $number);
-
-        if ($digits === '') {
-            return null;
-        }
-
-        if (str_starts_with($digits, '0')) {
-            $digits = '62'.substr($digits, 1);
-        }
-
-        $url = 'https://wa.me/'.$digits;
-
-        return filled($message) ? $url.'?text='.rawurlencode($message) : $url;
     }
 
     /**

@@ -406,7 +406,7 @@ export type ContactCardData = {
 
 /**
  * Kartu marketing dengan dua tombol WhatsApp: info harga & brosur, dan jadwal survey.
- * Nomor: WA cluster, kalau kosong nomor global (server).
+ * Nomor: nomor WA global di Pengaturan Umum (server).
  */
 export function ContactCard({
     marketing,

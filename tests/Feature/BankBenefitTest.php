@@ -76,8 +76,10 @@ it('mengisi Bank Benefit awal per kategori secara idempotent tanpa menimpa ubaha
 it('menampilkan section Promo & Benefit di Detail Rumah, dikelompokkan per kategori, dengan tombol WA', function () {
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page->where('benefits', null));
 
-    $cluster = giveBenefits('vega-garden', ['diskon' => 'Diskon hingga 13%', 'free-kitchen-set' => null, 'tanpa-dp' => null]);
-    $cluster->update(['marketing_whatsapp' => '081234567890']);
+    giveBenefits('vega-garden', ['diskon' => 'Diskon hingga 13%', 'free-kitchen-set' => null, 'tanpa-dp' => null]);
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact, 'whatsapp' => '081234567890'];
+    $global->save();
 
     $this->get('/properti/vega-garden')->assertOk()->assertInertia(fn (Assert $page) => $page
         ->where('benefits.title', 'Promo & Benefit')
@@ -88,10 +90,10 @@ it('menampilkan section Promo & Benefit di Detail Rumah, dikelompokkan per kateg
         ])
         ->where('benefits.disclaimer', '*Syarat dan ketentuan berlaku dan dapat berubah sewaktu-waktu.')
         ->where('benefits.buttonLabel', 'Dapatkan informasi lengkapnya via WhatsApp')
-        ->where('benefits.whatsappUrl', 'https://wa.me/6281234567890?text='.rawurlencode('Halo, saya tertarik dengan promo di Vega Garden. Boleh minta informasi lengkapnya?')));
+        ->where('benefits.whatsappUrl', 'https://wa.me/6281234567890?text='.rawurlencode("Halo, saya tertarik dengan promo di Vega Garden. Boleh minta informasi lengkapnya?\n".url('/properti/vega-garden'))));
 });
 
-it('memakai nomor WA global kalau cluster tidak punya, dan menyembunyikan benefit nonaktif', function () {
+it('memakai nomor WA global dan menyembunyikan benefit nonaktif', function () {
     $global = app(GlobalSettings::class);
     $global->contact = [...$global->contact, 'whatsapp' => '0811111111'];
     $global->save();

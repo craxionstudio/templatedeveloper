@@ -63,17 +63,19 @@ Parameter `cluster` hanya terisi di tombol yang berkaitan dengan cluster tertent
 
 ## WhatsApp
 
-- **Nomor:** nomor WA cluster (form Cluster → Marketing) kalau diisi. Kalau kosong, nomor global di Pengaturan Umum. Kalau nomor global juga kosong, tombol diarahkan ke info kontak di footer (`#info-kontak`).
-- **Template pesan** (Pengaturan Umum, placeholder `{nama_cluster}`):
+- **Nomor:** satu nomor WA global di Pengaturan Umum (wajib diisi) untuk semua tombol. Tidak ada nomor per cluster.
+- **Link:** selalu `https://wa.me/{nomor}?text={pesan}`, pesan di-URL-encode (spasi `%20`, baris baru `%0A`).
+- **Template pesan** (Pengaturan Umum; contoh hasil tampil di bawah tiap field). Baris kedua = `{link_halaman}`:
 
 | Konteks | Bawaan |
 | --- | --- |
-| Detail cluster | Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya? |
-| Section Promo & Benefit | Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya? |
-| Tombol jadwal survey | Halo, saya ingin jadwalkan survey ke {nama_cluster}. |
-| Menu Kontak, tombol melayang, header / global | Halo, saya ingin konsultasi rumah di BSD City. |
+| Detail cluster (tombol utama & tombol melayang di Detail Rumah) | Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?↵{link_halaman} |
+| Section Promo & Benefit | Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?↵{link_halaman} |
+| Tombol jadwal survey | Halo, saya ingin jadwalkan survey ke {nama_cluster}.↵{link_halaman} |
+| Halaman kawasan (CTA & tombol melayang di Detail Kawasan) | Halo, saya ingin tahu cluster di kawasan {nama_kawasan}.↵{link_halaman} |
+| Tombol melayang & menu Kontak (halaman lain), header, footer | Halo, saya ingin konsultasi rumah di BSD City.↵{link_halaman} |
 
-Di luar Detail Rumah, `{nama_cluster}` diisi nama brand ("BSD City").
+Placeholder: `{nama_cluster}` (di luar Detail Rumah: nama brand), `{nama_kawasan}` (di Detail Rumah: kawasan cluster; di halaman lain: nama brand), `{judul_halaman}` (title halaman), `{link_halaman}` (APP_URL + path halaman yang sedang dibuka, tanpa query string). Kalau placeholder tidak ada di template, nilainya tidak ditambahkan.
 
 ## Content-Security-Policy
 

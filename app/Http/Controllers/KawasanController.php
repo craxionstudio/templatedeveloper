@@ -17,6 +17,7 @@ use App\Support\PageMeta;
 use App\Support\RichText;
 use App\Support\Rupiah;
 use App\Support\StructuredData;
+use App\Support\WhatsApp;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -118,7 +119,9 @@ class KawasanController extends Controller
                 'items' => ClusterCard::collection($clusters),
             ] : null,
             'others' => $this->others($kawasan, $others),
-            'cta' => Cta::resolve($settings->section('cta')),
+            'cta' => Cta::resolve($settings->section('cta'), kawasan: $kawasan),
+            // Tombol WhatsApp melayang di Detail Kawasan memakai template kawasan.
+            'floatingWhatsappUrl' => WhatsApp::url(WhatsApp::KAWASAN, kawasan: $kawasan),
         ]);
     }
 

@@ -5,9 +5,12 @@ namespace App\Filament\Pages\Settings;
 use App\Filament\Forms\Fields;
 use App\Settings\GlobalSettings;
 use App\Support\Indexing;
+use App\Support\StructuredData;
+use App\Support\WhatsApp;
 use BackedEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -16,6 +19,7 @@ use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\HtmlString;
 
 /**
  * Pengaturan Umum: nomor & template pesan WhatsApp, kontak, logo, GA4, dan verifikasi Search Console.
@@ -41,22 +45,22 @@ class ManageGlobalSettings extends PageSettingsPage
     {
         return $schema->columns(1)->components([
             Section::make('WhatsApp')->schema([
-                TextInput::make('contact.whatsapp')->label('Nomor WhatsApp (62…)')->tel()->regex('/^62\d{8,13}$/')
+                TextInput::make('contact.whatsapp')->label('Nomor WhatsApp (62…)')->tel()->required()->regex('/^62\d{8,13}$/')
                     ->placeholder('6281234567890')
-                    ->validationMessages(['regex' => 'Format nomor: 62 diikuti 8–13 digit, tanpa spasi.'])
-                    ->helperText('Nomor global. Cluster yang punya nomor WA sendiri (form Cluster → Marketing) memakai nomornya sendiri. Kosong = tombol WhatsApp diarahkan ke info kontak di footer.'),
+                    ->validationMessages([
+                        'required' => 'Nomor WhatsApp wajib diisi: semua tombol WhatsApp di website memakai nomor ini.',
+                        'regex' => 'Format nomor: 62 diikuti 8–13 digit, tanpa spasi.',
+                    ])
+                    ->helperText('Satu nomor untuk semua tombol WhatsApp di website (detail cluster, promo, survey, tombol melayang, menu Kontak, footer).'),
                 Section::make('Template pesan otomatis')
-                    ->description('{nama_cluster} diganti nama cluster. Kosong = pakai teks bawaan.')
+                    ->description('Kosong = pakai teks bawaan. Tekan Enter untuk baris baru.')
                     ->compact()
                     ->schema([
-                        Fields::textarea('contact.whatsapp_message', 'Global (menu Kontak, header, tombol melayang, tombol umum)', 2)
-                            ->placeholder('Halo, saya ingin konsultasi rumah di BSD City.'),
-                        Fields::textarea('contact.whatsapp_cluster_message', 'Detail cluster', 2)
-                            ->placeholder('Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?'),
-                        Fields::textarea('contact.whatsapp_promo_message', 'Section Promo & Benefit', 2)
-                            ->placeholder('Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?'),
-                        Fields::textarea('contact.whatsapp_survey_message', 'Tombol jadwal survey', 2)
-                            ->placeholder('Halo, saya ingin jadwalkan survey ke {nama_cluster}.'),
+                        self::template('contact.whatsapp_cluster_message', 'Detail cluster (tombol utama & tombol melayang di Detail Rumah)', 'cluster'),
+                        self::template('contact.whatsapp_promo_message', 'Section Promo & Benefit', 'cluster'),
+                        self::template('contact.whatsapp_survey_message', 'Tombol jadwal survey', 'cluster'),
+                        self::template('contact.whatsapp_kawasan_message', 'Halaman kawasan', 'kawasan'),
+                        self::template('contact.whatsapp_message', 'Tombol melayang & menu Kontak (halaman lain)', 'home'),
                     ]),
             ]),
             Section::make('Kontak')->schema([
@@ -108,6 +112,33 @@ class ManageGlobalSettings extends PageSettingsPage
                 ]),
             ]),
         ]);
+    }
+
+    /**
+     * Field template pesan WhatsApp + daftar placeholder + contoh hasil (ikut berubah saat diketik).
+     *
+     * @param  'cluster'|'kawasan'|'home'  $example  halaman contoh untuk preview
+     */
+    private static function template(string $path, string $label, string $example): Textarea
+    {
+        $key = substr($path, strlen('contact.'));
+
+        return Textarea::make($path)->label($label)->rows(3)
+            ->placeholder(GlobalSettings::defaults()['contact'][$key])
+            ->live(debounce: 600)
+            ->helperText(function (?string $state) use ($key, $example): HtmlString {
+                $template = filled($state) ? $state : GlobalSettings::defaults()['contact'][$key];
+                $values = match ($example) {
+                    'cluster' => ['nama_cluster' => 'Castilo at Terravia', 'nama_kawasan' => 'Terravia', 'judul_halaman' => 'Castilo at Terravia, Rumah 2 lantai | BSD City', 'path' => '/properti/castilo-at-terravia'],
+                    'kawasan' => ['nama_cluster' => 'BSD City', 'nama_kawasan' => 'Greenwich Park', 'judul_halaman' => 'Greenwich Park | BSD City', 'path' => '/properti/kawasan/greenwich-park'],
+                    default => ['nama_cluster' => 'BSD City', 'nama_kawasan' => 'BSD City', 'judul_halaman' => 'Properti BSD City | BSD City', 'path' => '/properti'],
+                };
+                $preview = WhatsApp::render($template, [...$values, 'link_halaman' => StructuredData::url($values['path'])]);
+                $placeholders = collect(WhatsApp::PLACEHOLDERS)->map(fn (string $info, string $tag): string => '<code>'.e($tag).'</code> = '.e($info))->implode('<br>');
+
+                return new HtmlString('Placeholder:<br>'.$placeholders
+                    .'<br><br><strong>Contoh hasil</strong> (halaman '.e($values['path']).'):<br>'.nl2br(e($preview)));
+            });
     }
 
     private static function logo(string $path, string $label): FileUpload

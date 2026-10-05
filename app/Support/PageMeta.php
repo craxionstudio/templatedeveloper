@@ -42,6 +42,8 @@ class PageMeta
         $metaTitle = filled($seo['meta_title'] ?? null)
             ? (string) $seo['meta_title']
             : ($isHome ? PageTitle::home() : PageTitle::make($title));
+        // {judul_halaman} di template pesan WhatsApp = title halaman ini.
+        WhatsApp::setPageTitle($metaTitle);
         $metaDescription = self::description(filled($seo['meta_description'] ?? null) ? $seo['meta_description'] : $description);
         $noindex = $noindex || (bool) ($seo['noindex'] ?? false);
         $canonical = self::canonical($seo['canonical_url'] ?? null);

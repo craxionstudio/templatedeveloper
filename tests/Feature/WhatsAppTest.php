@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\Settings\ManageGlobalSettings;
 use App\Filament\Pages\Settings\ManageOtherPages;
 use App\Models\Benefit;
 use App\Models\Cluster;
@@ -42,17 +43,18 @@ it('memakai template pesan per konteks dengan {nama_cluster}', function () {
     $response = $this->get('/properti/vega-garden')->assertOk();
     $props = $response->inertiaProps();
 
-    expect(waText($props['cluster']['whatsappUrl']))->toBe('Halo, saya tertarik dengan Vega Garden. Boleh minta info harga & brosurnya?')
-        ->and(waText($props['contact']['surveyUrl']))->toBe('Halo, saya ingin jadwalkan survey ke Vega Garden.')
-        ->and(waText($props['cta']['surveyUrl']))->toBe('Halo, saya ingin jadwalkan survey ke Vega Garden.')
+    $link = url('/properti/vega-garden');
+    expect(waText($props['cluster']['whatsappUrl']))->toBe("Halo, saya tertarik dengan Vega Garden. Boleh minta info harga & brosurnya?\n{$link}")
+        ->and(waText($props['contact']['surveyUrl']))->toBe("Halo, saya ingin jadwalkan survey ke Vega Garden.\n{$link}")
+        ->and(waText($props['cta']['surveyUrl']))->toBe("Halo, saya ingin jadwalkan survey ke Vega Garden.\n{$link}")
         ->and($props['cta']['cluster'])->toBe('Vega Garden');
 
     Cluster::where('slug', 'vega-garden')->first()->clusterBenefits()->create(['benefit_id' => Benefit::where('slug', 'tanpa-dp')->value('id'), 'urutan' => 1]);
     expect(waText($this->get('/properti/vega-garden')->inertiaProps('benefits.whatsappUrl')))
-        ->toBe('Halo, saya tertarik dengan promo di Vega Garden. Boleh minta informasi lengkapnya?');
+        ->toBe("Halo, saya tertarik dengan promo di Vega Garden. Boleh minta informasi lengkapnya?\n{$link}");
 
     $this->get('/tentang-kami')->assertInertia(fn (Assert $page) => $page
-        ->where('site.contact.whatsappUrl', fn (string $url) => waText($url) === 'Halo, saya ingin konsultasi rumah di BSD City.'));
+        ->where('site.contact.whatsappUrl', fn (string $url) => waText($url) === "Halo, saya ingin konsultasi rumah di BSD City.\n".url('/tentang-kami')));
 });
 
 it('bisa mengubah template dari Pengaturan Umum', function () {
@@ -64,12 +66,12 @@ it('bisa mengubah template dari Pengaturan Umum', function () {
         ->and(waText(WhatsApp::url()))->toBe('Halo BSD');
 });
 
-it('memakai nomor WA cluster kalau diisi, kalau kosong nomor global', function () {
-    $cluster = Cluster::where('slug', 'vega-garden')->first();
-    $cluster->update(['marketing_whatsapp' => '6289999999999']);
+it('memakai satu nomor WA global untuk semua tombol (nomor per cluster dihapus)', function () {
+    expect(Schema::hasColumn('clusters', 'marketing_whatsapp'))->toBeFalse();
 
-    expect(waNumber($this->get('/properti/vega-garden')->inertiaProps('cluster.whatsappUrl')))->toBe('6289999999999')
-        ->and(waNumber($this->get('/properti/hana-residence')->inertiaProps('cluster.whatsappUrl')))->toBe('6281111111111');
+    $props = $this->get('/properti/vega-garden')->inertiaProps();
+    expect(collect([$props['cluster']['whatsappUrl'], $props['contact']['surveyUrl'], $props['cta']['whatsappUrl'], $props['site']['contact']['whatsappUrl']])
+        ->map(fn (string $url) => waNumber($url))->unique()->all())->toBe(['6281111111111']);
 });
 
 it('tidak lagi punya form lead, Turnstile, endpoint CAPI, atau halaman terima kasih', function () {
@@ -186,19 +188,22 @@ it('membuat menu Kontak di header, drawer, dan footer langsung membuka WhatsApp'
     expect(collect($props['navigation'])->pluck('url'))->not->toContain('/kontak')
         ->and($kontak)->toMatchArray(['label' => 'Kontak', 'new_tab' => true, 'position' => 'menu_kontak'])
         ->and(waNumber($kontak['url']))->toBe('6281111111111')
-        ->and(waText($kontak['url']))->toBe('Halo, saya ingin konsultasi rumah di BSD City.');
+        ->and(waText($kontak['url']))->toBe("Halo, saya ingin konsultasi rumah di BSD City.\n".url('/').'/');
 
     $footerKontak = collect($props['footer']['columns'])->flatMap(fn (array $column) => $column['links'])->firstWhere('label', 'Kontak');
     expect($footerKontak)->toMatchArray(['url' => $kontak['url'], 'new_tab' => true, 'position' => 'menu_kontak']);
 });
 
-it('mengarahkan menu Kontak ke info kontak di footer kalau nomor WhatsApp global kosong', function () {
+it('tetap memakai link wa.me langsung walau nomor WhatsApp global kosong (tanpa anchor)', function () {
     $global = app(GlobalSettings::class);
     $global->contact = [...$global->contact, 'whatsapp' => ''];
     $global->save();
 
-    expect(collect($this->get('/')->inertiaProps('site.navigation'))->last())
-        ->toMatchArray(['label' => 'Kontak', 'url' => '#info-kontak', 'new_tab' => false]);
+    $props = $this->get('/')->inertiaProps('site');
+    expect(collect($props['navigation'])->last())->toMatchArray(['label' => 'Kontak', 'new_tab' => true])
+        ->and(collect($props['navigation'])->last()['url'])->toStartWith('https://wa.me/?text=')
+        ->and($props['contact']['whatsappUrl'])->toStartWith('https://wa.me/?text=')
+        ->and(json_encode($props))->not->toContain('#info-kontak');
 });
 
 it('menampilkan info kontak dari Pengaturan Umum di footer semua halaman', function () {
@@ -257,4 +262,139 @@ it('menghapus pengaturan halaman Kontak dari admin dan database', function () {
     Livewire::test(ManageOtherPages::class)
         ->assertFormFieldDoesNotExist('contact.header.title')
         ->assertFormFieldDoesNotExist('contact.map.embed_url');
+});
+
+/*
+ * Penyederhanaan WhatsApp (6 Okt 2026): satu nomor, selalu link wa.me, template dengan placeholder halaman.
+ */
+
+it('membuat link wa.me dengan pesan ter-URL-encode (spasi %20, baris baru %0A) dan nomor dinormalisasi', function (string $number, string $expected) {
+    expect(WhatsApp::link($number, "Halo & salam, tipe 6.5?\nhttps://contoh.test/properti/a"))
+        ->toBe("https://wa.me/{$expected}?text=Halo%20%26%20salam%2C%20tipe%206.5%3F%0Ahttps%3A%2F%2Fcontoh.test%2Fproperti%2Fa");
+})->with([
+    ['0812-3456-7890', '6281234567890'],
+    ['+62 812 3456 7890', '6281234567890'],
+    ['6281234567890', '6281234567890'],
+]);
+
+it('menyamakan baris baru Windows dari textarea admin jadi %0A', function () {
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact, 'whatsapp_message' => "Baris satu\r\nBaris dua {link_halaman}"];
+    $global->save();
+
+    $url = $this->get('/fasilitas?page=2&utm_source=x')->inertiaProps('site.contact.whatsappUrl');
+
+    expect($url)->toBe('https://wa.me/6281111111111?text=Baris%20satu%0ABaris%20dua%20'.rawurlencode(url('/fasilitas')))
+        ->and($url)->not->toContain('%0D');
+});
+
+it('menghasilkan link wa.me lengkap untuk Detail Rumah dengan {link_halaman} tanpa query string', function () {
+    config(['app.url' => 'https://templatedeveloper.craxionstudio.com']);
+
+    $props = $this->get('/properti/vega-garden?tipe=deneb&utm_source=ig')->inertiaProps();
+    $link = 'https://templatedeveloper.craxionstudio.com/properti/vega-garden';
+
+    expect($props['cluster']['whatsappUrl'])->toBe('https://wa.me/6281111111111?text='
+            .rawurlencode("Halo, saya tertarik dengan Vega Garden. Boleh minta info harga & brosurnya?\n{$link}"))
+        ->and($props['cluster']['whatsappUrl'])->toContain('%0Ahttps%3A%2F%2Ftemplatedeveloper.craxionstudio.com%2Fproperti%2Fvega-garden')
+        ->and(urldecode($props['cluster']['whatsappUrl']))->not->toContain('utm_source')->not->toContain('tipe=');
+});
+
+it('mengisi semua placeholder dan tidak menambah link kalau {link_halaman} tidak ada di template', function () {
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact,
+        'whatsapp_cluster_message' => '{nama_cluster} | {nama_kawasan} | {judul_halaman}',
+        'whatsapp_message' => 'Tanpa link',
+    ];
+    $global->save();
+
+    $props = $this->get('/properti/vega-garden')->inertiaProps();
+
+    expect(waText($props['cluster']['whatsappUrl']))->toBe('Vega Garden | Arunika Garden | '.$props['meta']['title'])
+        ->and(waText($props['site']['contact']['whatsappUrl']))->toBe('Tanpa link');
+});
+
+it('memakai template kawasan di Detail Kawasan (CTA & tombol melayang), template umum untuk menu Kontak', function () {
+    $props = $this->get('/properti/kawasan/arunika-garden')->inertiaProps();
+    $link = url('/properti/kawasan/arunika-garden');
+
+    expect(waText($props['floatingWhatsappUrl']))->toBe("Halo, saya ingin tahu cluster di kawasan Arunika Garden.\n{$link}")
+        ->and(waText($props['cta']['whatsappUrl']))->toBe("Halo, saya ingin tahu cluster di kawasan Arunika Garden.\n{$link}")
+        ->and(waText(collect($props['site']['navigation'])->last()['url']))->toBe("Halo, saya ingin konsultasi rumah di BSD City.\n{$link}");
+});
+
+it('membuat link per halaman walau data layout di-cache', function () {
+    config(['site.page_cache.enabled' => true]);
+
+    $home = $this->get('/')->inertiaProps('site.contact.whatsappUrl');
+    $about = $this->get('/tentang-kami')->inertiaProps('site.contact.whatsappUrl');
+
+    expect(waText($home))->toEndWith(url('/').'/')
+        ->and(waText($about))->toEndWith(url('/tentang-kami'));
+});
+
+it('memperbarui template bawaan lama di database dengan {link_halaman} tanpa menimpa teks admin', function () {
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact,
+        'whatsapp_message' => 'Halo, saya ingin konsultasi rumah di BSD City.',
+        'whatsapp_promo_message' => 'Promo {nama_cluster} versi admin',
+    ];
+    unset($global->contact['whatsapp_kawasan_message']);
+    $global->save();
+
+    (require base_path('database/settings/2026_10_06_200000_whatsapp_templates_with_link.php'))->up();
+
+    $contact = app(GlobalSettings::class)->refresh()->contact;
+    expect($contact['whatsapp_message'])->toBe("Halo, saya ingin konsultasi rumah di BSD City.\n{link_halaman}")
+        ->and($contact['whatsapp_promo_message'])->toBe('Promo {nama_cluster} versi admin')
+        ->and($contact['whatsapp_kawasan_message'])->toBe("Halo, saya ingin tahu cluster di kawasan {nama_kawasan}.\n{link_halaman}");
+});
+
+it('mewajibkan nomor WA global di Pengaturan Umum dan menampilkan placeholder + contoh hasil', function () {
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    Livewire::test(ManageGlobalSettings::class)
+        ->fillForm(['contact.whatsapp' => ''])
+        ->call('save')
+        ->assertHasFormErrors(['contact.whatsapp' => 'required']);
+
+    Livewire::test(ManageGlobalSettings::class)
+        ->fillForm(['contact.whatsapp' => '0812345'])
+        ->call('save')
+        ->assertHasFormErrors(['contact.whatsapp' => 'regex']);
+
+    Livewire::test(ManageGlobalSettings::class)
+        ->assertSee('{judul_halaman}')
+        ->assertSee('Contoh hasil')
+        ->assertSee('Halo, saya ingin tahu cluster di kawasan Greenwich Park.')
+        ->assertSee(url('/properti/castilo-at-terravia'))
+        ->fillForm(['contact.whatsapp_survey_message' => 'Survey {nama_cluster} yuk'])
+        ->assertSee('Survey Castilo at Terravia yuk')
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(GlobalSettings::class)->refresh()->contact['whatsapp_survey_message'])->toBe('Survey {nama_cluster} yuk');
+});
+
+it('memperingatkan di dashboard admin dan laporan deploy kalau nomor WA global kosong', function () {
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+
+    $this->get('/admin')->assertOk()->assertDontSee('Nomor WhatsApp belum diisi');
+    $this->artisan('ops:site-status')->expectsOutputToContain('Nomor WhatsApp: 6281111111111')->assertSuccessful();
+
+    $global = app(GlobalSettings::class);
+    $global->contact = [...$global->contact, 'whatsapp' => ''];
+    $global->save();
+
+    $this->get('/admin')->assertOk()->assertSee('Nomor WhatsApp belum diisi');
+    $this->artisan('ops:site-status')->expectsOutputToContain('Nomor WhatsApp: KOSONG')->assertSuccessful();
+});
+
+it('mencatat klik WhatsApp ke GA4 dengan cluster, posisi_tombol, dan halaman', function () {
+    $js = file_get_contents(resource_path('js/lib/analytics.ts'));
+
+    expect($js)->toContain("'click_whatsapp'")
+        ->toContain('cluster: link.dataset.cluster')
+        ->toContain('posisi_tombol: link.dataset.position')
+        ->toContain('halaman,');
 });

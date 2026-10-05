@@ -601,6 +601,41 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
 - **Catatan migrasi lama:** migrasi rebrand (`2026_09_29_100000`) sekarang melewati settings yang sudah dihapus, supaya tetap bisa dijalankan ulang. `database/settings/defaults/page_contact.php` tetap ada karena dipakai migrasi lama (pola sama dengan Terima Kasih).
 - **Test:** `tests/Feature/WhatsAppTest.php` (+6): 301 & sitemap, menu Kontak WA di header/drawer/footer (tanpa dobel), fallback tanpa nomor, info kontak footer (placeholder disembunyikan, link Maps dari koordinat), JSON-LD di semua halaman, dan settings/field admin Kontak terhapus. Test lama yang membuka `/kontak` disesuaikan.
 
+
+**WhatsApp: satu nomor, link langsung, template dengan link halaman** (permintaan pemilik 6 Okt 2026)
+
+1. **Satu nomor:** semua tombol/link WhatsApp memakai nomor WA global di Pengaturan Umum.
+   - Field "WhatsApp cluster" di form Cluster → Marketing dihapus.
+   - Kolom `clusters.marketing_whatsapp` di-drop lewat migrasi `2026_10_06_200000_drop_marketing_whatsapp_from_clusters`.
+   - Logika fallback nomor cluster → global dihapus.
+2. **Selalu link langsung** `https://wa.me/{nomor}?text={pesan}`:
+   - Pesan di-URL-encode (RFC 3986: spasi `%20`, baris baru `%0A`). Baris baru Windows dari textarea admin disamakan jadi `%0A`.
+   - Fallback `#info-kontak` dihapus. Kalau nomor di database masih kosong, link tetap `https://wa.me/?text=…`.
+   - Menu Kontak, tombol melayang, dan nomor WA di footer selalu dibuka di tab baru.
+3. **Nomor wajib:**
+   - Di Pengaturan Umum nomor tidak bisa disimpan kosong, dengan validasi format `62` + 8–13 digit.
+   - Selama nomor di database kosong, dashboard admin menampilkan peringatan "Nomor WhatsApp belum diisi" (widget `WhatsappNumberWarning`).
+   - Ringkasan deploy GitHub Actions memberi `::warning` "Nomor WhatsApp kosong". `ops:site-status` sekarang punya baris "Nomor WhatsApp".
+4. **Template pesan** (Pengaturan Umum, satu per konteks). Bawaan baru, baris kedua `{link_halaman}`:
+   - **Detail cluster:** tombol utama, tab tipe, CTA, dan tombol melayang di Detail Rumah.
+   - **Promo & Benefit.**
+   - **Jadwal survey.**
+   - **Halaman kawasan (baru):** CTA dan tombol melayang di Detail Kawasan.
+   - **Tombol melayang & menu Kontak (halaman lain):** juga header dan footer.
+
+   Placeholder: `{nama_cluster}`, `{nama_kawasan}`, `{judul_halaman}`, `{link_halaman}`. Placeholder lama `{cluster}` tetap didukung.
+   - Di bawah tiap field ada daftar placeholder dan contoh hasil. Contohnya memakai Castilo at Terravia, kawasan Greenwich Park, atau /properti, dan ikut berubah saat template diketik.
+   - Settings migrasi `2026_10_06_200000_whatsapp_templates_with_link` mengganti template yang masih teks bawaan lama dengan bawaan baru dan menambah template kawasan. Teks yang sudah diubah admin tidak ditimpa.
+5. **`{link_halaman}`** = APP_URL + path halaman yang sedang dibuka, tanpa query string (`?tipe=`, `utm_*` dibuang). **`{judul_halaman}`** = title halaman. Placeholder yang tidak dipakai di template tidak menambah apa pun.
+   - Data layout (header, menu, footer) tetap di-cache. Link WhatsApp di dalamnya diisi ulang per halaman saat dirender, jadi tiap halaman membawa link-nya sendiri.
+6. **GA4:** klik tetap tercatat sebagai `click_whatsapp` (parameter `cluster`, `posisi_tombol`, `halaman`). Tidak ada perubahan di `analytics.ts`.
+- **Test** (`WhatsAppTest` +10, `BankBenefitTest`, `SiteLayoutTest` disesuaikan):
+  - Encoding (`&`, `?`, `,`, spasi, `%0A`, `\r\n`) dan normalisasi nomor.
+  - Link Detail Rumah lengkap tanpa query string.
+  - Semua placeholder, dan tanpa link kalau placeholder tidak dipakai.
+  - Template kawasan, dan link per halaman walau layout di-cache.
+  - Migrasi template, nomor wajib di admin, contoh hasil di admin, dan peringatan dashboard/deploy.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

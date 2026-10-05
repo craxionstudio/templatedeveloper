@@ -154,10 +154,9 @@ class ClusterForm
                                         : null),
                             ]),
                         Tab::make('Marketing')->schema([
-                            Text::make('Kosongkan untuk memakai marketing default (Pengaturan → Properti) dan nomor WhatsApp di Pengaturan Umum.'),
+                            Text::make('Kosongkan untuk memakai marketing default (Pengaturan → Properti). Semua tombol WhatsApp memakai nomor WA di Pengaturan Umum.'),
                             Grid::make(2)->schema([
                                 TextInput::make('marketing_name')->label('Nama marketing')->maxLength(80)->placeholder('Rina'),
-                                TextInput::make('marketing_whatsapp')->label('WhatsApp cluster (62…)')->tel()->maxLength(20)->placeholder('6281234567890'),
                             ]),
                         ]),
                         Tab::make('Publikasi')->schema([

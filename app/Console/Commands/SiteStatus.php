@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Support\Indexing;
+use App\Support\WhatsApp;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -52,6 +53,8 @@ class SiteStatus extends Command
             ['Cookie session secure', $secure === null ? 'tidak diatur (SESSION_SECURE_COOKIE kosong): cookie tanpa flag Secure' : ($secure ? 'ya' : 'tidak')],
             ['Cache halaman (tamu)', $pageCache ? 'aktif' : 'mati'],
             ['Content-Security-Policy', config('site.csp.enabled') ? 'aktif' : 'mati'],
+            // Deploy memberi peringatan kalau baris ini KOSONG (semua tombol WA memakai nomor ini).
+            ['Nomor WhatsApp', WhatsApp::hasNumber() ? WhatsApp::number() : 'KOSONG: isi di Admin → Pengaturan Umum → WhatsApp'],
         ];
 
         foreach ($rows as [$label, $value]) {

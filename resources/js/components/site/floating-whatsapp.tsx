@@ -10,25 +10,28 @@ const DESKTOP_AREA = { width: 240 + 16, height: 56 + 32 + 16 };
 /**
  * Tombol WhatsApp melayang di semua halaman, pojok kanan bawah.
  * Mobile & tablet (< 1280px): ikon saja (56px). Desktop: ikon + "Chat via WhatsApp".
- * Di Detail Rumah memakai nomor & template pesan cluster, dan di mobile naik di atas bar harga sticky.
+ * Pesan: template Detail Rumah di detail cluster, template kawasan di Detail Kawasan, selain itu template umum
+ * (nomor selalu nomor global). Di Detail Rumah, dan di mobile naik di atas bar harga sticky.
  *
  * Supaya tidak menutupi tombol lain: di desktop, kalau area tombol menabrak elemen bertanda
  * `data-floating-avoid` (mis. kartu marketing sticky Detail Rumah), tombol mengecil jadi ikon
  * di margin kanan halaman. Footer diberi ruang bawah untuk tombol ini (site-footer.tsx).
  */
 export default function FloatingWhatsapp() {
-    const { site, cluster } = usePage<{
+    const { site, cluster, floatingWhatsappUrl } = usePage<{
         cluster?: { name: string; whatsappUrl: string };
+        floatingWhatsappUrl?: string;
     }>().props;
     const url = usePage().url;
     const onCluster = Boolean(cluster?.whatsappUrl);
-    const href = cluster?.whatsappUrl ?? site.contact.whatsappUrl;
+    const href =
+        cluster?.whatsappUrl ?? floatingWhatsappUrl ?? site.contact.whatsappUrl;
     const compact = useCompactOnDesktop(url);
 
     return (
         <SmartLink
             href={href}
-            newTab={href.startsWith('https://')}
+            newTab
             aria-label="Chat via WhatsApp"
             data-position="floating"
             data-cluster={cluster?.name}

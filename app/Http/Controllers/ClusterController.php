@@ -77,9 +77,6 @@ class ClusterController extends Controller
             'summary' => $cluster->summary,
         ];
 
-        // Nomor WA cluster, kalau kosong nomor global; pesan dari template di Pengaturan Umum.
-        $clusterWhatsappUrl = WhatsApp::url(WhatsApp::CLUSTER, $cluster);
-
         $crumbs = Breadcrumbs::make(array_values(array_filter([
             [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
             $cluster->kawasan ? [$cluster->kawasan->name, $cluster->kawasan->publicPath()] : null,
@@ -87,18 +84,24 @@ class ClusterController extends Controller
         ])));
         $images = $cluster->galleryItems->map(fn (GalleryItem $item) => $item->getFirstMediaUrl('image'))->filter()->values()->all();
 
+        // ?tipe= tidak mengubah canonical (tetap /properti/{slug}).
+        // Meta dulu: judul halaman dipakai placeholder {judul_halaman} di pesan WhatsApp.
+        $meta = PageMeta::make(
+            PageMeta::fill($seoPattern['title_pattern'], $values),
+            PageMeta::fill($seoPattern['description_pattern'], $values) ?: strip_tags((string) $cluster->description),
+            [...($cluster->seo?->toArray() ?? []), 'canonical_url' => $cluster->seo?->canonical_url ?: $cluster->publicPath()],
+            noindex: $preview,
+            image: $images[0] ?? null,
+            section: 'rumah',
+            breadcrumbs: $crumbs,
+            schema: [StructuredData::cluster($cluster, $types, $images)],
+        );
+
+        // Nomor WA global; pesan dari template di Pengaturan Umum.
+        $clusterWhatsappUrl = WhatsApp::url(WhatsApp::CLUSTER, $cluster);
+
         return Inertia::render('Cluster/Show', [
-            // ?tipe= tidak mengubah canonical (tetap /properti/{slug}).
-            'meta' => PageMeta::make(
-                PageMeta::fill($seoPattern['title_pattern'], $values),
-                PageMeta::fill($seoPattern['description_pattern'], $values) ?: strip_tags((string) $cluster->description),
-                [...($cluster->seo?->toArray() ?? []), 'canonical_url' => $cluster->seo?->canonical_url ?: $cluster->publicPath()],
-                noindex: $preview,
-                image: $images[0] ?? null,
-                section: 'rumah',
-                breadcrumbs: $crumbs,
-                schema: [StructuredData::cluster($cluster, $types, $images)],
-            ),
+            'meta' => $meta,
             'preview' => $preview,
             'breadcrumbs' => $crumbs,
             'cluster' => [
@@ -202,7 +205,7 @@ class ClusterController extends Controller
 
     /**
      * Section "Promo & Benefit": benefit aktif cluster, dikelompokkan per kategori (urutan kategori
-     * tetap, urutan benefit dari admin). Tombol WA ke nomor marketing cluster (fallback nomor global).
+     * tetap, urutan benefit dari admin). Tombol WA ke nomor global.
      *
      * @param  array<string, mixed>  $section
      * @return array<string, mixed>|null

@@ -49,7 +49,7 @@ class ManagePropertyPages extends GroupedSettingsPage
                 Fields::textarea('cluster.sections.benefits.disclaimer', 'Syarat & ketentuan Promo & Benefit', 2)->placeholder('*Syarat dan ketentuan berlaku. Hubungi marketing untuk detail promo.'),
                 Fields::text('cluster.pricing.price_note', 'Catatan harga')->placeholder('Harga dapat berubah sewaktu-waktu.'),
                 Fields::text('cluster.form.marketing_name', 'Nama marketing default')->placeholder('Tim Marketing BSD City')
-                    ->helperText('Nomor WhatsApp: nomor cluster (form Cluster → Marketing), kalau kosong nomor di Pengaturan Umum.'),
+                    ->helperText('Nomor WhatsApp: nomor di Pengaturan Umum (satu nomor untuk semua tombol).'),
                 Fields::settingsImageOnly('cluster.form.marketing_photo', 'Foto marketing default')->avatar(),
             ]),
             Fields::advanced([

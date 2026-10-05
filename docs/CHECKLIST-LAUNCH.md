@@ -59,8 +59,7 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 
 ## 3. Kontak & WhatsApp
 
-- [ ] **Nomor WhatsApp** format `62…` di Admin → Pengaturan Umum → WhatsApp. Selama kosong, semua tombol WA dan menu Kontak diarahkan ke info kontak di footer. Cluster dengan marketing sendiri: isi WhatsApp di form Cluster → Marketing. Cek juga 4 template pesan (cluster, promo, survey, global).
-- [ ] Nomor WA marketing per cluster (opsional): Admin → Properti → Cluster → Marketing.
+- [ ] **Nomor WhatsApp** format `62…` di Admin → Pengaturan Umum → WhatsApp. Wajib diisi; satu nomor untuk semua tombol WA (tidak ada nomor per cluster). Selama kosong, dashboard admin dan ringkasan deploy menampilkan peringatan. Cek juga 5 template pesan (cluster, promo, survey, kawasan, umum) beserta contoh hasilnya.
 - [ ] Hotline, telepon, email, alamat kantor pemasaran, dan jam buka (tampil di footer semua halaman & JSON-LD). Teks contoh `[...]` tidak tampil di footer.
 - [ ] Template pesan WA default dan per halaman (Detail Rumah menyebut nama cluster & tipe).
 - [ ] Link Google Maps kantor di Admin → Pengaturan Umum → Kontak (tampil di footer; kosong = tidak tampil).
@@ -106,7 +105,7 @@ Panduan lengkap: `docs/TRACKING.md`.
 
 ## 7. Tes end-to-end
 
-- [ ] Tombol WhatsApp di header, tombol melayang (mobile & desktop), menu Kontak (header, menu mobile, footer), nomor WhatsApp di footer, CTA, kartu marketing, section Promo & Benefit, dan Jadwalkan Survey membuka nomor yang benar (nomor cluster kalau diisi) dengan pesan otomatis yang sesuai.
+- [ ] Tombol WhatsApp di header, tombol melayang (mobile & desktop), menu Kontak (header, menu mobile, footer), nomor WhatsApp di footer, CTA, kartu marketing, section Promo & Benefit, dan Jadwalkan Survey membuka nomor WA global dengan pesan otomatis yang sesuai (termasuk link halaman yang sedang dibuka).
 - [ ] `/terima-kasih` dan `/kontak` diarahkan ke beranda (301).
 - [ ] Buka website di HP sungguhan (Android & iPhone): menu, galeri, tab tipe, filter listing, tombol WhatsApp melayang, peta.
 

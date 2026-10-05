@@ -16,13 +16,15 @@ return [
 
     'contact' => [
         'hotline' => '[NO. HOTLINE]',
-        // Format 62xxxxxxxxxx. Kosong = tombol WA diarahkan ke info kontak di footer.
+        // Format 62xxxxxxxxxx, wajib diisi di Pengaturan Umum. Satu nomor untuk semua tombol WhatsApp.
         'whatsapp' => '',
-        // Template pesan WhatsApp otomatis per konteks. {nama_cluster} = nama cluster.
-        'whatsapp_message' => 'Halo, saya ingin konsultasi rumah di BSD City.',
-        'whatsapp_cluster_message' => 'Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?',
-        'whatsapp_promo_message' => 'Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?',
-        'whatsapp_survey_message' => 'Halo, saya ingin jadwalkan survey ke {nama_cluster}.',
+        // Template pesan WhatsApp per konteks. Placeholder: {nama_cluster}, {nama_kawasan}, {judul_halaman},
+        // {link_halaman} (lihat App\Support\WhatsApp). "\n" = baris baru (%0A di link wa.me).
+        'whatsapp_message' => "Halo, saya ingin konsultasi rumah di BSD City.\n{link_halaman}",
+        'whatsapp_cluster_message' => "Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?\n{link_halaman}",
+        'whatsapp_promo_message' => "Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?\n{link_halaman}",
+        'whatsapp_survey_message' => "Halo, saya ingin jadwalkan survey ke {nama_cluster}.\n{link_halaman}",
+        'whatsapp_kawasan_message' => "Halo, saya ingin tahu cluster di kawasan {nama_kawasan}.\n{link_halaman}",
         'phone' => '[NO. TELEPON]',
         'email' => '[EMAIL]',
         'office_address' => '[ALAMAT KANTOR PEMASARAN]',

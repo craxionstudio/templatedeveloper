@@ -261,8 +261,8 @@ php artisan import:bsd-update docs/data/bsd-city-update-2.json
 - Admin → Cluster: kolom **Kelengkapan** ("Belum lengkap (N)"), filter **Belum lengkap**, dan kolom **Prioritas**
   (1–10, bisa diurutkan).
 
-Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing"/menu Kontak diarahkan ke
-info kontak di footer (`#info-kontak`). Hotline placeholder tampil sebagai teks tanpa link `tel:`.
+Nomor WhatsApp global wajib diisi di Pengaturan Umum. Selama di database masih kosong, tombol WA tetap link
+`https://wa.me/?text=…` (pengunjung memilih kontak sendiri), dan dashboard admin + ringkasan deploy menampilkan peringatan. Hotline placeholder tampil sebagai teks tanpa link `tel:`.
 
 ## Desain
 
@@ -359,9 +359,11 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 ## WhatsApp & Tracking
 
 - **Tanpa form lead** (keputusan 5 Okt 2026): semua ajakan menghubungi membuka WhatsApp dengan pesan otomatis
-  (`App\Support\WhatsApp`). Nomor: nomor WA cluster kalau diisi, kalau kosong nomor global. Template per konteks
-  (detail cluster, promo, jadwal survey, global; placeholder `{nama_cluster}`) di Pengaturan Umum.
-  Tombol WhatsApp melayang di mobile & tablet di semua halaman. `/terima-kasih` diarahkan 301 ke beranda.
+  (`App\Support\WhatsApp`). Satu nomor: nomor WA global di Pengaturan Umum (wajib). Selalu link
+  `https://wa.me/{nomor}?text={pesan}` (URL-encode, baris baru `%0A`). Template per konteks (detail cluster, promo,
+  jadwal survey, halaman kawasan, umum) di Pengaturan Umum dengan placeholder `{nama_cluster}`, `{nama_kawasan}`,
+  `{judul_halaman}`, `{link_halaman}` (URL halaman tanpa query string); di admin ada contoh hasil di bawah tiap field.
+  Tombol WhatsApp melayang di semua halaman (mobile & desktop). `/terima-kasih` diarahkan 301 ke beranda.
 - Tabel `leads` lama diekspor ke `storage/app/backup/leads-{tanggal}.csv` lalu dihapus (migrasi `2026_10_05_200000`).
 - **Analytics:** GA4 langsung lewat `gtag.js` (tanpa GTM, tanpa Meta Pixel/CAPI), hanya kalau Measurement ID diisi.
   Konversi utama `click_whatsapp` (parameter `cluster`, `posisi_tombol`, `halaman`; transport beacon).

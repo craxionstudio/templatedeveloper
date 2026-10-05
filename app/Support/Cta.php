@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Cluster;
+use App\Models\Kawasan;
 use App\Settings\GlobalSettings;
 
 /**
@@ -12,10 +13,11 @@ class Cta
 {
     /**
      * @param  array<string, mixed>  $section  section "cta" dari settings halaman
-     * @param  Cluster|null  $cluster  konteks Detail Rumah (nomor & template pesan cluster)
+     * @param  Cluster|null  $cluster  konteks Detail Rumah (template pesan cluster)
+     * @param  Kawasan|null  $kawasan  konteks Detail Kawasan (template pesan kawasan)
      * @return array<string, mixed>
      */
-    public static function resolve(array $section, ?Cluster $cluster = null): array
+    public static function resolve(array $section, ?Cluster $cluster = null, ?Kawasan $kawasan = null): array
     {
         $cta = app(GlobalSettings::class)->section('cta');
         $useGlobal = (bool) ($section['use_global'] ?? true);
@@ -27,7 +29,11 @@ class Cta
             'title' => $text('title'),
             'description' => $text('description'),
             'whatsappLabel' => $cta['whatsapp_label'],
-            'whatsappUrl' => WhatsApp::url($cluster ? WhatsApp::CLUSTER : WhatsApp::GENERAL, $cluster),
+            'whatsappUrl' => WhatsApp::url(match (true) {
+                $cluster !== null => WhatsApp::CLUSTER,
+                $kawasan !== null => WhatsApp::KAWASAN,
+                default => WhatsApp::GENERAL,
+            }, $cluster, kawasan: $kawasan),
             'surveyLabel' => $cta['visit_label'],
             'surveyUrl' => WhatsApp::url(WhatsApp::SURVEY, $cluster),
             'cluster' => $cluster?->name,

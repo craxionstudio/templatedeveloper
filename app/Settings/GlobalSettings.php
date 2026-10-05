@@ -62,6 +62,7 @@ class GlobalSettings extends PageSettings
             'contact.whatsapp_cluster_message',
             'contact.whatsapp_promo_message',
             'contact.whatsapp_survey_message',
+            'contact.whatsapp_kawasan_message',
             'seo.default_og_image',
         ];
     }

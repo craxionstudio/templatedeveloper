@@ -54,7 +54,7 @@ return [
         // Tombol kartu marketing; pesan WhatsApp dari template di Pengaturan Umum.
         'whatsapp_button_label' => 'Minta info harga via WhatsApp',
         'survey_button_label' => 'Jadwalkan Survey',
-        // Dipakai kalau cluster tidak punya marketing sendiri. Nomor WA: nomor cluster, kalau kosong nomor global.
+        // Dipakai kalau cluster tidak punya marketing sendiri. Nomor WA: nomor global di Pengaturan Umum.
         'marketing_name' => 'Tim Marketing BSD City',
         'marketing_title' => 'Marketing BSD City',
         'marketing_photo' => null,
