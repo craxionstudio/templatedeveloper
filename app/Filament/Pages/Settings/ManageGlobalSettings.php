@@ -4,6 +4,7 @@ namespace App\Filament\Pages\Settings;
 
 use App\Filament\Forms\Fields;
 use App\Settings\GlobalSettings;
+use App\Support\Indexing;
 use BackedEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -11,7 +12,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -81,6 +84,10 @@ class ManageGlobalSettings extends PageSettingsPage
                 ]),
             ]),
             Section::make('Google')->schema([
+                // Info saja (bukan field): diatur lewat SITE_INDEXABLE di .env server, tidak dari admin.
+                Text::make(fn (): string => 'Status indeks: '.Indexing::label())
+                    ->color(fn (): string => Indexing::allowed() ? 'success' : 'warning')
+                    ->weight(FontWeight::SemiBold),
                 TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX')
                     ->regex('/^G-[A-Z0-9]{4,20}$/')
                     ->validationMessages(['regex' => 'Format: G- diikuti huruf/angka, mis. G-AB12CD34EF.'])

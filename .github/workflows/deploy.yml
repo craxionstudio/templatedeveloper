@@ -45,6 +45,13 @@ jobs:
             npm ci
             npm run build
 
+            echo "=== 4b. .env production yang aman (APP_ENV, APP_DEBUG, LOG_LEVEL, DevTools, SITE_INDEXABLE) ==="
+            # Catat dulu apakah APP_URL bisa dijangkau dari server (untuk rollback otomatis di langkah 12).
+            bash scripts/server/verify-env.sh baseline || true
+            ENV_OUT=$(bash scripts/server/ensure-env.sh 2>&1) || echo "::warning title=.env::ensure-env.sh gagal: $ENV_OUT"
+            echo "$ENV_OUT"
+            ENV_BACKUP=$(printf '%s\n' "$ENV_OUT" | sed -n 's/^BACKUP=//p')
+
             echo "=== 5. Menjalankan Migrasi Database ==="
             # Buang cache (config, route, daftar kelas settings) dari rilis sebelumnya dulu: migrasi
             # settings membaca daftar kelas settings, dan kelas yang sudah dihapus membuatnya gagal.
@@ -133,9 +140,16 @@ jobs:
             SSR_RESULT=$(php artisan ssr:check /properti 2>&1) && SSR_OK=1 || SSR_OK=0
             echo "$SSR_RESULT"
             [ "$SSR_OK" = "1" ] && echo "::notice title=SSR::$SSR_RESULT" || echo "::warning title=SSR GAGAL::/properti TIDAK dirender di server (HTML hanya div kosong): $SSR_RESULT. Cek storage/logs/ssr.log dan langkah 10 di log deploy."
-            # APP_ENV selain production = semua halaman dikirim noindex (dan Inertia DevTools aktif).
-            APP_ENV_NOW=$(php artisan env 2>/dev/null | grep -o '\[[a-z]*\]' | tr -d '[]')
-            [ "$APP_ENV_NOW" = "production" ] && echo "APP_ENV: production" || echo "::warning title=APP_ENV bukan production::APP_ENV di server = '$APP_ENV_NOW'. Akibatnya semua halaman dikirim noindex (tidak masuk Google) dan Inertia DevTools aktif. Ubah APP_ENV=production di .env server."
+            # Website dari luar lewat APP_URL; kalau .env baru membuat redirect loop / error -> rollback otomatis.
+            VERIFY_OUT=$(bash scripts/server/verify-env.sh verify "$ENV_BACKUP" 2>&1) && VERIFY_RC=0 || VERIFY_RC=$?
+            echo "$VERIFY_OUT"
+            [ "$VERIFY_RC" = "2" ] && echo "::error title=.env di-rollback::Setelah APP_ENV=production website tidak bisa diakses normal (redirect loop / error), .env dikembalikan dari $ENV_BACKUP. Lihat langkah 12 di log deploy." || true
+            [ "$VERIFY_RC" = "1" ] && echo "::warning title=Cek dari luar::APP_URL tidak bisa dicek dari server, lihat langkah 12 di log deploy." || true
+            SITE_STATUS=$(php artisan ops:site-status 2>&1) || true
+            echo "$SITE_STATUS"
+            echo "::notice title=Status server::$(printf '%s' "$SITE_STATUS" | sed ':a;N;$!ba;s/\n/%0A/g')"
+            # Selama SITE_INDEXABLE=false beranda WAJIB noindex.
+            printf '%s' "$SITE_STATUS" | grep -q "SITE_INDEXABLE: true" || { printf '%s' "$SITE_STATUS" | grep -q "X-Robots-Tag: noindex" && echo "Noindex OK" || echo "::error title=Noindex hilang::SITE_INDEXABLE=false tetapi beranda tidak mengirim X-Robots-Tag noindex."; }
             # Bukti cron berjalan: heartbeat scheduler ditulis tiap menit. Tunggu paling lama 75 detik.
             DEPLOY_TS=$(date +%s)
             HB_OK=0

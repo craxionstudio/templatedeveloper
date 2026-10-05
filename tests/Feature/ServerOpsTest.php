@@ -77,3 +77,18 @@ it('menjalankan worker queue dan heartbeat dari scheduler tiap menit', function 
         ->and($events['queue-worker']->expression)->toBe('* * * * *')
         ->and($events['scheduler-heartbeat']->expression)->toBe('* * * * *');
 });
+
+it('melaporkan environment, indeks, robots, dan perilaku production', function () {
+    app()->detectEnvironment(fn () => 'production');
+    config(['app.debug' => false, 'site.indexable' => false]);
+
+    Artisan::call('ops:site-status');
+
+    expect(Artisan::output())
+        ->toContain('APP_ENV: production')
+        ->toContain('APP_DEBUG: false')
+        ->toContain('SITE_INDEXABLE: false')
+        ->toContain('Beranda: X-Robots-Tag: noindex, nofollow')
+        ->toContain('robots.txt: User-agent: * | Disallow: /')
+        ->toContain('Paksa host & HTTPS (APP_URL): aktif');
+});

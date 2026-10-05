@@ -99,7 +99,8 @@ Panduan lengkap: `docs/TRACKING.md`.
 
 - [ ] **Google Search Console:** tambah properti domain, isi kode verifikasi (meta tag) di Pengaturan Umum → Google, lalu klik Verify.
 - [ ] **Submit sitemap** `https://domain/sitemap.xml` di Search Console (Bing Webmaster Tools bisa impor dari Search Console).
-- [ ] Cek `https://domain/robots.txt`: harus `Allow: /` dengan blok `/admin` dan `/livewire`, plus baris `Sitemap:`. Kalau yang muncul `Disallow: /`, berarti `APP_ENV` belum `production`.
+- [ ] **Domain final siap:** ubah `SITE_INDEXABLE=true` di `.env` server (deploy tidak pernah mengubahnya otomatis), lalu `php artisan config:cache`. Selama `false` semua halaman noindex.
+- [ ] Cek `https://domain/robots.txt`: harus `Allow: /` dengan blok `/admin` dan `/livewire`, plus baris `Sitemap:`. Kalau yang muncul `Disallow: /`, berarti `SITE_INDEXABLE` masih `false`.
 - [ ] Cek satu halaman di **Rich Results Test** / Schema Markup Validator (Beranda, Detail Rumah, Detail Artikel).
 - [ ] Jalankan pemeriksaan SSR semua URL sitemap: `php artisan qa:pages` (harus "0 bermasalah").
 

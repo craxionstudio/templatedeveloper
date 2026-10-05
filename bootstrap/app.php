@@ -3,7 +3,7 @@
 use App\Http\Controllers\NotFoundController;
 use App\Http\Middleware\CachePublicPages;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\NoIndexOutsideProduction;
+use App\Http\Middleware\NoIndexUntilIndexable;
 use App\Http\Middleware\RedirectManager;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\StrictTransportSecurity;
@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Sebelum routing: URL kanonik, trailing slash/kapital, Redirect Manager; noindex di non-production.
         // SecurityHeaders global supaya admin Filament juga dapat header; nonce CSP dibuat sebelum view dirender.
-        $middleware->append([SecurityHeaders::class, StrictTransportSecurity::class, NoIndexOutsideProduction::class, RedirectManager::class]);
+        $middleware->append([SecurityHeaders::class, StrictTransportSecurity::class, NoIndexUntilIndexable::class, RedirectManager::class]);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,

@@ -2,20 +2,22 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Indexing;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Staging/lokal tidak boleh terindeks: header X-Robots-Tag di semua respons (brief 8.2).
+ * Selama website belum boleh diindeks (SITE_INDEXABLE=false: lokal, staging, atau production di domain
+ * sementara): header X-Robots-Tag di semua respons. Tidak bergantung pada APP_ENV.
  */
-class NoIndexOutsideProduction
+class NoIndexUntilIndexable
 {
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
-        if (! app()->isProduction()) {
+        if (! Indexing::allowed()) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         }
 

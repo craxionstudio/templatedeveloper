@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\Settings\ManageGlobalSettings;
 use App\Http\Middleware\RedirectManager;
 use App\Models\Article;
 use App\Models\ArticleCategory;
@@ -19,11 +20,19 @@ beforeEach(function () {
 });
 
 /**
- * Simulasikan production (robots, canonical host, noindex).
+ * Simulasikan production (canonical host, HSTS).
  */
 function asProduction(): void
 {
     app()->detectEnvironment(fn () => 'production');
+}
+
+/**
+ * Simulasikan website yang sudah boleh diindeks (SITE_INDEXABLE=true, domain final).
+ */
+function asIndexable(): void
+{
+    config(['site.indexable' => true]);
 }
 
 it('memasang canonical absolut tanpa query, kecuali pagination', function (string $url, string $canonical) {
@@ -35,8 +44,9 @@ it('memasang canonical absolut tanpa query, kecuali pagination', function (strin
     'pagination self-canonical' => ['/artikel?page=2', '/artikel?page=2'],
 ]);
 
-it('memakai noindex, follow untuk filter & pencarian di production, index untuk halaman biasa', function () {
+it('memakai noindex, follow untuk filter & pencarian kalau boleh diindeks, index untuk halaman biasa', function () {
     asProduction();
+    asIndexable();
 
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'index, follow, max-image-preview:large'));
     $this->get('/properti?kawasan=mandiri')->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, follow'));
@@ -202,10 +212,10 @@ it('memperbarui sitemap otomatis saat konten berubah', function () {
     expect($this->get('/sitemap-properti.xml')->getContent())->not->toContain(url('/properti/orion-park'));
 });
 
-it('membedakan robots.txt production dan non-production', function () {
+it('membedakan robots.txt saat belum dan sudah boleh diindeks', function () {
     $this->get('/robots.txt')->assertOk()->assertSeeText("User-agent: *\nDisallow: /", false);
 
-    asProduction();
+    asIndexable();
     $robots = $this->get('/robots.txt')->assertOk()->getContent();
 
     expect($robots)
@@ -354,4 +364,32 @@ it('menampilkan tombol Pratinjau di form admin artikel, cluster, dan kawasan', f
     $this->get('/admin/clusters/'.Cluster::query()->value('id').'/edit')->assertOk()->assertSee('Pratinjau')->assertSee('/pratinjau/properti/', false);
     $this->get('/admin/kawasans/'.Kawasan::query()->value('id').'/edit')->assertOk()->assertSee('/pratinjau/kawasan/', false);
     $this->get('/admin/articles/'.Article::query()->value('id').'/edit')->assertOk()->assertSee('/pratinjau/artikel/', false);
+});
+
+it('tetap noindex di production selama SITE_INDEXABLE=false (domain sementara)', function () {
+    asProduction();
+    config(['site.indexable' => false]);
+
+    $this->get('/')->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+        ->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, nofollow'));
+    $this->get('/properti/vega-garden')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+
+    $robots = $this->get('/robots.txt')->getContent();
+    expect($robots)->toBe("User-agent: *\nDisallow: /\n")->not->toContain('Sitemap:');
+
+    // SITE_INDEXABLE tidak bergantung pada APP_ENV: non-production yang di-set true juga normal.
+    app()->detectEnvironment(fn () => 'local');
+    asIndexable();
+    $this->get('/')->assertHeaderMissing('X-Robots-Tag');
+});
+
+it('menampilkan status indeks Google di Pengaturan Umum sebagai info', function () {
+    $this->actingAs(User::where('email', 'admin@example.com')->firstOrFail());
+
+    Livewire\Livewire::test(ManageGlobalSettings::class)
+        ->assertSee('Website belum diindeks Google (domain sementara)');
+
+    asIndexable();
+    Livewire\Livewire::test(ManageGlobalSettings::class)
+        ->assertSee('Website boleh diindeks Google');
 });

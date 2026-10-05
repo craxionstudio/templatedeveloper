@@ -531,6 +531,34 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - Deploy kedua: cron terbukti jalan (heartbeat dari cron server). `ssr:check` gagal karena Inertia DevTools aktif di server dan foldernya (`storage/inertia-devtools`, milik user web server) tidak bisa ditulis user deploy. `ssr:check` sekarang mematikan DevTools selama cek.
   - DevTools hanya aktif otomatis di `APP_ENV=local`, jadi deploy sekarang memberi peringatan kalau `APP_ENV` server bukan `production` (kalau bukan production, semua halaman dikirim noindex).
 
+**.env production aman + indeks Google terpisah (SITE_INDEXABLE)** (permintaan pemilik 5 Okt 2026, domain masih sementara)
+
+- **Deploy (`scripts/server/ensure-env.sh`, langkah 4b):**
+  - Mengubah `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=warning` (kalau kosong/debug), dan `INERTIA_DEVTOOLS_ENABLED=false`. Baris yang ada diubah, duplikat dibuang, key lain utuh.
+  - Menambah `SITE_INDEXABLE=false` hanya kalau belum ada; tidak pernah diubah ke `true`.
+  - Kalau ada perubahan: `.env` dibackup ke `.env.backup-{tanggal-jam}` (chmod 600), lalu `optimize:clear` + `config:cache`.
+- **Rollback otomatis (`scripts/server/verify-env.sh`):**
+  - Sebelum perubahan, deploy mencatat apakah `APP_URL` bisa dijangkau dari server.
+  - Setelah `up`, deploy mengecek lagi dari luar. Kalau sebelumnya terjangkau tapi sekarang redirect loop / error, `.env` dikembalikan dari backup. Risiko loop ini ada karena production memaksa skema & host `APP_URL` dan proxy tidak di-trust.
+  - Header beranda dan robots.txt dari luar ikut dilaporkan; nilai cookie disembunyikan.
+- **`SITE_INDEXABLE`** (`config/site.php`, `App\Support\Indexing`), terpisah dari `APP_ENV`:
+  - `false`: `X-Robots-Tag` + meta robots `noindex, nofollow` di semua halaman, robots.txt `Disallow: /` tanpa sitemap.
+  - `true`: normal, plus sitemap.
+  - Middleware `NoIndexOutsideProduction` diganti `NoIndexUntilIndexable`.
+  - Status tampil di Pengaturan Umum → Google sebagai info (bukan field).
+- **Laporan akhir deploy:** `php artisan ops:site-status` (APP_ENV, APP_DEBUG, LOG_LEVEL, DevTools, SITE_INDEXABLE, X-Robots-Tag beranda, robots.txt, paksa HTTPS/host, HSTS, cookie secure, cache halaman, CSP). Deploy memberi error kalau `SITE_INDEXABLE=false` tetapi beranda tidak noindex.
+- **Perilaku yang ikut berubah karena `APP_ENV=production`:**
+  - Paksa skema & host `APP_URL` (301).
+  - HSTS 1 tahun untuk request HTTPS (tanpa includeSubDomains).
+  - Cache halaman tamu aktif.
+  - CSP aktif.
+  - Inertia DevTools mati.
+  - Perintah database destruktif (`migrate:fresh`, `db:wipe`) diblok.
+  - Password admin baru wajib kuat (12+ karakter, huruf besar/kecil, angka, simbol, belum bocor).
+  - Halaman error tanpa detail.
+  - Cookie session belum diberi flag Secure (`SESSION_SECURE_COOKIE` tidak diatur).
+- **Diuji di container:** `.env` kotor (key dobel, tanda kutip, tanpa newline), dua kali jalan (kedua tanpa perubahan), `SITE_INDEXABLE=true` tidak disentuh, rollback saat situs error, dan simulasi langkah 4b + 12 dengan `script_stop`.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

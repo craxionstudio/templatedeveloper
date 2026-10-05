@@ -52,9 +52,9 @@ class PageMeta
             'title' => $metaTitle,
             'description' => $metaDescription,
             'noindex' => $noindex,
-            // Non-production selalu noindex, nofollow (brief 8.2).
+            // Belum boleh diindeks (SITE_INDEXABLE=false, mis. domain sementara) = noindex, nofollow.
             'robots' => match (true) {
-                ! app()->isProduction() => 'noindex, nofollow',
+                ! Indexing::allowed() => 'noindex, nofollow',
                 $noindex => 'noindex, follow',
                 default => 'index, follow, max-image-preview:large',
             },

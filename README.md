@@ -331,7 +331,10 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
   Open Graph + Twitter Card, dan JSON-LD. Cek tanpa JavaScript: `curl -s http://localhost:8000/properti/vega-garden`.
 - **Canonical & robots:** canonical selalu tanpa query (`?tipe=`, filter, urut, pencarian), kecuali pagination
   (`?page=2` self-canonical). Filter/urut/pencarian dan pratinjau = `noindex, follow`.
-  Non-production: `noindex, nofollow` + header `X-Robots-Tag`, dan robots.txt `Disallow: /`.
+  **Indeks Google diatur `SITE_INDEXABLE`** (terpisah dari `APP_ENV`, bawaan `false`): selama `false` semua halaman
+  `noindex, nofollow` + header `X-Robots-Tag` dan robots.txt `Disallow: /` (domain sementara, lokal, staging).
+  Ubah ke `true` di `.env` server hanya saat domain final siap; deploy tidak pernah mengubahnya ke `true`.
+  Statusnya tampil di Pengaturan Umum → Google.
 - **OG image:** gambar dari tab SEO > foto konten (galeri cluster, hero kawasan, cover artikel) > OG default di
   Pengaturan Global → SEO default > gambar default per tipe halaman di `public/og/*.png` (1200×630).
   Gambar bawaan dibuat ulang dengan `npm i --no-save playwright && node scripts/og-images.mjs` (teks di
@@ -343,9 +346,9 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 - **Sitemap:** `/sitemap.xml` (index) → `sitemap-pages.xml`, `sitemap-properti.xml`, `sitemap-artikel.xml`, dengan
   `lastmod` dan image sitemap. Hanya konten yang dipublikasikan dan tidak `noindex`. XML di-cache dan dibuang otomatis
   saat konten/settings berubah; `php artisan sitemap:refresh` jalan harian (scheduler).
-- **robots.txt** dinamis. Production: blok `/admin` dan `/livewire`, cantumkan sitemap. URL
+- **robots.txt** dinamis. `SITE_INDEXABLE=true`: blok `/admin` dan `/livewire`, cantumkan sitemap. URL
   filter/urutan/pencarian **tidak** diblok supaya Google bisa membaca `noindex, follow` + canonical-nya.
-  Non-production: `Disallow: /`. **RSS:** `/artikel/feed.xml` (+ `<link rel="alternate">` di head).
+  `SITE_INDEXABLE=false`: `Disallow: /`. **RSS:** `/artikel/feed.xml` (+ `<link rel="alternate">` di head).
 - **URL & status code** (`App\Http\Middleware\RedirectManager`, sebelum routing): http→https dan www ↔ non-www
   mengikuti `APP_URL` (production), trailing slash & huruf kapital → 301, Redirect Manager (Sistem → Redirect: 301/302/410,
   hit counter), slug lama → 301 otomatis. Konten dihapus → 410, tidak ada → 404 custom (status asli).

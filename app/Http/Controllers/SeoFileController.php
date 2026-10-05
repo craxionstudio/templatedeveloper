@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Settings\ArticleIndexPageSettings;
 use App\Settings\GlobalSettings;
+use App\Support\Indexing;
 use App\Support\PageMeta;
 use App\Support\Sitemaps;
 use App\Support\StructuredData;
@@ -28,14 +29,14 @@ class SeoFileController extends Controller
     }
 
     /**
-     * Production: izinkan crawl, blok /admin dan /livewire. URL filter/urutan/pencarian
+     * Boleh diindeks (SITE_INDEXABLE=true): izinkan crawl, blok /admin dan /livewire. URL filter/urutan/pencarian
      * SENGAJA tidak diblok: Google harus bisa merayapinya untuk membaca meta robots
      * "noindex, follow" + canonical ke versi tanpa query (keputusan pemilik, koreksi brief 8.4).
-     * Non-production: blok semuanya.
+     * Belum boleh diindeks (SITE_INDEXABLE=false): blok semuanya, tanpa sitemap.
      */
     public function robots(): Response
     {
-        if (! app()->isProduction()) {
+        if (! Indexing::allowed()) {
             return $this->text("User-agent: *\nDisallow: /\n");
         }
 
