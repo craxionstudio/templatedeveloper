@@ -528,6 +528,8 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
     - (1) `ssr:check` memakai host `localhost`, sehingga di production dialihkan 301 ke host kanonik. Sekarang memakai `APP_URL`.
     - (2) `script_stop` di ssh-action memeriksa exit code setelah setiap baris, sehingga cabang `else` pada if/else multi-baris menghentikan deploy. Langkah 12 sekarang memakai bentuk satu baris.
   - Kedua jalur (gagal & sukses) sudah diuji dengan simulasi `script_stop`.
+  - Deploy kedua: cron terbukti jalan (heartbeat dari cron server). `ssr:check` gagal karena Inertia DevTools aktif di server dan foldernya (`storage/inertia-devtools`, milik user web server) tidak bisa ditulis user deploy. `ssr:check` sekarang mematikan DevTools selama cek.
+  - DevTools hanya aktif otomatis di `APP_ENV=local`, jadi deploy sekarang memberi peringatan kalau `APP_ENV` server bukan `production` (kalau bukan production, semua halaman dikirim noindex).
 
 ---
 

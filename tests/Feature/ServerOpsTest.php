@@ -3,6 +3,7 @@
 use App\Jobs\GenerateImageVariants;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 /*
@@ -29,6 +30,16 @@ it('memakai host APP_URL supaya tidak kena redirect host kanonik di production',
         ->doesntExpectOutputToContain('status 301')
         ->expectsOutputToContain('tidak dirender di server')
         ->assertFailed();
+});
+
+it('tidak merekam Inertia DevTools saat ssr:check (folder bisa milik user web server)', function () {
+    $dir = storage_path('framework/testing/devtools-'.uniqid());
+    config(['inertia.devtools.enabled' => true, 'inertia.devtools.storage.path' => $dir]);
+
+    $this->artisan('ssr:check', ['path' => '/properti']);
+
+    expect(glob($dir.'/*') ?: [])->toBe([]);
+    File::deleteDirectory($dir);
 });
 
 it('lolos ssr:check kalau server SSR berjalan', function () {

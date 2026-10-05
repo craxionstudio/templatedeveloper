@@ -133,6 +133,9 @@ jobs:
             SSR_RESULT=$(php artisan ssr:check /properti 2>&1) && SSR_OK=1 || SSR_OK=0
             echo "$SSR_RESULT"
             [ "$SSR_OK" = "1" ] && echo "::notice title=SSR::$SSR_RESULT" || echo "::warning title=SSR GAGAL::/properti TIDAK dirender di server (HTML hanya div kosong): $SSR_RESULT. Cek storage/logs/ssr.log dan langkah 10 di log deploy."
+            # APP_ENV selain production = semua halaman dikirim noindex (dan Inertia DevTools aktif).
+            APP_ENV_NOW=$(php artisan env 2>/dev/null | grep -o '\[[a-z]*\]' | tr -d '[]')
+            [ "$APP_ENV_NOW" = "production" ] && echo "APP_ENV: production" || echo "::warning title=APP_ENV bukan production::APP_ENV di server = '$APP_ENV_NOW'. Akibatnya semua halaman dikirim noindex (tidak masuk Google) dan Inertia DevTools aktif. Ubah APP_ENV=production di .env server."
             # Bukti cron berjalan: heartbeat scheduler ditulis tiap menit. Tunggu paling lama 75 detik.
             DEPLOY_TS=$(date +%s)
             HB_OK=0

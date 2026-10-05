@@ -21,7 +21,8 @@ class CheckSsr extends Command
     public function handle(Kernel $kernel): int
     {
         $path = '/'.ltrim((string) $this->argument('path'), '/');
-        config(['site.page_cache.enabled' => false]);
+        // Tanpa cache halaman dan tanpa perekam Inertia DevTools (foldernya bisa milik user web server).
+        config(['site.page_cache.enabled' => false, 'inertia.devtools.enabled' => false]);
 
         try {
             // Pakai skema & host APP_URL: di production host lain diarahkan 301 ke host kanonik.
@@ -43,7 +44,7 @@ class CheckSsr extends Command
         }
 
         preg_match('/<h1[^>]*>(.*?)<\/h1>/s', $html, $h1);
-        $this->info("SSR OK {$path}: H1 \"".trim(strip_tags($h1[1] ?? '')).'", '.number_format(strlen($html)).' byte HTML');
+        $this->info("SSR OK {$path}: H1 \"".trim(strip_tags($h1[1] ?? '')).'", '.number_format(strlen($html)).' byte HTML, robots: '.($response->headers->get('X-Robots-Tag') ?? 'index'));
 
         return self::SUCCESS;
     }
