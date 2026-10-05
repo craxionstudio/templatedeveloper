@@ -1,0 +1,678 @@
+{
+  "meta": {
+    "dibuat": "2026-10-05",
+    "catatan": "Update 3: 43 cluster tampil sebagai halaman lengkap; 101 cluster lama hanya tampil di daftar 'Cluster Lainnya' (tanpa halaman sendiri). Kawasan tanpa cluster aktif tidak punya halaman sendiri, hanya jadi judul grup di daftar tersebut."
+  },
+  "cluster_tampilan": [
+    {
+      "slug": "monard-of-the-armont",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "island-villa",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "vyorelle-at-vireya",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "castilo-at-terravia",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "izzi",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "lynelle",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "botanic-villa",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "elyon-by-eonna",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "tresor",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "adora",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "aerra-by-eonna",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "namee-by-eonna",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "the-armont-residences",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "laurel",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "layton",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "lyndon",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "aether",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "caelus",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "hylands",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "luxmore",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "sheffield",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "whelford",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "whitsand",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "alesha",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "anila",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "assana",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "azura",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "ingenia",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "precia",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "vivacia",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "amata",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "aure",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "visana",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "inspirahaus",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "invensihaus-r",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "nusa-loka-park",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "savia-park",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "cozmo-house",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "fleekhauz-r",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "green-cove",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "quantis-signature",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "regentown-gold",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "vermont-parkland",
+      "tampil_sebagai": "halaman"
+    },
+    {
+      "slug": "lakewood",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "lancewood",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "imajihaus",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "mayfield",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "anarta",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "askara",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "illustria",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "new-vivacia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "prestigia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "amarine",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "avezza",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "tevana",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "visana-boulevard",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "zeva",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "inspirahaus-r",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "invensihaus",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "kireina-park",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "neo-catalonia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "nusa-loka-kavling-non-cluster",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "the-castilla",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "jiva",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "vasya",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "kanade",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "kazumi",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "keia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "kimora",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "kiyomi",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "aleeka-de-veu",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "ammarila",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "anantha",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "chadna",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "deshna",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "divena",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "inika",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "lavanya",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "nittaya",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "blossom-ville",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "blossom-ville-extension",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "mirraqe",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "monte-carlo",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "royal-blossom",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "venetian",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "vineyard",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "eastern-cosmo",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "eternity",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "ritzone",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "simplicity",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "the-caspia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "verdant-view",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "verdant-ville",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "western-cosmo",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "bahamas",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "brazilian",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "buenos-park",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "carribean-islands",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "centro-havana",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "clio-vintage",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "costa-rica",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "la-vintage",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "mexicano",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "santiago",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "virgin-island-vintage",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-rio",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "albera",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "allevare",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "aria",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "collinare",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "foglio",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "fresco",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "giardina",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "naturale",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "placido",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "primavera",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "studento",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "ultimo",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-brassia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-cajuput",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-frangipani",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-helionia",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-mjade",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "de-nara",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "giri-loka-1",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "giri-loka-2",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "giri-loka-3",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "taman-giri-loka",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "golden-vienna-1",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "golden-vienna-2",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "alegria-park",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "anggrek-loka",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "griya-asri",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "griya-loka",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "jadeite",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "kencana-loka",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "pavilion-residence",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "provence-parkland",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "puspita-loka",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "regentown",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "sevilla",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "sevilla-park",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "taman-tirta-golf",
+      "tampil_sebagai": "daftar"
+    },
+    {
+      "slug": "virginia-lagoon",
+      "tampil_sebagai": "daftar"
+    }
+  ],
+  "kawasan_tampilan": [
+    {
+      "slug": "vireya",
+      "punya_halaman": true
+    },
+    {
+      "slug": "terravia",
+      "punya_halaman": true
+    },
+    {
+      "slug": "eonna",
+      "punya_halaman": true
+    },
+    {
+      "slug": "the-armont",
+      "punya_halaman": true
+    },
+    {
+      "slug": "navapark",
+      "punya_halaman": true
+    },
+    {
+      "slug": "greenwich-park",
+      "punya_halaman": true
+    },
+    {
+      "slug": "vanya-park",
+      "punya_halaman": true
+    },
+    {
+      "slug": "the-eminent",
+      "punya_halaman": true
+    },
+    {
+      "slug": "the-mozia",
+      "punya_halaman": true
+    },
+    {
+      "slug": "the-savia",
+      "punya_halaman": true
+    },
+    {
+      "slug": "tabebuya",
+      "punya_halaman": true
+    },
+    {
+      "slug": "nusa-loka",
+      "punya_halaman": true
+    },
+    {
+      "slug": "myza",
+      "punya_halaman": true
+    },
+    {
+      "slug": "tanakayu",
+      "punya_halaman": false
+    },
+    {
+      "slug": "the-zora",
+      "punya_halaman": false
+    },
+    {
+      "slug": "the-avani",
+      "punya_halaman": false
+    },
+    {
+      "slug": "the-green",
+      "punya_halaman": false
+    },
+    {
+      "slug": "the-icon",
+      "punya_halaman": false
+    },
+    {
+      "slug": "de-latinos",
+      "punya_halaman": false
+    },
+    {
+      "slug": "foresta",
+      "punya_halaman": false
+    },
+    {
+      "slug": "de-park",
+      "punya_halaman": false
+    },
+    {
+      "slug": "giri-loka",
+      "punya_halaman": false
+    },
+    {
+      "slug": "golden-vienna",
+      "punya_halaman": false
+    }
+  ]
+}
