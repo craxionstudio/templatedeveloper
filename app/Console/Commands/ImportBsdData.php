@@ -135,8 +135,7 @@ class ImportBsdData extends Command
 
     /**
      * --fresh: hapus permanen semua data properti (dummy) beserta media, galeri, dan SEO-nya.
-     * Konten contoh lain dinonaktifkan (tidak dihapus). User, lead (cluster_id jadi null),
-     * dan settings tidak disentuh.
+     * Konten contoh lain dinonaktifkan (tidak dihapus). User dan settings tidak disentuh.
      */
     private function deleteDummyProperties(): void
     {

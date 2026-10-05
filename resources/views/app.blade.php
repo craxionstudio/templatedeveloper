@@ -24,9 +24,6 @@
         </x-inertia::head>
     </head>
     <body class="bg-ground font-sans text-ink antialiased">
-        @if ($gtmId = \App\Support\Tracking::gtmId())
-            <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $gtmId }}" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
-        @endif
         <x-inertia::app />
     </body>
 </html>

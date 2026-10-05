@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\NotFoundController;
 use App\Http\Middleware\CachePublicPages;
-use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\NoIndexOutsideProduction;
 use App\Http\Middleware\RedirectManager;
@@ -11,7 +10,6 @@ use App\Http\Middleware\StrictTransportSecurity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,13 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // SecurityHeaders global supaya admin Filament juga dapat header; nonce CSP dibuat sebelum view dirender.
         $middleware->append([SecurityHeaders::class, StrictTransportSecurity::class, NoIndexOutsideProduction::class, RedirectManager::class]);
 
-        // Cookie Meta Pixel (_fbp, _fbc) dibuat di browser, jadi tidak dienkripsi Laravel.
-        $middleware->encryptCookies(except: ['_fbp', '_fbc']);
-
         $middleware->web(append: [
-            CaptureAttribution::class,
             HandleInertiaRequests::class,
-            // Cache HTML halaman publik untuk tamu (setelah session & atribusi; header Link preload ikut tersimpan).
+            // Cache HTML halaman publik untuk tamu (setelah session; header Link preload ikut tersimpan).
             CachePublicPages::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
@@ -42,13 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
-
-        // Rate limit form publik: kembali ke form dengan pesan, bukan halaman error 429.
-        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
-            if ($request->is('lead', 'newsletter') && ! $request->expectsJson()) {
-                return back()->withErrors(['form' => 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.']);
-            }
-        });
 
         // 404 halaman publik → halaman 404 custom ter-render SSR (admin memakai 404 Filament).
         $exceptions->respond(function (Response $response, Throwable $e, Request $request) {

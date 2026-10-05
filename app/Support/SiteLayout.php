@@ -37,7 +37,7 @@ class SiteLayout
         $header = $global->section('header');
         $footer = $global->section('footer');
 
-        $whatsappUrl = self::whatsappUrl($contact['whatsapp'], $contact['whatsapp_message']) ?? '/kontak';
+        $whatsappUrl = WhatsApp::url();
 
         return [
             'brand' => [
@@ -74,23 +74,7 @@ class SiteLayout
             ],
             'labels' => $global->section('labels'),
             'tracking' => Tracking::browser(),
-            'leadModal' => self::leadModal($global->section('cta')),
         ];
-    }
-
-    /**
-     * Form lead singkat di modal (tombol "Jadwalkan Kunjungan/Survey"); null = dimatikan.
-     *
-     * @param  array<string, mixed>  $cta
-     * @return array{title: string, description: string, submitLabel: string}|null
-     */
-    public static function leadModal(array $cta): ?array
-    {
-        return $cta['modal_enabled'] ? [
-            'title' => $cta['modal_title'],
-            'description' => $cta['modal_description'],
-            'submitLabel' => $cta['modal_submit_label'],
-        ] : null;
     }
 
     /**

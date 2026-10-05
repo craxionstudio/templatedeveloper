@@ -12,13 +12,10 @@ use Carbon\CarbonImmutable;
 use Closure;
 use Filament\Forms\Components\Field;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Spatie\LaravelSettings\Events\SettingsSaved;
@@ -45,8 +42,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(fn (User $user, string $ability, array $arguments) => AdminAccess::check($user, $ability, $arguments));
 
         $this->registerFilamentMacros();
-
-        $this->configureRateLimiting();
 
         $this->flushCachesOnChange();
     }
@@ -78,25 +73,6 @@ class AppServiceProvider extends ServiceProvider
                 GenerateImageVariants::dispatch($paths);
             }
         });
-    }
-
-    /**
-     * Rate limit form publik per IP (anti-spam, brief 9). Batas harian lead per IP longgar (100)
-     * karena saat open house banyak pengunjung submit dari WiFi yang sama; pembatas utamanya
-     * adalah maksimal 3 lead per nomor WA per hari (StoreLeadRequest::MAX_PER_NUMBER_PER_DAY).
-     */
-    protected function configureRateLimiting(): void
-    {
-        RateLimiter::for('leads', fn (Request $request) => [
-            Limit::perMinute(5)->by('lead-min:'.$request->ip()),
-            Limit::perDay(100)->by('lead-day:'.$request->ip()),
-        ]);
-
-        // Klik WhatsApp → event Contact CAPI: cukup longgar untuk pengunjung asli, menahan spam.
-        RateLimiter::for('contact-events', fn (Request $request) => [
-            Limit::perMinute(20)->by('contact-min:'.$request->ip()),
-            Limit::perDay(300)->by('contact-day:'.$request->ip()),
-        ]);
     }
 
     /**

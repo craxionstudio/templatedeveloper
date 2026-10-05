@@ -77,9 +77,11 @@ export type CtaData = {
     description: string;
     whatsappLabel: string;
     whatsappUrl: string;
-    visitLabel: string;
-    visitUrl: string;
-    lead: { clusterId: number | null; houseTypeId: number | null };
+    /** Tombol jadwal survey: WhatsApp dengan template "survey". */
+    surveyLabel: string;
+    surveyUrl: string;
+    /** Nama cluster (Detail Rumah) untuk parameter event click_whatsapp. */
+    cluster: string | null;
 } | null;
 
 export type Stat = { value: string; label: string };

@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import LeadModal from '@/components/lead/lead-modal';
+import FloatingWhatsapp from '@/components/site/floating-whatsapp';
 import SiteFooter from '@/components/site/site-footer';
 import SiteHeader from '@/components/site/site-header';
 
@@ -20,7 +20,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
                 {children}
             </main>
             <SiteFooter />
-            <LeadModal />
+            <FloatingWhatsapp />
         </div>
     );
 }

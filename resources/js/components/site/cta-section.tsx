@@ -1,14 +1,7 @@
-import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import { ButtonLink } from '@/components/site/ui';
 import type { CtaData } from '@/types/content';
 
 export default function CtaSection({ cta }: { cta: CtaData }) {
-    const openModal = useLeadModalTrigger({
-        clusterId: cta?.lead.clusterId,
-        houseTypeId: cta?.lead.houseTypeId,
-        position: 'modal',
-    });
-
     if (!cta) {
         return null;
     }
@@ -34,17 +27,19 @@ export default function CtaSection({ cta }: { cta: CtaData }) {
                         icon="chat"
                         size="lg"
                         position="cta"
+                        cluster={cta.cluster ?? undefined}
                     >
                         {cta.whatsappLabel}
                     </ButtonLink>
                     <ButtonLink
-                        href={cta.visitUrl}
+                        href={cta.surveyUrl}
                         variant="outlineLight"
                         icon="calendar"
                         size="lg"
-                        onClick={openModal}
+                        position="cta_survey"
+                        cluster={cta.cluster ?? undefined}
                     >
-                        {cta.visitLabel}
+                        {cta.surveyLabel}
                     </ButtonLink>
                 </div>
             </div>

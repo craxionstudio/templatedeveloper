@@ -1,43 +1,27 @@
 {{--
-    GTM-first: semua event dikirim ke dataLayer (lihat docs/TRACKING.md), jadi dataLayer selalu ada.
-    GA4 & Meta Pixel langsung bersifat opsional (kosongkan kalau sudah dipasang lewat GTM).
-    ID dari Pengaturan Global → Tracking (tidak di-hardcode).
-    Antrean (dataLayer, gtag, fbq) dibuat langsung supaya event awal tidak hilang, tapi file
-    script pihak ketiga baru dimuat setelah halaman selesai dimuat dan browser idle (brief 8.6).
-    Page view per navigasi Inertia dikirim dari resources/js/lib/analytics.ts.
+    Tracking organik (docs/TRACKING.md): GA4 langsung lewat gtag.js, hanya kalau Measurement ID diisi di
+    Pengaturan Umum. Antrean gtag dibuat langsung supaya event awal tidak hilang; gtag.js baru dimuat
+    setelah halaman selesai dimuat dan browser idle (brief 8.6). Page view per navigasi Inertia dan event
+    click_whatsapp dikirim dari resources/js/lib/analytics.ts.
 --}}
-@php($tracking = \App\Support\Tracking::browser())
-<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">window.dataLayer = window.dataLayer || [];</script>
-@if ($tracking['gtmId'] || $tracking['ga4Id'] || $tracking['pixelId'])
+@if ($googleVerification = \App\Support\Tracking::googleVerification())
+    <meta name="google-site-verification" content="{{ $googleVerification }}">
+@endif
+@if ($bingVerification = \App\Support\Tracking::bingVerification())
+    <meta name="msvalidate.01" content="{{ $bingVerification }}">
+@endif
+@if ($ga4Id = \App\Support\Tracking::ga4Id())
     <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         (function (w, d) {
-            var scripts = [];
-            @if ($tracking['gtmId'])
-                w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                scripts.push('https://www.googletagmanager.com/gtm.js?id=' + @js($tracking['gtmId']));
-            @endif
-            @if ($tracking['ga4Id'])
-                w.gtag = function () { w.dataLayer.push(arguments); };
-                w.gtag('js', new Date());
-                w.gtag('config', @js($tracking['ga4Id']), { send_page_view: false });
-                scripts.push('https://www.googletagmanager.com/gtag/js?id=' + @js($tracking['ga4Id']));
-            @endif
-            @if ($tracking['pixelId'])
-                if (!w.fbq) {
-                    var n = (w.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); });
-                    if (!w._fbq) w._fbq = n;
-                    n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
-                }
-                w.fbq('init', @js($tracking['pixelId']));
-                scripts.push('https://connect.facebook.net/en_US/fbevents.js');
-            @endif
+            w.dataLayer = w.dataLayer || [];
+            w.gtag = function () { w.dataLayer.push(arguments); };
+            w.gtag('js', new Date());
+            w.gtag('config', @js($ga4Id), { send_page_view: false });
             function load() {
-                scripts.forEach(function (src) {
-                    var s = d.createElement('script');
-                    s.async = true;
-                    s.src = src;
-                    d.head.appendChild(s);
-                });
+                var s = d.createElement('script');
+                s.async = true;
+                s.src = 'https://www.googletagmanager.com/gtag/js?id=' + @js($ga4Id);
+                d.head.appendChild(s);
             }
             function schedule() {
                 'requestIdleCallback' in w ? w.requestIdleCallback(load, { timeout: 3000 }) : setTimeout(load, 1500);

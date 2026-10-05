@@ -54,18 +54,9 @@ export type SiteLayoutData = {
         call_hotline: string;
         home: string;
     };
-    leadModal: {
-        title: string;
-        description: string;
-        submitLabel: string;
-    } | null;
     tracking: {
-        gtmId: string | null;
+        /** GA4 Measurement ID; null = tidak ada script tracking. */
         ga4Id: string | null;
-        pixelId: string | null;
-        turnstileSiteKey: string | null;
-        /** Meta CAPI aktif: klik WhatsApp juga dikirim ke server. */
-        capi: boolean;
     };
 };
 

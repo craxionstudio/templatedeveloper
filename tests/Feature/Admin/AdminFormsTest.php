@@ -7,11 +7,9 @@ use App\Filament\Pages\Settings\ManagePropertyPages;
 use App\Filament\Resources\Clusters\Pages\CreateCluster;
 use App\Filament\Resources\Clusters\Pages\EditCluster;
 use App\Filament\Resources\Kawasans\Pages\CreateKawasan;
-use App\Filament\Resources\Leads\Pages\ListLeads;
 use App\Models\Cluster;
 use App\Models\Facility;
 use App\Models\Kawasan;
-use App\Models\Lead;
 use App\Models\Redirect;
 use App\Models\User;
 use App\Settings\ClusterDetailPageSettings;
@@ -20,7 +18,6 @@ use App\Settings\GlobalSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\ListingPageSettings;
 use App\Support\DummyData;
-use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -197,16 +194,6 @@ it('mengisi slug, ringkasan, dan alt text gambar kawasan otomatis', function () 
     expect($kawasan->summary)->toBe('Kawasan hunian di tepi danau.')
         ->and($media)->not->toBeNull()
         ->and($media->file_name)->toStartWith('arunika-valley-');
-});
-
-it('mengekspor lead ke CSV sesuai filter', function () {
-    Lead::query()->create(['name' => 'Budi', 'whatsapp' => '6281234567890', 'utm_source' => 'facebook']);
-    Lead::query()->create(['name' => 'Sari', 'whatsapp' => '6281298765432', 'utm_source' => 'google']);
-
-    Livewire::test(ListLeads::class)
-        ->filterTable('utm_source', 'facebook')
-        ->callAction(TestAction::make('export')->table(), ['format' => 'csv'])
-        ->assertFileDownloaded();
 });
 
 it('menyimpan Pengaturan Umum: WhatsApp, kontak, GA4, dan verifikasi Search Console', function () {

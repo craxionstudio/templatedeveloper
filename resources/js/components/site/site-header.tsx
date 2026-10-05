@@ -66,6 +66,7 @@ export default function SiteHeader() {
 
                     <SmartLink
                         href={site.header.ctaUrl}
+                        data-position="header"
                         className="inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-terracotta px-[26px] text-base font-semibold whitespace-nowrap text-white no-underline transition-colors hover:bg-terracotta-hover"
                     >
                         <ChatIcon className="size-5" />
@@ -75,16 +76,7 @@ export default function SiteHeader() {
 
                 {/* Mobile & tablet < 1280 */}
                 <div className="flex items-center gap-1 xl:hidden">
-                    {site.mobile.showWhatsappIcon ? (
-                        <SmartLink
-                            href={site.contact.whatsappUrl}
-                            aria-label={site.labels.chat_whatsapp}
-                            className="flex size-11 items-center justify-center rounded-full text-terracotta transition-colors hover:text-terracotta-hover"
-                        >
-                            <ChatIcon className="size-[22px]" />
-                        </SmartLink>
-                    ) : null}
-
+                    {/* WhatsApp di mobile: tombol melayang (site-layout.tsx). */}
                     <button
                         ref={menuButtonRef}
                         type="button"

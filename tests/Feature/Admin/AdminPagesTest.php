@@ -9,14 +9,12 @@ use App\Models\Facility;
 use App\Models\FacilityCategory;
 use App\Models\FutureDevelopment;
 use App\Models\Kawasan;
-use App\Models\Lead;
 use App\Models\Promo;
 use App\Models\Tag;
 use App\Models\User;
 
 beforeEach(function () {
     $this->seed();
-    Lead::query()->create(['name' => 'Budi', 'whatsapp' => '6281234567890', 'cluster_id' => Cluster::first()->id, 'utm_source' => 'facebook']);
 });
 
 function admin(): User
@@ -29,7 +27,7 @@ it('merender semua halaman admin untuk admin', function (string $url) {
         '{cluster}' => Cluster::first()->id, '{kawasan}' => Kawasan::first()->id, '{promo}' => Promo::first()->id,
         '{facility}' => Facility::first()->id, '{fcat}' => FacilityCategory::first()->id, '{dev}' => FutureDevelopment::first()->id,
         '{article}' => Article::first()->id, '{acat}' => ArticleCategory::first()->id, '{tag}' => Tag::first()->id,
-        '{author}' => Author::first()->id, '{lead}' => Lead::first()->id, '{user}' => User::first()->id,
+        '{author}' => Author::first()->id, '{user}' => User::first()->id,
     ];
 
     $this->actingAs(admin())->get(strtr($url, $ids))->assertOk();
@@ -45,7 +43,6 @@ it('merender semua halaman admin untuk admin', function (string $url) {
     '/admin/articles', '/admin/articles/create', '/admin/articles/{article}/edit',
     '/admin/article-categories', '/admin/article-categories/{acat}/edit',
     '/admin/tags', '/admin/tags/{tag}/edit', '/admin/authors', '/admin/authors/{author}/edit',
-    '/admin/leads', '/admin/leads/{lead}/edit',
     '/admin/redirects', '/admin/redirects/create', '/admin/users', '/admin/users/create', '/admin/users/{user}/edit',
     '/admin/pengaturan/umum', '/admin/pengaturan/menu', '/admin/pengaturan/beranda', '/admin/pengaturan/properti',
     '/admin/pengaturan/halaman-lain',
@@ -62,7 +59,7 @@ it('memindahkan semua user lama ke role Admin dengan akses ke semua menu', funct
         ->and(User::factory()->make()->role)->toBe(UserRole::Admin);
 
     $marketing = User::where('email', 'lama-marketing@example.com')->firstOrFail();
-    foreach (['/admin/clusters', '/admin/pengaturan/umum', '/admin/leads', '/admin/users'] as $url) {
+    foreach (['/admin/clusters', '/admin/pengaturan/umum', '/admin/users'] as $url) {
         $this->actingAs($marketing)->get($url)->assertOk();
     }
 
@@ -73,12 +70,4 @@ it('tidak lagi punya menu newsletter', function () {
     expect(Schema::hasTable('newsletter_subscribers'))->toBeFalse();
     $this->actingAs(admin())->get('/admin/newsletter-subscribers')->assertNotFound();
     expect($this->post('/newsletter', ['email' => 'pembaca@example.com'])->status())->toBeIn([404, 405]);
-});
-
-it('mengizinkan admin mengelola lead tapi tidak membuatnya dari admin', function () {
-    $lead = Lead::first();
-
-    expect(admin()->can('update', $lead))->toBeTrue()
-        ->and(admin()->can('delete', $lead))->toBeTrue()
-        ->and(admin()->can('create', Lead::class))->toBeFalse();
 });

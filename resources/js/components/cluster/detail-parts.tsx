@@ -1,7 +1,4 @@
 import { usePage } from '@inertiajs/react';
-import LeadForm from '@/components/lead/lead-form';
-import type { LeadPosition } from '@/components/lead/lead-form';
-import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import { Icon } from '@/components/site/icons';
 import type { IconName } from '@/components/site/icons';
 import Picture, { IMAGE_SIZES } from '@/components/site/picture';
@@ -400,47 +397,33 @@ export function TypeTabs({
 
 export type MarketingData = { name: string; title: string; photo: ImageData };
 
-export type LeadFormData = {
-    nameLabel: string;
-    namePlaceholder: string;
-    whatsappLabel: string;
-    whatsappPlaceholder: string;
-    submitLabel: string;
+export type ContactCardData = {
     whatsappButtonLabel: string;
     surveyButtonLabel: string;
+    /** WhatsApp dengan template "jadwal survey". */
     surveyUrl: string;
 };
 
 /**
- * Kartu marketing + form lead (POST /lead). Tombol Survey membuka form singkat di modal.
+ * Kartu marketing dengan dua tombol WhatsApp: info harga & brosur, dan jadwal survey.
+ * Nomor: WA cluster, kalau kosong nomor global (server).
  */
-export function LeadCard({
+export function ContactCard({
     marketing,
-    form,
+    contact,
     whatsappUrl,
     legality,
-    clusterId,
-    houseTypeId,
     clusterName,
     position,
-    showButtons = true,
 }: {
     marketing: MarketingData;
-    form: LeadFormData;
+    contact: ContactCardData;
     whatsappUrl: string;
     legality: string | null;
-    clusterId: number;
-    houseTypeId: number | null;
     clusterName: string;
-    position: LeadPosition;
-    showButtons?: boolean;
+    position: string;
 }) {
     const { labels } = usePage().props.site;
-    const openSurvey = useLeadModalTrigger({
-        clusterId,
-        houseTypeId,
-        position: 'modal',
-    });
 
     return (
         <div className="flex flex-col gap-3">
@@ -459,53 +442,29 @@ export function LeadCard({
                         </p>
                     </div>
                 </div>
-                <LeadForm
-                    position={position}
-                    clusterId={clusterId}
-                    houseTypeId={houseTypeId}
-                    labels={{
-                        name: form.nameLabel,
-                        namePlaceholder: form.namePlaceholder,
-                        whatsapp: form.whatsappLabel,
-                        whatsappPlaceholder: form.whatsappPlaceholder,
-                        submit: form.submitLabel,
-                    }}
-                />
-                {showButtons ? (
-                    <div className="grid grid-cols-2 gap-2">
-                        <ButtonLink
-                            href={whatsappUrl}
-                            variant="dark"
-                            icon="chat"
-                            size="sm"
-                            newTab
-                            cluster={clusterName}
-                            position={position}
-                        >
-                            {form.whatsappButtonLabel}
-                        </ButtonLink>
-                        <ButtonLink
-                            href={form.surveyUrl}
-                            variant="outline"
-                            icon="calendar"
-                            size="sm"
-                            onClick={openSurvey}
-                        >
-                            {form.surveyButtonLabel}
-                        </ButtonLink>
-                    </div>
-                ) : null}
-                {legality && !showButtons ? (
-                    <p className="flex items-center gap-2 text-[13px] text-body">
-                        <Icon
-                            name="shieldCheck"
-                            className="size-4 shrink-0 text-terracotta"
-                        />
-                        {legality}
-                    </p>
-                ) : null}
+                <div className="flex flex-col gap-2">
+                    <ButtonLink
+                        href={whatsappUrl}
+                        icon="chat"
+                        newTab
+                        cluster={clusterName}
+                        position={position}
+                    >
+                        {contact.whatsappButtonLabel}
+                    </ButtonLink>
+                    <ButtonLink
+                        href={contact.surveyUrl}
+                        variant="outline"
+                        icon="calendar"
+                        newTab
+                        cluster={clusterName}
+                        position={`${position}_survey`}
+                    >
+                        {contact.surveyButtonLabel}
+                    </ButtonLink>
+                </div>
             </div>
-            {legality && showButtons ? (
+            {legality ? (
                 <p className="flex items-center gap-2.5 rounded-2xl bg-sand px-5 py-4 text-[13px] text-body">
                     <Icon
                         name="shieldCheck"

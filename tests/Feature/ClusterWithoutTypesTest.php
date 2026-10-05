@@ -76,7 +76,7 @@ it('tidak mengirim status ke Detail Rumah kalau status kosong', function () {
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page->where('cluster.status', 'Ready stock'));
 });
 
-it('merender Detail Rumah cluster tanpa tipe: tanpa tipe, WA & form tetap ada, tanpa Offer', function () {
+it('merender Detail Rumah cluster tanpa tipe: tanpa tipe, tombol WA & survey tetap ada, tanpa Offer', function () {
     clusterWithoutTypes(['kawasan_id' => $this->kawasan->id]);
 
     $response = $this->get('/properti/nusa-indah')->assertOk();
@@ -85,7 +85,7 @@ it('merender Detail Rumah cluster tanpa tipe: tanpa tipe, WA & form tetap ada, t
         ->has('types', 0)
         ->where('selectedType', null)
         ->where('cluster.whatsappUrl', fn (string $url) => str_starts_with($url, 'https://wa.me/') && ! str_contains($url, '%7Btype%7D') && ! str_contains($url, 'tipe'))
-        ->has('form.submitLabel'));
+        ->has('contact.surveyUrl'));
 
     $residence = ofType(jsonLd($response), 'Residence');
     expect($residence['name'])->toBe('Nusa Indah')
@@ -192,7 +192,7 @@ it('merender cluster tanpa tipe lewat SSR tanpa error', function () {
     expect(substr_count($detail, '<h1'))->toBe(1)
         ->and($detail)->toContain('Hubungi kami untuk harga')
         ->and($detail)->toContain('https://wa.me/')
-        ->and($detail)->toContain('<form')
+        ->and($detail)->not->toContain('<form')
         ->and($detail)->not->toContain('Rp 0');
 
     foreach (['/properti', '/properti/kawasan/arunika-garden', '/'] as $path) {

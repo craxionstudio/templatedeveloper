@@ -1,7 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import LeadForm from '@/components/lead/lead-form';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import CtaSection from '@/components/site/cta-section';
 import { Icon } from '@/components/site/icons';
@@ -30,21 +29,12 @@ type Props = {
         image: ImageData;
         buttonLabel: string;
     } | null;
-    form: {
+    whatsapp: {
         title: string;
-        name_label: string;
-        whatsapp_label: string;
-        email_label: string;
-        interest_label: string;
-        interest_placeholder: string;
-        payment_label: string;
-        payment_options: string[];
-        message_label: string;
-        consent_label: string;
-        submit_label: string;
-        clusters: { value: number; label: string }[];
-        privacyUrl: string;
-    } | null;
+        description: string;
+        label: string;
+        url: string;
+    };
     cta: CtaData;
 };
 
@@ -116,7 +106,7 @@ export default function Contact({
     header,
     info,
     map,
-    form,
+    whatsapp,
     cta,
 }: Props) {
     const { labels } = usePage().props.site;
@@ -205,6 +195,7 @@ export default function Contact({
                                         variant="dark"
                                         icon="chat"
                                         newTab
+                                        position="kontak_info"
                                         className="self-start"
                                     >
                                         {info.whatsapp.label}
@@ -216,38 +207,26 @@ export default function Contact({
                     </div>
                 ) : null}
 
-                {form ? (
-                    <div
-                        id="form-kontak"
-                        className="flex scroll-mt-28 flex-col gap-5 rounded-card-sm bg-white p-6 shadow-[0_18px_40px_-24px_rgba(30,43,36,0.35)] xl:rounded-card xl:p-10"
+                <div
+                    id="whatsapp"
+                    className="flex scroll-mt-28 flex-col gap-5 rounded-card-sm bg-white p-6 shadow-[0_18px_40px_-24px_rgba(30,43,36,0.35)] xl:rounded-card xl:p-10"
+                >
+                    <h2 className="font-display text-2xl font-semibold xl:text-[28px]">
+                        {whatsapp.title}
+                    </h2>
+                    <p className="text-[15px] leading-[1.6] text-body xl:text-base">
+                        {whatsapp.description}
+                    </p>
+                    <ButtonLink
+                        href={whatsapp.url}
+                        icon="chat"
+                        size="lg"
+                        position="kontak"
+                        className="self-start"
                     >
-                        <h2 className="font-display text-2xl font-semibold xl:text-[28px]">
-                            {form.title}
-                        </h2>
-                        <LeadForm
-                            position="kontak"
-                            layout="grid"
-                            privacyUrl={form.privacyUrl}
-                            labels={{
-                                name: form.name_label,
-                                whatsapp: form.whatsapp_label,
-                                consent: form.consent_label,
-                                submit: form.submit_label,
-                            }}
-                            email={{ label: form.email_label }}
-                            interest={{
-                                label: form.interest_label,
-                                placeholder: form.interest_placeholder,
-                                options: form.clusters,
-                            }}
-                            payment={{
-                                label: form.payment_label,
-                                options: form.payment_options,
-                            }}
-                            message={{ label: form.message_label }}
-                        />
-                    </div>
-                ) : null}
+                        {whatsapp.label}
+                    </ButtonLink>
+                </div>
             </section>
 
             <CtaSection cta={cta} />

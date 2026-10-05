@@ -7,13 +7,12 @@ return [
         // Sistem promo lama (tabel promos), disembunyikan dari website sejak Bank Benefit.
         'promo' => ['enabled' => true, 'title' => 'Promo rumah ini', 'period_prefix' => 'Berlaku s.d.'],
         // Bank Benefit: benefit yang dicentang di cluster. Tidak tampil kalau cluster tanpa benefit.
-        // {cluster} di whatsapp_message diganti nama cluster.
+        // Pesan WhatsApp tombol: template "promo" di Pengaturan Umum.
         'benefits' => [
             'enabled' => true,
             'title' => 'Promo & Benefit',
             'disclaimer' => '*Syarat dan ketentuan berlaku dan dapat berubah sewaktu-waktu.',
             'button_label' => 'Dapatkan informasi lengkapnya via WhatsApp',
-            'whatsapp_message' => 'Halo, saya tertarik dengan promo di {cluster}. Boleh minta informasi lengkapnya?',
         ],
         'specs' => ['enabled' => true, 'title' => 'Spesifikasi rumah'],
         // {cluster} diganti nama cluster.
@@ -52,19 +51,12 @@ return [
     ],
 
     'form' => [
-        'name_label' => 'Nama',
-        'name_placeholder' => 'Nama lengkap',
-        'whatsapp_label' => 'WhatsApp',
-        'whatsapp_placeholder' => '08xx xxxx xxxx',
-        'submit_label' => 'Minta Pricelist',
-        'whatsapp_button_label' => 'WhatsApp',
-        'survey_button_label' => 'Survey',
-        // {cluster} dan {type} diganti otomatis.
-        'whatsapp_message' => 'Halo, saya tertarik dengan {cluster} tipe {type}. Boleh minta info harga dan unit yang tersedia?',
-        // Dipakai kalau cluster tidak punya marketing sendiri.
-        'marketing_name' => '[NAMA MARKETING]',
+        // Tombol kartu marketing; pesan WhatsApp dari template di Pengaturan Umum.
+        'whatsapp_button_label' => 'Minta info harga via WhatsApp',
+        'survey_button_label' => 'Jadwalkan Survey',
+        // Dipakai kalau cluster tidak punya marketing sendiri. Nomor WA: nomor cluster, kalau kosong nomor global.
+        'marketing_name' => 'Tim Marketing BSD City',
         'marketing_title' => 'Marketing BSD City',
-        'marketing_whatsapp' => '',
         'marketing_photo' => null,
     ],
 

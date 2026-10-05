@@ -10,7 +10,7 @@ return new class extends SettingsMigration
 {
     public function up(): void
     {
-        $default = (require PageSettings::defaultsPath('page_cluster_detail'))['form']['whatsapp_message'];
+        $default = (require PageSettings::defaultsPath('page_cluster_detail'))['form']['whatsapp_message'] ?? null;
 
         // Nilai tersimpan di-decode sebagai objek; ubah ke array dulu.
         $this->migrator->update('page_cluster_detail.form', function (array|object $form) use ($default): array {

@@ -7,7 +7,6 @@ use App\Settings\GlobalSettings;
 use BackedEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -16,7 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Pengaturan Umum: nomor & pesan WhatsApp, kontak, logo, GA4, dan verifikasi Search Console.
+ * Pengaturan Umum: nomor & template pesan WhatsApp, kontak, logo, GA4, dan verifikasi Search Console.
  * Header, footer, CTA, label, dan halaman 404 memakai teks tetap di kode (GlobalSettings::editable()).
  */
 class ManageGlobalSettings extends PageSettingsPage
@@ -42,9 +41,20 @@ class ManageGlobalSettings extends PageSettingsPage
                 TextInput::make('contact.whatsapp')->label('Nomor WhatsApp (62…)')->tel()->regex('/^62\d{8,13}$/')
                     ->placeholder('6281234567890')
                     ->validationMessages(['regex' => 'Format nomor: 62 diikuti 8–13 digit, tanpa spasi.'])
-                    ->helperText('Kosong = tombol WhatsApp diarahkan ke halaman Kontak.'),
-                Fields::textarea('contact.whatsapp_message', 'Template pesan WhatsApp', 2)
-                    ->placeholder('Halo, saya ingin konsultasi rumah di BSD City.'),
+                    ->helperText('Nomor global. Cluster yang punya nomor WA sendiri (form Cluster → Marketing) memakai nomornya sendiri. Kosong = tombol WhatsApp diarahkan ke halaman Kontak.'),
+                Section::make('Template pesan otomatis')
+                    ->description('{nama_cluster} diganti nama cluster. Kosong = pakai teks bawaan.')
+                    ->compact()
+                    ->schema([
+                        Fields::textarea('contact.whatsapp_message', 'Global (halaman Kontak, header, tombol umum)', 2)
+                            ->placeholder('Halo, saya ingin konsultasi rumah di BSD City.'),
+                        Fields::textarea('contact.whatsapp_cluster_message', 'Detail cluster', 2)
+                            ->placeholder('Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?'),
+                        Fields::textarea('contact.whatsapp_promo_message', 'Section Promo & Benefit', 2)
+                            ->placeholder('Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?'),
+                        Fields::textarea('contact.whatsapp_survey_message', 'Tombol jadwal survey', 2)
+                            ->placeholder('Halo, saya ingin jadwalkan survey ke {nama_cluster}.'),
+                    ]),
             ]),
             Section::make('Kontak')->schema([
                 Grid::make(2)->schema([
@@ -74,16 +84,10 @@ class ManageGlobalSettings extends PageSettingsPage
                 TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX')
                     ->regex('/^G-[A-Z0-9]{4,20}$/')
                     ->validationMessages(['regex' => 'Format: G- diikuti huruf/angka, mis. G-AB12CD34EF.'])
-                    ->helperText('Kosong = tidak ada script tracking.'),
+                    ->helperText('GA4 dipasang langsung (gtag.js). Kosong = tidak ada script tracking yang dimuat. Konversi utama: event click_whatsapp.'),
                 TextInput::make('tracking.google_verification')->label('Verifikasi Google Search Console')->maxLength(200)
                     ->placeholder('kode dari meta tag google-site-verification')
                     ->helperText('Isi bagian content="…" saja dari meta tag verifikasi.'),
-            ]),
-            Section::make('Notifikasi lead')->schema([
-                TagsInput::make('notifications.emails')->label('Email penerima notifikasi lead')
-                    ->placeholder('marketing@contoh.com')
-                    ->helperText('Bisa lebih dari satu. Tekan Enter setelah tiap email. Kosong = tidak ada email notifikasi.')
-                    ->nestedRecursiveRules(['email:rfc']),
             ]),
             Fields::advanced([
                 FileUpload::make('seo.default_og_image')->label('Gambar share default (1200×630)')->disk('public')->directory('seo')->visibility('public')->image()

@@ -42,7 +42,6 @@ it('memakai noindex, follow untuk filter & pencarian di production, index untuk 
     $this->get('/properti?kawasan=mandiri')->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, follow'));
     $this->get('/fasilitas?kategori=pendidikan')->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, follow'));
     $this->get('/artikel?q=kpr')->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, follow'));
-    $this->get('/terima-kasih')->assertInertia(fn (Assert $page) => $page->where('meta.robots', 'noindex, follow'));
     $this->get('/')->assertHeaderMissing('X-Robots-Tag');
 });
 
@@ -213,7 +212,6 @@ it('membedakan robots.txt production dan non-production', function () {
         ->toContain('Allow: /')
         ->toContain('Disallow: /admin')
         ->toContain('Disallow: /livewire')
-        ->toContain('Disallow: /terima-kasih')
         ->toContain('Sitemap: '.url('/sitemap.xml'))
         ->not->toContain("Disallow: /\n")
         // URL filter/urutan/pencarian tidak diblok, supaya noindex + canonical-nya terbaca.

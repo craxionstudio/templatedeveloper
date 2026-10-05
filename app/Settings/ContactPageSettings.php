@@ -13,8 +13,6 @@ class ContactPageSettings extends PageSettings
 
     public array $map;
 
-    public array $form;
-
     public array $cta;
 
     public array $seo;

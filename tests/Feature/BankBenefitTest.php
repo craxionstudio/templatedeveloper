@@ -6,19 +6,15 @@ use App\Enums\ClusterStatus;
 use App\Filament\Resources\Benefits\Pages\ListBenefits;
 use App\Filament\Resources\Clusters\Pages\EditCluster;
 use App\Filament\Resources\Clusters\Pages\ListClusters;
-use App\Jobs\SendMetaContactEvent;
 use App\Models\Benefit;
 use App\Models\BenefitCluster;
 use App\Models\Cluster;
 use App\Models\User;
-use App\Services\MetaConversions;
 use App\Settings\ClusterDetailPageSettings;
 use App\Settings\GlobalSettings;
 use App\Support\BenefitCatalog;
-use App\Support\Secret;
 use App\Support\Sitemaps;
 use Filament\Actions\Testing\TestAction;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
@@ -205,33 +201,6 @@ it('tidak menampilkan label Sold out di Detail Rumah maupun filter', function ()
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page->where('cluster.status', null));
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page
         ->where('filters.options.status', fn ($options) => ! collect($options)->contains('value', 'sold_out')));
-});
-
-it('mengirim klik WA ke Meta CAPI dengan event_id yang sama (kalau CAPI aktif)', function () {
-    Queue::fake();
-    $eventId = (string) Str::uuid();
-
-    // CAPI belum dikonfigurasi: diterima tanpa efek.
-    $this->postJson('/track/contact', ['event_id' => $eventId, 'cluster' => 'Vega Garden', 'source' => 'promo_section'])->assertNoContent();
-    Queue::assertNothingPushed();
-    $this->get('/')->assertInertia(fn (Assert $page) => $page->where('site.tracking.capi', false));
-
-    setTracking(['meta_pixel_id' => '1234567890', 'meta_capi_token' => Secret::encrypt('TOKEN')]);
-
-    $this->postJson('/track/contact', [
-        'event_id' => $eventId, 'cluster' => 'Vega Garden', 'source' => 'promo_section', 'page_url' => url('/properti/vega-garden'),
-    ], ['Referer' => url('/properti/vega-garden')])->assertNoContent();
-
-    Queue::assertPushed(SendMetaContactEvent::class, fn (SendMetaContactEvent $job) => $job->event['event_id'] === $eventId
-        && $job->event['cluster'] === 'Vega Garden'
-        && $job->event['source'] === 'promo_section'
-        && $job->context['source_url'] === url('/properti/vega-garden'));
-
-    $payload = MetaConversions::contactEvent(['event_id' => $eventId, 'cluster' => 'Vega Garden', 'source' => 'promo_section'], ['ip' => '1.2.3.4']);
-    expect($payload)->toMatchArray(['event_name' => 'Contact', 'event_id' => $eventId, 'action_source' => 'website'])
-        ->and($payload['custom_data'])->toBe(['method' => 'whatsapp', 'content_name' => 'Vega Garden', 'content_category' => 'promo_section']);
-
-    $this->postJson('/track/contact', ['event_id' => 'bukan-uuid'])->assertUnprocessable();
 });
 
 it('mengimpor benefit per cluster dari file update tanpa menimpa ubahan admin', function () {

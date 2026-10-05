@@ -14,6 +14,6 @@ return new class extends SettingsMigration
             return;
         }
 
-        $this->migrator->add('global.notifications', (require PageSettings::defaultsPath('global'))['notifications']);
+        $this->migrator->add('global.notifications', (require PageSettings::defaultsPath('global'))['notifications'] ?? ['emails' => []]);
     }
 };

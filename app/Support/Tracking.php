@@ -2,12 +2,11 @@
 
 namespace App\Support;
 
-use App\Services\MetaConversions;
 use App\Settings\GlobalSettings;
 
 /**
- * Konfigurasi tracking dari Pengaturan Global → Tracking (hanya Super Admin yang bisa mengubah).
- * Hanya ID publik yang dikirim ke browser; rahasia tetap di server.
+ * Tracking organik: GA4 langsung lewat gtag.js + verifikasi Search Console (Pengaturan Umum).
+ * Tanpa GA4 Measurement ID tidak ada script tracking yang dimuat.
  */
 class Tracking
 {
@@ -19,70 +18,44 @@ class Tracking
         return app(GlobalSettings::class)->section('tracking');
     }
 
-    public static function gtmId(): ?string
-    {
-        return self::match(self::settings()['gtm_id'], '/^GTM-[A-Z0-9]+$/i');
-    }
-
     public static function ga4Id(): ?string
     {
-        return self::match(self::settings()['ga4_id'], '/^G-[A-Z0-9]+$/i');
-    }
-
-    public static function pixelId(): ?string
-    {
-        return self::match(self::settings()['meta_pixel_id'], '/^\d{5,20}$/');
+        return self::match(self::settings()['ga4_id'] ?? null, '/^G-[A-Z0-9]+$/i');
     }
 
     /**
-     * Pixel ID tujuan Conversions API. Bisa diisi terpisah, karena Pixel di browser boleh
-     * dipasang lewat GTM (kolom Meta Pixel ID langsung dikosongkan).
+     * Isi atribut content meta tag verifikasi. Admin boleh menempelkan seluruh meta tag; yang diambil
+     * hanya nilai content-nya.
      */
-    public static function capiPixelId(): ?string
+    public static function googleVerification(): ?string
     {
-        return self::match(self::settings()['meta_capi_pixel_id'] ?? null, '/^\d{5,20}$/') ?? self::pixelId();
+        return self::verification(self::settings()['google_verification'] ?? null);
     }
 
-    public static function capiToken(): ?string
+    public static function bingVerification(): ?string
     {
-        return Secret::decrypt(self::settings()['meta_capi_token'] ?? null);
-    }
-
-    public static function capiTestCode(): ?string
-    {
-        return trim((string) (self::settings()['meta_test_event_code'] ?? '')) ?: null;
-    }
-
-    /**
-     * Turnstile aktif hanya kalau site key DAN secret key terisi. Kosong (lokal/dev) = dilewati.
-     */
-    public static function turnstileSiteKey(): ?string
-    {
-        $siteKey = trim((string) self::settings()['turnstile_site_key']);
-
-        return $siteKey !== '' && self::turnstileSecret() !== null ? $siteKey : null;
-    }
-
-    public static function turnstileSecret(): ?string
-    {
-        return Secret::decrypt(self::settings()['turnstile_secret_key'] ?? null);
+        return self::verification(self::settings()['bing_verification'] ?? null);
     }
 
     /**
      * Data untuk shared prop `site.tracking`.
      *
-     * @return array{gtmId: ?string, ga4Id: ?string, pixelId: ?string, turnstileSiteKey: ?string, capi: bool}
+     * @return array{ga4Id: ?string}
      */
     public static function browser(): array
     {
-        return [
-            'gtmId' => self::gtmId(),
-            'ga4Id' => self::ga4Id(),
-            'pixelId' => self::pixelId(),
-            'turnstileSiteKey' => self::turnstileSiteKey(),
-            // Klik WhatsApp juga dikirim ke server (Meta CAPI) hanya kalau CAPI dikonfigurasi.
-            'capi' => MetaConversions::enabled(),
-        ];
+        return ['ga4Id' => self::ga4Id()];
+    }
+
+    private static function verification(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if (preg_match('/content=["\']([^"\']+)["\']/i', $value, $match)) {
+            $value = $match[1];
+        }
+
+        return preg_match('/^[A-Za-z0-9_\-]{8,200}$/', $value) ? $value : null;
     }
 
     private static function match(?string $value, string $pattern): ?string

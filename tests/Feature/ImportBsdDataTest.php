@@ -10,7 +10,6 @@ use App\Models\Article;
 use App\Models\Cluster;
 use App\Models\HouseType;
 use App\Models\Kawasan;
-use App\Models\Lead;
 use App\Models\Promo;
 use App\Models\SeoMeta;
 use App\Models\User;
@@ -39,8 +38,7 @@ function bsdType(string $cluster, ?string $name): HouseType
     return HouseType::query()->whereHas('cluster', fn ($q) => $q->where('slug', $cluster))->where('name', $name)->firstOrFail();
 }
 
-it('mengganti data dummy dengan data BSD City tanpa menyentuh user, artikel, lead, dan settings lain', function () {
-    $lead = Lead::query()->create(['name' => 'Budi', 'whatsapp' => '6281234567890', 'cluster_id' => Cluster::where('slug', 'vega-garden')->value('id')]);
+it('mengganti data dummy dengan data BSD City tanpa menyentuh user, artikel, dan settings lain', function () {
     $articles = Article::count();
     $brand = app(GlobalSettings::class)->identity['brand_name'];
 
@@ -55,7 +53,6 @@ it('mengganti data dummy dengan data BSD City tanpa menyentuh user, artikel, lea
         ->and(Article::published()->count())->toBe(0)
         ->and(User::where('email', 'admin@example.com')->exists())->toBeTrue()
         ->and(Article::count())->toBe($articles)
-        ->and($lead->fresh())->not->toBeNull()->cluster_id->toBeNull()
         ->and(app(GlobalSettings::class)->identity['brand_name'])->toBe($brand);
 
     $this->get('/properti/vega-garden')->assertNotFound();

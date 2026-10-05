@@ -24,7 +24,6 @@ it('merender semua halaman publik', function (string $path, string $component) {
     ['/tentang-kami', 'About'],
     ['/kontak', 'Contact'],
     ['/kebijakan-privasi', 'Privacy'],
-    ['/terima-kasih', 'ThankYou'],
 ]);
 
 it('merender detail artikel dan halaman kategori', function () {
@@ -122,8 +121,8 @@ it('merender halaman 404 custom dengan status 404 asli', function () {
             ->has('site.navigation'));
 });
 
-it('memasang noindex di halaman terima kasih', function () {
-    $this->get('/terima-kasih')->assertInertia(fn (Assert $page) => $page->where('meta.noindex', true));
+it('mengarahkan halaman terima kasih lama ke beranda (301)', function () {
+    $this->get('/terima-kasih')->assertStatus(301)->assertRedirect('/');
 });
 
 it('selalu memakai CTA global di listing (toggle lama diabaikan) dan tanpa CTA di Kontak', function () {

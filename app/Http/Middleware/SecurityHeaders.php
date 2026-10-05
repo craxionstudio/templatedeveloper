@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Security headers (brief 10) + CSP dasar untuk halaman publik.
  *
  * CSP memakai nonce per request + 'strict-dynamic': hanya script bertanda nonce (bundle Vite,
- * loader tracking) yang boleh jalan, dan script yang mereka muat (GTM, Pixel, Turnstile, chunk
+ * loader tracking) yang boleh jalan, dan script yang mereka muat (gtag.js GA4, chunk
  * halaman) ikut dipercaya. Admin Filament (Alpine/Livewire) tidak diberi CSP.
  */
 class SecurityHeaders

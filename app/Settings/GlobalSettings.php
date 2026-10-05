@@ -3,7 +3,7 @@
 namespace App\Settings;
 
 /**
- * Pengaturan global (identitas, kontak, header, footer, CTA, tracking, label, SEO default).
+ * Pengaturan global (identitas, kontak & WhatsApp, header, footer, CTA, GA4, label, SEO default).
  */
 class GlobalSettings extends PageSettings
 {
@@ -20,8 +20,6 @@ class GlobalSettings extends PageSettings
     public array $mobile;
 
     public array $tracking;
-
-    public array $notifications;
 
     public array $labels;
 
@@ -58,17 +56,11 @@ class GlobalSettings extends PageSettings
             'footer.social',
             'tracking.ga4_id',
             'tracking.google_verification',
-            // Sampai Tahap C (dihapus bersama form lead & Meta): tidak tampil di form, nilai lama tetap dipakai.
-            'tracking.gtm_id',
-            'tracking.meta_pixel_id',
-            'tracking.meta_capi_pixel_id',
-            'tracking.meta_capi_token',
-            'tracking.meta_test_event_code',
-            'tracking.turnstile_site_key',
-            'tracking.turnstile_secret_key',
-            'tracking.csp_extra',
+            // Tidak tampil di admin; nilai lama (kalau ada) tetap dipasang sebagai meta tag.
             'tracking.bing_verification',
-            'notifications.emails',
+            'contact.whatsapp_cluster_message',
+            'contact.whatsapp_promo_message',
+            'contact.whatsapp_survey_message',
             'seo.default_og_image',
         ];
     }

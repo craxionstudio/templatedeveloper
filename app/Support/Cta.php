@@ -2,23 +2,22 @@
 
 namespace App\Support;
 
+use App\Models\Cluster;
 use App\Settings\GlobalSettings;
 
 /**
- * Section CTA di bawah halaman: CTA global atau override per halaman.
+ * Section CTA di bawah halaman: teks CTA global + dua tombol WhatsApp (konsultasi & jadwal survey).
  */
 class Cta
 {
     /**
      * @param  array<string, mixed>  $section  section "cta" dari settings halaman
-     * @param  array{clusterId?: ?int, houseTypeId?: ?int}  $lead  konteks lead untuk form modal
+     * @param  Cluster|null  $cluster  konteks Detail Rumah (nomor & template pesan cluster)
      * @return array<string, mixed>
      */
-    public static function resolve(array $section, ?string $whatsappMessage = null, array $lead = []): array
+    public static function resolve(array $section, ?Cluster $cluster = null): array
     {
-        $global = app(GlobalSettings::class);
-        $cta = $global->section('cta');
-        $contact = $global->section('contact');
+        $cta = app(GlobalSettings::class)->section('cta');
         $useGlobal = (bool) ($section['use_global'] ?? true);
 
         $text = fn (string $key): string => ! $useGlobal && filled($section[$key] ?? null) ? $section[$key] : $cta[$key];
@@ -28,14 +27,10 @@ class Cta
             'title' => $text('title'),
             'description' => $text('description'),
             'whatsappLabel' => $cta['whatsapp_label'],
-            'whatsappUrl' => SiteLayout::whatsappUrl($contact['whatsapp'], $whatsappMessage ?? $contact['whatsapp_message']) ?? '/kontak',
-            'visitLabel' => $cta['visit_label'],
-            'visitUrl' => $cta['visit_url'],
-            // Konteks form lead di modal tombol kunjungan (cluster/tipe di Detail Rumah).
-            'lead' => [
-                'clusterId' => $lead['clusterId'] ?? null,
-                'houseTypeId' => $lead['houseTypeId'] ?? null,
-            ],
+            'whatsappUrl' => WhatsApp::url($cluster ? WhatsApp::CLUSTER : WhatsApp::GENERAL, $cluster),
+            'surveyLabel' => $cta['visit_label'],
+            'surveyUrl' => WhatsApp::url(WhatsApp::SURVEY, $cluster),
+            'cluster' => $cluster?->name,
         ];
     }
 }

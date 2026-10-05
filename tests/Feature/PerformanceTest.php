@@ -6,7 +6,6 @@ use App\Models\Cluster;
 use App\Models\User;
 use App\Presenters\Image;
 use App\Settings\HomePageSettings;
-use App\Support\Attribution;
 use App\Support\PageCache;
 use App\Support\ResponsiveImages;
 use Illuminate\Http\UploadedFile;
@@ -124,26 +123,12 @@ describe('cache halaman publik', function () {
             ->assertInertia(fn (Assert $page) => $page->where('hero.title', 'Judul baru dari admin'));
     });
 
-    it('tidak meng-cache request Inertia, user login, halaman terima kasih, dan hasil submit form', function () {
+    it('tidak meng-cache request Inertia dan user login', function () {
         $this->get('/kontak', ['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request())])
             ->assertHeaderMissing('X-Page-Cache');
 
-        $this->get('/terima-kasih')->assertHeaderMissing('X-Page-Cache');
-
-        // Error validasi di session → halaman harus menampilkan error, bukan versi cache.
-        $this->get('/kontak')->assertHeader('X-Page-Cache', 'MISS');
-        $this->from('/kontak')->post('/lead', ['name' => '', 'whatsapp' => '', 'source_position' => 'kontak']);
-        $this->get('/kontak')->assertHeaderMissing('X-Page-Cache')->assertInertia(fn (Assert $page) => $page->has('errors.name'));
-
         $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
         $this->get('/kontak')->assertHeaderMissing('X-Page-Cache');
-    });
-
-    it('tetap menangkap UTM walaupun halaman dari cache', function () {
-        $this->get('/fasilitas');
-        $response = $this->get('/fasilitas?utm_source=google&utm_campaign=cache')->assertHeader('X-Page-Cache', 'HIT');
-
-        expect(collect($response->headers->getCookies())->map->getName())->toContain(Attribution::COOKIE);
     });
 });
 

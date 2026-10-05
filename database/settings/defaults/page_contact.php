@@ -6,7 +6,7 @@ return [
     'header' => [
         'eyebrow' => 'Kontak',
         'title' => 'Ngobrol langsung dengan tim marketing',
-        'description' => 'Datang ke kantor pemasaran atau tinggalkan nomor WhatsApp, tim kami akan menghubungi kamu.',
+        'description' => 'Datang ke kantor pemasaran atau chat WhatsApp, tim marketing kami siap membantu.',
     ],
 
     'info' => [
@@ -27,30 +27,11 @@ return [
         'button_label' => 'Buka peta',
     ],
 
-    'form' => [
-        'enabled' => true,
-        'title' => 'Kirim pesan',
-        'name_label' => 'Nama',
-        'whatsapp_label' => 'WhatsApp',
-        'email_label' => 'Email (opsional)',
-        'interest_label' => 'Minat cluster',
-        'interest_placeholder' => 'Belum tahu / ingin konsultasi',
-        'payment_label' => 'Rencana pembayaran',
-        'payment_options' => [
-            ['label' => 'KPR'],
-            ['label' => 'Cash bertahap'],
-            ['label' => 'Cash keras'],
-        ],
-        'message_label' => 'Pesan',
-        'consent_label' => 'Saya setuju data saya diproses sesuai Kebijakan Privasi.',
-        'submit_label' => 'Kirim',
-    ],
-
     'cta' => [...$shared['cta'], 'enabled' => false],
 
     'seo' => [
         ...$shared['seo'],
         'meta_title' => 'Kantor Pemasaran BSD City',
-        'meta_description' => 'Tanya harga, tipe rumah, atau jadwal survey cluster di BSD City. Hubungi kantor pemasaran lewat WhatsApp atau isi form ini.',
+        'meta_description' => 'Tanya harga, tipe rumah, atau jadwal survey cluster di BSD City. Hubungi kantor pemasaran lewat WhatsApp.',
     ],
 ];

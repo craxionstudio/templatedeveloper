@@ -443,6 +443,65 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
    Halaman Promo lama (tersembunyi, 18 field) ikut dihitung.
 - **Test baru:** wajib nama/kawasan/foto, slug/ringkasan/tahun otomatis, duplikat cluster, 4 menu pengaturan, simpan multi-settings, teks tetap di kode, section otomatis tersembunyi, dan teks contoh dianggap kosong. Test lama untuk toggle/label/field yang dihapus disesuaikan.
 
+**Tahap C — WhatsApp only + tracking Google** (disetujui pemilik 5 Okt 2026, langsung di `main`)
+
+*Lead: form dihapus, semua lewat WhatsApp.*
+
+1. **Yang dihapus:**
+   - Form lead (sidebar, inline, modal "Jadwalkan", form Kontak) dan Cloudflare Turnstile.
+   - `POST /lead` beserta rate limit, honeypot, dan normalisasi nomor.
+   - Job `SendMetaLeadEvent`, email notifikasi lead, dan cookie atribusi UTM.
+   - Menu Lead dan 3 widget lead di dasbor.
+   - Halaman `/terima-kasih`, sekarang **301 ke beranda**. Settings halaman Terima Kasih, form Kontak, dan notifikasi lead ikut dibuang (settings migrasi `2026_10_05_200000_whatsapp_only_and_ga4`).
+2. **Tabel `leads`:** migrasi `2026_10_05_200000_export_and_drop_leads_table` mengekspor semua lead ke `storage/app/backup/leads-{tanggal}.csv` (UTF-8 BOM, plus nama cluster/tipe) sebelum tabel, model, dan menu Lead dihapus. File yang sudah ada tidak ditimpa.
+3. **Semua CTA jadi tombol WhatsApp** dengan pesan otomatis (`App\Support\WhatsApp`). Template bisa diubah di Pengaturan Umum dengan placeholder `{nama_cluster}`:
+   - **Detail cluster** (kartu marketing, tab tipe): "Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?" Di tab tipe, `{nama_cluster}` = "Cluster Tipe X".
+   - **Promo & Benefit:** "Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?"
+   - **Jadwal survey** (kartu marketing, bar sticky mobile, CTA bawah): "Halo, saya ingin jadwalkan survey ke {nama_cluster}." Di luar Detail Rumah, `{nama_cluster}` diisi nama brand.
+   - **Kontak/global:** "Halo, saya ingin konsultasi rumah di BSD City." Teks bawaan lama yang tersimpan ikut diganti; teks yang sudah diubah admin dipertahankan.
+4. **Nomor WA:** nomor WA cluster kalau diisi, kalau kosong nomor global. Field "WhatsApp marketing default" di Pengaturan → Properti dihapus.
+5. **Tombol WhatsApp melayang** di mobile & tablet (< 1280px) di semua halaman. Di Detail Rumah tombol ini memakai nomor & pesan cluster dan naik di atas bar harga. Ikon WA di header mobile dan tombol WA di bar sticky dihapus supaya tidak dobel.
+
+*Tracking: tidak beriklan di Meta, fokus organik.*
+
+6. **Dihapus:**
+   - Meta Pixel dan Meta CAPI (`/track/contact`, job `SendMetaContactEvent`, `MetaConversions`, `MetaContext`, token & settings terenkripsi, `config/services.meta`).
+   - GTM: loader, noscript, `dataLayer` event, dan domain CSP tambahan.
+   - Domain CSP Meta, GTM, Turnstile, dan doubleclick iframe.
+   - Key tracking lama yang tersimpan di database ikut dibuang.
+7. **GA4 langsung lewat gtag.js:**
+   - Dimuat setelah `load` + idle.
+   - Measurement ID diisi di Pengaturan Umum; kalau kosong, tidak ada script tracking sama sekali.
+   - CSP hanya domain GA4, Google Maps, dan YouTube.
+8. **Event `click_whatsapp`:** parameter `cluster`, `posisi_tombol`, `halaman`, dengan `transport_type: 'beacon'`. Diuji di browser: event terkirim dengan parameter yang benar.
+9. **Verifikasi Google Search Console** tetap di Pengaturan Umum. Ditemukan saat pengerjaan: meta tag verifikasi sebelumnya **tidak pernah dipasang** di `<head>`. Sekarang dipasang, dan admin boleh menempelkan seluruh meta tag.
+10. **Kebijakan Privasi** tetap ada. Draf bawaan ditulis ulang tanpa form & Meta, dengan WhatsApp + GA4/cookie. Settings migrasi mengganti isi yang masih draf awal (`[ISI KEBIJAKAN PRIVASI …]`); teks yang sudah ditulis admin tidak ditimpa. Masih ada penanda `[WAJIB DITINJAU BAGIAN LEGAL…]` untuk ditinjau legal.
+11. **`docs/TRACKING.md` ditulis ulang:** konversi utama `click_whatsapp` (Key event), custom dimension, nilai `posisi_tombol`, dan cara menguji. README dan CHECKLIST-LAUNCH ikut disesuaikan.
+
+- **Test:**
+  - `tests/Feature/WhatsAppTest.php`: template per konteks & dari admin, nomor cluster/global, endpoint lama hilang, 301 terima kasih, ekspor CSV leads, GA4 hanya kalau ID diisi (tanpa GTM/Pixel), meta verifikasi, CSP, Kebijakan Privasi.
+  - `LeadTest` dihapus.
+  - Test CSP/cache/SEO/halaman yang menyebut form, Pixel, atau terima kasih disesuaikan.
+- **Catatan migrasi lama:** dua settings migrasi lama (`2026_09_25_*`) membaca nilai bawaan yang sekarang sudah dihapus. Keduanya diberi fallback supaya instalasi baru (`migrate:fresh`) tetap jalan; di production keduanya sudah pernah jalan.
+
+**Laporan akhir Tahap A + B + C**
+
+| | Sebelum (main `bab693f`) | Sesudah A+B+C |
+|---|---|---|
+| JS bersama (gzip, semua halaman) | 116,5 KB | 112,8 KB |
+| JS Beranda (total) | 128,0 KB | 124,3 KB |
+| JS /properti | 128,0 KB | 124,3 KB |
+| JS Detail Rumah | 132,3 KB | 128,6 KB |
+| JS Detail Kawasan | 127,5 KB | 123,8 KB |
+| JS Artikel | 125,8 KB | 120,9 KB |
+| JS Kontak | 123,3 KB | 119,6 KB |
+| Font Fraunces | 65,7 KB | 32,5 KB |
+| Script pihak ketiga | GTM + GA4 + Meta Pixel + Turnstile (kalau diisi) | hanya gtag.js GA4 (kalau diisi) |
+| Field admin | ±700 (audit) | **223** (wajib 27) |
+| Menu admin | 30 (audit) | **18** |
+
+Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entry + import statis + chunk halaman), sama untuk kedua build. Field/menu dihitung dengan skrip audit yang sama.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

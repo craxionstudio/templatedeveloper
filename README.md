@@ -1,6 +1,6 @@
 # Website Developer Perumahan — Arunika Land (nama sementara)
 
-Website resmi developer perumahan (satu kawasan), fokus lead generation (form + WhatsApp) dan
+Website resmi developer perumahan (satu kawasan), fokus lead generation lewat WhatsApp dan
 kepercayaan terhadap developer. Dibangun sesuai `docs/BRIEF.md`:
 Laravel 13 + Filament 5 (admin/CMS di `/admin`) + Inertia.js v3 + React + TypeScript +
 Tailwind CSS v4, dengan **Inertia SSR** supaya konten, link, dan (nanti) JSON-LD sudah ada di HTML
@@ -15,7 +15,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | 1   | Setup: Laravel + React starter kit (Inertia v3, TS) + SSR + Filament 5 + token + font self-host + layout global | ✅ Selesai |
 | 2   | Model & admin (migrasi, seeder dummy, Filament resource, settings per halaman)                                  | ✅ Selesai |
 | 3   | Halaman publik sesuai desain                                                                                    | ✅ Selesai |
-| 4   | Lead & tracking                                                                                                 | ✅ Selesai |
+| 4   | WhatsApp & tracking                                                                                             | ✅ Selesai |
 | 5   | Technical SEO                                                                                                   | ✅ Selesai |
 | 6   | Performa                                                                                                        | ✅ Selesai |
 | 7   | QA                                                                                                              | ✅ Selesai |
@@ -38,7 +38,7 @@ Referensi desain ada di `docs/design/` (desktop 1440 + mobile 390, HTML statis +
 | `pdo_sqlite`                                                                                                                | database lokal & test                                 |
 | `gd` (atau `imagick`)                                                                                                       | foto: resize + varian WebP/AVIF                       |
 | `exif`                                                                                                                      | membaca orientasi foto yang diunggah                  |
-| `curl`                                                                                                                      | HTTP keluar: Meta Conversions API, Turnstile, webhook |
+| `curl`                                                                                                                      | HTTP keluar (backup, notifikasi gagal backup)         |
 | `bcmath`                                                                                                                    | perhitungan angka besar (harga) oleh beberapa library |
 
 Disarankan: `opcache` (production), `pcntl` (queue worker berhenti dengan rapi), `redis` (kalau memakai Redis).
@@ -130,19 +130,18 @@ Buka:
 Saat `npm run dev` jalan, **SSR sudah aktif otomatis**: plugin `@inertiajs/vite` menyediakan
 endpoint SSR di dev server Vite, jadi tidak perlu proses SSR terpisah selama development.
 
-> **Queue — penting.** Email notifikasi lead, Meta Conversions API, dan pembuatan varian gambar
-> (AVIF/WebP) berjalan lewat queue. `.env.example` memakai `QUEUE_CONNECTION=database`, jadi:
+> **Queue — penting.** Pembuatan varian gambar (AVIF/WebP) berjalan lewat queue. `.env.example` memakai `QUEUE_CONNECTION=database`, jadi:
 >
 > - **Tes lokal tanpa worker:** set `QUEUE_CONNECTION=sync` di `.env` — semua job langsung dijalankan
->   saat request (submit form jadi sedikit lebih lambat, tapi tidak ada yang tertunda).
+>   saat request (upload foto jadi sedikit lebih lambat, tapi tidak ada yang tertunda).
 > - **Pakai `database` atau `redis`:** jalankan worker di terminal terpisah (sudah termasuk di `composer dev`):
 >
 >     ```bash
 >     php artisan queue:work
 >     ```
 >
->     Tanpa worker, job hanya menumpuk di tabel `jobs`: email tidak terkirim, event CAPI tidak dikirim,
->     dan foto yang diunggah tetap memakai file asli (tanpa AVIF/WebP).
+>     Tanpa worker, job hanya menumpuk di tabel `jobs`: foto yang diunggah tetap memakai file asli
+>     (tanpa AVIF/WebP).
 
 ## Menjalankan Mode Production-like (dengan SSR)
 
@@ -211,8 +210,6 @@ Login ke `/admin`, lalu isi lewat menu:
 - **Form ringkas:** slug, meta title/description, gambar share, ringkasan, alt text foto, dan tahun launching
   terisi otomatis. Field SEO/teknis ada di section **Lanjutan** (tertutup). Form Cluster hanya mewajibkan nama,
   kawasan (atau "Cluster mandiri"), dan minimal 1 foto; ada aksi **Duplikat cluster** (tabel & halaman edit).
-- **Marketing** — Lead (ubah status & penanggung jawab, filter tanggal/status/cluster/UTM,
-  ekspor CSV/XLSX sesuai filter).
 - **Sistem** — Menu Navigasi, Redirect, User.
 
 Aturan admin yang berlaku di semua resource:
@@ -251,7 +248,7 @@ php artisan import:bsd-update docs/data/bsd-city-update-2.json
 - Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
   kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, Kontak, serta pola
   judul Detail Kawasan & Detail Rumah).
-- `--fresh` **tidak** menghapus user, artikel, lead (cluster di lead jadi kosong), fasilitas, atau settings. Konten contoh
+- `--fresh` **tidak** menghapus user, artikel, fasilitas, atau settings. Konten contoh
   (fasilitas, pengembangan mendatang, artikel, promo) hanya dinonaktifkan (`is_published = false`).
   Di production, perintah ini minta konfirmasi (lewati dengan `--force`).
 - Nilai `null` di JSON dibiarkan kosong, dan saat import ulang tidak menimpa isi yang sudah dilengkapi di admin.
@@ -293,7 +290,7 @@ Nomor WhatsApp masih kosong. Selama kosong, tombol WA/"Hubungi Marketing" diarah
     | `/fasilitas`                                                                   | `Pages/Fasilitas/Index.tsx`                             | 04                                          |
     | `/artikel`, `/artikel/kategori/{slug}`                                         | `Pages/Artikel/Index.tsx`                               | 05                                          |
     | `/artikel/{slug}`                                                              | `Pages/Artikel/Show.tsx`                                | 06                                          |
-    | `/tentang-kami`, `/kontak`, `/kebijakan-privasi`, `/terima-kasih`              | `About`, `Contact`, `Privacy`, `ThankYou`               | tanpa desain, memakai pola section yang ada |
+    | `/tentang-kami`, `/kontak`, `/kebijakan-privasi`                               | `About`, `Contact`, `Privacy`                           | tanpa desain, memakai pola section yang ada |
     | URL tidak dikenal                                                              | `Pages/Errors/NotFound.tsx` (status 404 asli, SSR)      | —                                           |
 
 - Foto yang belum diunggah tampil sebagai placeholder bergaris dengan alt text (`components/site/picture.tsx`).
@@ -316,11 +313,11 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 - **Peta:** facade (gambar/placeholder + tombol "Buka peta"), iframe Google Maps baru dimuat saat diklik.
   Video galeri berupa link (tidak ada video autoplay).
 - **JavaScript:** satu chunk per halaman (import dinamis dari resolver Inertia); chunk bersama = React + Inertia.
-  GTM/GA4/Pixel dimuat setelah `load` + browser idle.
+  GA4 (gtag.js) dimuat setelah `load` + browser idle.
 - **Cache halaman publik** (`App\Http\Middleware\CachePublicPages`): HTML awal hasil SSR untuk tamu di-cache
   (default aktif di production, `PAGE_CACHE_ENABLED`, TTL `PAGE_CACHE_TTL` = 3600 dtk). Dibuang otomatis setiap
   konten, media, atau settings berubah (versi konten naik), dan setiap build aset baru. Tidak di-cache: request
-  Inertia (JSON), admin, pratinjau, `/terima-kasih`, user login, dan request yang membawa error/flash form.
+  Inertia (JSON), admin, pratinjau, user login, dan request yang membawa error/flash.
   Cookie per pengunjung (session, XSRF, atribusi UTM) tetap dikirim. Header `X-Page-Cache: HIT|MISS` untuk cek.
   Data layout global (header/footer) juga di-cache per versi konten. Kalau mengubah data langsung di database
   (bukan lewat admin): `php artisan cache:clear`.
@@ -333,7 +330,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
   (pola `{Judul} | {Brand}`, bisa di-override admin), description (±155 karakter), `robots`, canonical absolut,
   Open Graph + Twitter Card, dan JSON-LD. Cek tanpa JavaScript: `curl -s http://localhost:8000/properti/vega-garden`.
 - **Canonical & robots:** canonical selalu tanpa query (`?tipe=`, filter, urut, pencarian), kecuali pagination
-  (`?page=2` self-canonical). Filter/urut/pencarian, `/terima-kasih`, dan pratinjau = `noindex, follow`.
+  (`?page=2` self-canonical). Filter/urut/pencarian dan pratinjau = `noindex, follow`.
   Non-production: `noindex, nofollow` + header `X-Robots-Tag`, dan robots.txt `Disallow: /`.
 - **OG image:** gambar dari tab SEO > foto konten (galeri cluster, hero kawasan, cover artikel) > OG default di
   Pengaturan Global → SEO default > gambar default per tipe halaman di `public/og/*.png` (1200×630).
@@ -346,55 +343,36 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 - **Sitemap:** `/sitemap.xml` (index) → `sitemap-pages.xml`, `sitemap-properti.xml`, `sitemap-artikel.xml`, dengan
   `lastmod` dan image sitemap. Hanya konten yang dipublikasikan dan tidak `noindex`. XML di-cache dan dibuang otomatis
   saat konten/settings berubah; `php artisan sitemap:refresh` jalan harian (scheduler).
-- **robots.txt** dinamis. Production: blok `/admin`, `/livewire`, `/terima-kasih`, cantumkan sitemap. URL
+- **robots.txt** dinamis. Production: blok `/admin` dan `/livewire`, cantumkan sitemap. URL
   filter/urutan/pencarian **tidak** diblok supaya Google bisa membaca `noindex, follow` + canonical-nya.
   Non-production: `Disallow: /`. **RSS:** `/artikel/feed.xml` (+ `<link rel="alternate">` di head).
 - **URL & status code** (`App\Http\Middleware\RedirectManager`, sebelum routing): http→https dan www ↔ non-www
   mengikuti `APP_URL` (production), trailing slash & huruf kapital → 301, Redirect Manager (Sistem → Redirect: 301/302/410,
   hit counter), slug lama → 301 otomatis. Konten dihapus → 410, tidak ada → 404 custom (status asli).
 - **Pratinjau** artikel, cluster, dan kawasan (termasuk yang belum dipublikasikan): tombol "Pratinjau" di form admin,
-  URL bertanda tangan 1 jam, hanya Super Admin/Admin Konten, selalu `noindex`.
+  URL bertanda tangan 1 jam, hanya Admin, selalu `noindex`.
 
-## Lead & Tracking
+## WhatsApp & Tracking
 
-- **Form lead** (Detail Rumah sidebar/inline, modal "Jadwalkan Kunjungan/Survey", halaman Kontak) → `POST /lead`
-  → redirect `/terima-kasih`. Nomor WA dinormalisasi ke `62…` (`App\Support\Phone`), persetujuan
-  Kebijakan Privasi wajib.
-- **Anti-spam:** honeypot (field `website`, bot dijawab "sukses" tanpa disimpan) + rate limit per IP
-  (lead 5/menit & 100/hari per IP + maksimal 3 lead per nomor WA per 24 jam) + Cloudflare Turnstile. Turnstile aktif hanya
-  kalau site key **dan** secret key diisi; kosong (lokal/dev) = dilewati.
-- **Atribusi:** UTM, `fbclid`, `gclid`, landing page pertama, dan referrer ditangkap di kunjungan pertama
-  ke cookie `arunika_attribution` (30 hari) lalu disalin ke lead. Landing page & referrer = kunjungan
-  pertama; `utm_*` & click ID = kampanye terakhir; `first_utm_source/medium/campaign` = kampanye pertama
-  (tidak pernah ditimpa). Keduanya tampil di detail lead dan ekspor CSV/XLSX.
-- **Notifikasi:** email ke satu/lebih alamat, lewat queue.
-  Pengaturan Global → Notifikasi lead.
-- **Analytics (GTM-first):** semua event di-push ke `dataLayer`; tag GA4 & Meta Pixel diatur di GTM.
-  Panduan event, parameter, dan contoh tag/trigger GTM: **`docs/TRACKING.md`**. GA4 & Pixel langsung
-  tetap bisa diisi (opsional) di Pengaturan Global → Tracking & verifikasi.
-  Script dimuat setelah halaman selesai dimuat & browser idle; antrean event dibuat lebih dulu supaya
-  tidak ada event yang hilang. Event: `generate_lead` (di `/terima-kasih`, dengan cluster, tipe, posisi
-  form, `event_id`), `click_whatsapp`, `click_phone`, `download_brochure`, `download_pricelist`,
-  `view_listing`, `select_house_type`, serta `virtual_page_view` (GTM) / `page_view` (GA4) per navigasi.
-  Pixel: `PageView`, `Lead`, `Contact`, `ViewContent`.
-- **Meta Conversions API:** event `Lead` dari server (job `SendMetaLeadEvent`) dengan `event_id` yang sama
-  dengan Pixel untuk deduplikasi. Nomor WA, email, dan nama di-hash SHA-256 sesuai spesifikasi Meta;
-  `fbp`/`fbc`, IP, dan user agent ikut dikirim untuk pencocokan. Access token disimpan terenkripsi dan
-  tidak ditampilkan ulang; token kosong = CAPI dilewati tanpa error. Uji coba: isi "Test event code".
-- Konversi di `/terima-kasih` hanya dikirim sekali tepat setelah submit (flash session), jadi refresh
-  tidak menghitung dua kali.
+- **Tanpa form lead** (keputusan 5 Okt 2026): semua ajakan menghubungi membuka WhatsApp dengan pesan otomatis
+  (`App\Support\WhatsApp`). Nomor: nomor WA cluster kalau diisi, kalau kosong nomor global. Template per konteks
+  (detail cluster, promo, jadwal survey, global; placeholder `{nama_cluster}`) di Pengaturan Umum.
+  Tombol WhatsApp melayang di mobile & tablet di semua halaman. `/terima-kasih` diarahkan 301 ke beranda.
+- Tabel `leads` lama diekspor ke `storage/app/backup/leads-{tanggal}.csv` lalu dihapus (migrasi `2026_10_05_200000`).
+- **Analytics:** GA4 langsung lewat `gtag.js` (tanpa GTM, tanpa Meta Pixel/CAPI), hanya kalau Measurement ID diisi.
+  Konversi utama `click_whatsapp` (parameter `cluster`, `posisi_tombol`, `halaman`; transport beacon).
+  Panduan lengkap: **`docs/TRACKING.md`**.
+- **Search Console:** meta tag verifikasi dari Pengaturan Umum dipasang di `<head>`.
 
 ## Keamanan & QA
 
 - **Security headers** di semua respons (termasuk admin): `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN`,
   `Referrer-Policy`, `Permissions-Policy`; HSTS di production lewat HTTPS.
 - **CSP** halaman publik (`App\Http\Middleware\SecurityHeaders`): nonce per request + `'strict-dynamic'`, jadi hanya
-  bundle Vite dan loader tracking (bertanda nonce) yang boleh jalan, dan script yang mereka muat (GTM, Pixel,
-  Turnstile, chunk halaman) ikut dipercaya. Default aktif di semua environment selain `local` (`CSP_ENABLED`).
-  Admin Filament tidak diberi CSP. Tag GTM Custom HTML jangan memakai "Support document.write".
-  `connect-src`/`img-src`/`frame-src` memakai daftar domain (bawaan GTM, GA4, Meta, Turnstile, Google Maps, YouTube) +
-  **Domain tambahan CSP** di Pengaturan Global → Tracking & verifikasi. Tag baru di GTM (TikTok, Google Ads, …)
-  perlu domainnya ditambahkan di sana (`docs/TRACKING.md` → "Menambah tag baru di GTM").
+  bundle Vite dan loader GA4 (bertanda nonce) yang boleh jalan, dan script yang mereka muat (gtag.js, chunk
+  halaman) ikut dipercaya. Default aktif di semua environment selain `local` (`CSP_ENABLED`).
+  Admin Filament tidak diberi CSP. `connect-src`/`img-src`/`frame-src` memakai daftar domain bawaan (GA4, Google
+  Maps, YouTube) + domain embed peta Kontak dan disk file publik (otomatis).
 - **Rich text** disanitasi saat disimpan dan saat dikirim ke browser (`App\Support\RichText`, hanya tag yang diizinkan).
 - **Backup** harian database + file unggahan (`spatie/laravel-backup`): `backup:run` 01.30, `backup:clean` 01.00,
   `backup:monitor` 09.00. Tujuan `BACKUP_DISKS` (default `local` → `storage/app/private`), email hanya kalau gagal
@@ -414,14 +392,13 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 
 - `routes/web.php` — route halaman publik
 - `app/Http/Controllers/` — controller yang mengirim data halaman ke Inertia
-- `app/Http/Controllers/LeadController.php`, `app/Http/Requests/` — simpan lead & validasi anti-spam
-- `app/Services/{MetaConversions,Turnstile}.php`, `app/Jobs/`, `app/Notifications/` — CAPI, Turnstile, webhook, email lead
+- `app/Support/WhatsApp.php` — nomor & template pesan WhatsApp per konteks
 - `app/Http/Middleware/{SecurityHeaders,CachePublicPages}.php` — security headers/CSP & cache halaman publik
 - `app/Console/Commands/CheckPages.php` — `php artisan qa:pages` (cek SSR semua URL sitemap)
 - `docs/` — brief, perubahan (`CHANGES.md`), data dummy, tracking, QA, checklist go-live
 - `app/Support/{PageMeta,StructuredData,Sitemaps}.php`, `app/Http/Middleware/RedirectManager.php`, `app/Http/Controllers/SeoFileController.php` — meta/OG/canonical, JSON-LD, sitemap, redirect, robots, RSS
-- `app/Support/{Attribution,Tracking,Secret,Phone}.php` — cookie UTM, ID tracking, enkripsi rahasia, normalisasi WA
-- `resources/js/lib/analytics.ts`, `resources/js/components/lead/` — event analytics & form lead
+- `app/Support/Tracking.php`, `resources/views/partials/tracking-head.blade.php` — GA4 & meta verifikasi
+- `resources/js/lib/analytics.ts` — event GA4 (`click_whatsapp` dkk.)
 - `app/Presenters/` — bentuk data kartu (cluster, kawasan, artikel, fasilitas, gambar) untuk React
 - `app/Support/{PageMeta,Breadcrumbs,Cta}.php` — meta halaman, breadcrumb, dan CTA per halaman
 - `app/Http/Middleware/HandleInertiaRequests.php` — shared prop `site` (layout global)
@@ -460,7 +437,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
    tanpa `--fresh`; `import:bsd-update … --force --no-interaction`. Keduanya tidak pernah bertanya dengan `--force`.
 6. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
 7. **Queue tanpa Supervisor (cara bawaan):** scheduler menyalakan `queue:work --stop-when-empty` tiap menit
-   (`routes/console.php`), jadi cukup cron `schedule:run` di langkah 9: konversi foto WebP/AVIF dan email lead
+   (`routes/console.php`), jadi cukup cron `schedule:run` di langkah 9: konversi foto WebP/AVIF
    diproses paling lambat ±1 menit setelah upload/submit. Script deploy mengecek cron ini dan menampilkan
    peringatan di ringkasan GitHub Actions kalau belum terpasang.
 

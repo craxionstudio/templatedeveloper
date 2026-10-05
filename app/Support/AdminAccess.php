@@ -16,7 +16,6 @@ use App\Models\FutureDevelopment;
 use App\Models\GalleryItem;
 use App\Models\HouseType;
 use App\Models\Kawasan;
-use App\Models\Lead;
 use App\Models\Promo;
 use App\Models\Redirect;
 use App\Models\SeoMeta;
@@ -26,7 +25,7 @@ use App\Models\User;
 /**
  * Hak akses admin (policy manual, dipasang lewat Gate::before di AppServiceProvider).
  *
- * Hanya satu peran, Admin: semua menu. Lead tidak bisa dibuat dari admin (hanya dari form website).
+ * Hanya satu peran, Admin: semua menu.
  */
 class AdminAccess
 {
@@ -53,17 +52,7 @@ class AdminAccess
 
         return match (true) {
             in_array($model, self::CONTENT_MODELS, true), $model === User::class => $user->isAdmin(),
-            $model === Lead::class => self::lead($user, $ability),
             default => null,
-        };
-    }
-
-    private static function lead(User $user, string $ability): bool
-    {
-        return match ($ability) {
-            // Lead hanya masuk dari form website.
-            'create', 'replicate', 'reorder' => false,
-            default => $user->isAdmin(),
         };
     }
 }

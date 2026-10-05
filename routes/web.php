@@ -4,11 +4,9 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ClusterController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\ContactEventController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KawasanController;
-use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PropertyListingController;
 use App\Http\Controllers\SeoFileController;
@@ -37,7 +35,8 @@ Route::get('/artikel/{slug}', [ArticleController::class, 'show'])->name('artikel
 Route::get('/tentang-kami', AboutController::class)->name('tentang');
 Route::get('/kontak', ContactController::class)->name('kontak');
 Route::get('/kebijakan-privasi', [LegalController::class, 'privacy'])->name('privasi');
-Route::get('/terima-kasih', [LegalController::class, 'thankYou'])->name('terima-kasih');
+// Form lead dihapus (semua lewat WhatsApp): halaman terima kasih lama diarahkan ke beranda.
+Route::permanentRedirect('/terima-kasih', '/');
 
 // Pratinjau draft untuk admin: URL bertanda tangan (1 jam, dari tombol "Pratinjau" di form admin), selalu noindex.
 Route::middleware('signed')->prefix('pratinjau')->group(function () {
@@ -45,7 +44,3 @@ Route::middleware('signed')->prefix('pratinjau')->group(function () {
     Route::get('/properti/{cluster}', [ClusterController::class, 'preview'])->name('cluster.preview');
     Route::get('/kawasan/{kawasan}', [KawasanController::class, 'preview'])->name('kawasan.preview');
 });
-
-// Form publik (Milestone 4): honeypot + Turnstile di FormRequest, rate limit per IP di sini.
-Route::post('/lead', [LeadController::class, 'store'])->middleware('throttle:leads')->name('lead.store');
-Route::post('/track/contact', ContactEventController::class)->middleware('throttle:contact-events')->name('track.contact');

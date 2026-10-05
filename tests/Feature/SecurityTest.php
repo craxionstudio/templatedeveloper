@@ -5,9 +5,7 @@ use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Models\User;
 use App\Settings\ContactPageSettings;
-use App\Settings\GlobalSettings;
 use App\Settings\PrivacyPageSettings;
-use App\Support\CspSources;
 use App\Support\PageCache;
 use Database\Seeders\UserSeeder;
 use Illuminate\Console\Scheduling\Schedule;
@@ -125,46 +123,6 @@ it('tidak memakai password "password" untuk akun seeder di production dan tidak 
     (new UserSeeder)->run();
 
     expect(Hash::check('Rahasia-Baru-123', $admin->fresh()->password))->toBeTrue();
-});
-
-it('memvalidasi format domain tambahan CSP', function (string $value, ?string $expected) {
-    expect(CspSources::normalize($value))->toBe($expected);
-})->with([
-    ['analytics.tiktok.com', 'https://analytics.tiktok.com'],
-    ['HTTPS://GoogleAds.G.DoubleClick.net/', 'https://googleads.g.doubleclick.net'],
-    ['https://example.com:8443', 'https://example.com:8443'],
-    ['*', null],
-    ['*.tiktok.com', null],
-    ['https://*.hotjar.com', null],
-    ["'unsafe-eval'", null],
-    ["'unsafe-inline'", null],
-    ['https:', null],
-    ['http://tracker.com', null],
-    ['data:', null],
-    ['tracker.com/path', null],
-    ['evil.com; script-src *', null],
-    ['evil.com https://other.com', null],
-]);
-
-it('menggabungkan domain tambahan CSP tersimpan ke direktif yang tepat', function () {
-    $settings = app(GlobalSettings::class);
-    $settings->tracking = [...$settings->tracking, 'csp_extra' => [
-        'script_src' => ['analytics.tiktok.com'],
-        'connect_src' => ['analytics.tiktok.com', 'https://googleads.g.doubleclick.net'],
-        'img_src' => ['www.googleadservices.com'],
-        'frame_src' => ['bid.g.doubleclick.net'],
-    ]];
-    $settings->save();
-
-    $csp = collect(explode('; ', $this->get('/')->headers->get('Content-Security-Policy')))
-        ->mapWithKeys(fn (string $d) => [strtok($d, ' ') => $d]);
-
-    expect($csp['script-src'])->toContain('https://analytics.tiktok.com')
-        ->and($csp['connect-src'])->toContain('https://analytics.tiktok.com')->toContain('https://googleads.g.doubleclick.net')
-        ->and($csp['img-src'])->toContain('https://www.googleadservices.com')->not->toContain('analytics.tiktok.com')
-        ->and($csp['frame-src'])->toContain('https://bid.g.doubleclick.net')
-        // Bawaan tetap ada, dan tidak ada izin https: umum.
-        ->and($csp['connect-src'])->toContain('https://*.google-analytics.com')->not->toMatch('/\shttps:(\s|$)/');
 });
 
 it('mengizinkan domain embed peta Kontak di frame-src secara otomatis', function () {

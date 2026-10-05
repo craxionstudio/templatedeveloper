@@ -1,7 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import {
-    LeadCard,
+    ContactCard,
     PriceBox,
     SpecSection,
     TypeTabs,
@@ -9,7 +9,7 @@ import {
 } from '@/components/cluster/detail-parts';
 import type {
     HouseTypeData,
-    LeadFormData,
+    ContactCardData,
     MarketingData,
     PricingData,
 } from '@/components/cluster/detail-parts';
@@ -17,7 +17,6 @@ import BenefitSection from '@/components/cluster/benefit-section';
 import type { BenefitSectionData } from '@/components/cluster/benefit-section';
 import Gallery from '@/components/cluster/gallery';
 import type { GalleryData } from '@/components/cluster/gallery';
-import { useLeadModalTrigger } from '@/components/lead/lead-modal';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
@@ -32,7 +31,7 @@ import {
     ButtonLink,
     SectionHeading,
 } from '@/components/site/ui';
-import { pixel, track } from '@/lib/analytics';
+import { track } from '@/lib/analytics';
 import type { ClusterCardData, Crumb, CtaData } from '@/types/content';
 import type { PageMeta } from '@/types/site';
 
@@ -76,7 +75,7 @@ type Props = {
     specLabels: Record<string, string>;
     downloads: { brochure: string; pricelist: string };
     marketing: MarketingData;
-    form: LeadFormData;
+    contact: ContactCardData;
     mobileBar: {
         priceLabel: string;
         whatsappLabel: string;
@@ -108,7 +107,7 @@ export default function ClusterShow(props: Props) {
         specLabels,
         downloads,
         marketing,
-        form,
+        contact,
         mobileBar,
         others,
         cta,
@@ -135,24 +134,13 @@ export default function ClusterShow(props: Props) {
             t.floorplan.url,
     );
 
-    // Event view_listing + Pixel ViewContent sekali per cluster.
+    // Event view_listing sekali per cluster.
     useEffect(() => {
         track('view_listing', {
             cluster: cluster.name,
             kawasan: cluster.kawasan?.name,
         });
-        pixel('ViewContent', {
-            content_name: cluster.name,
-            content_category: cluster.kawasan?.name,
-            content_type: 'product',
-        });
     }, [cluster.id, cluster.name, cluster.kawasan?.name]);
-
-    const openSurvey = useLeadModalTrigger({
-        clusterId: cluster.id,
-        houseTypeId: type?.id ?? null,
-        position: 'sticky',
-    });
 
     const selectType = (slug: string) => {
         setSelectedSlug(slug);
@@ -325,31 +313,26 @@ export default function ClusterShow(props: Props) {
                         </section>
                     ) : null}
 
-                    {/* Mobile & tablet: form lead inline setelah deskripsi. */}
+                    {/* Mobile & tablet: kartu marketing + tombol WhatsApp setelah deskripsi. */}
                     <div className="xl:hidden">
-                        <LeadCard
+                        <ContactCard
                             marketing={marketing}
-                            form={form}
+                            contact={contact}
                             whatsappUrl={whatsappUrl}
                             legality={cluster.legality}
-                            clusterId={cluster.id}
-                            houseTypeId={type?.id ?? null}
                             clusterName={cluster.name}
                             position="inline"
-                            showButtons={false}
                         />
                     </div>
                 </div>
 
                 <aside className="hidden xl:block">
                     <div className="sticky top-6">
-                        <LeadCard
+                        <ContactCard
                             marketing={marketing}
-                            form={form}
+                            contact={contact}
                             whatsappUrl={whatsappUrl}
                             legality={cluster.legality}
-                            clusterId={cluster.id}
-                            houseTypeId={type?.id ?? null}
                             clusterName={cluster.name}
                             position="sidebar"
                         />
@@ -386,7 +369,7 @@ export default function ClusterShow(props: Props) {
                 <CtaSection cta={cta} />
             </div>
 
-            {/* Mobile: sticky bottom bar (harga mulai + WA + Jadwalkan Survey). */}
+            {/* Mobile: sticky bottom bar (harga mulai + Jadwalkan Survey via WhatsApp). Tombol chat WhatsApp = tombol melayang di atasnya. */}
             <>
                 <div className="h-[84px] md:hidden" aria-hidden="true" />
                 <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2.5 border-t border-line bg-white px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
@@ -406,22 +389,13 @@ export default function ClusterShow(props: Props) {
                             </span>
                         )}
                     </div>
-                    <a
-                        href={whatsappUrl}
-                        aria-label={mobileBar.whatsappLabel}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-cluster={cluster.name}
-                        data-position="sticky"
-                        className="flex size-12 items-center justify-center rounded-full border-[1.5px] border-ink text-ink"
-                    >
-                        <Icon name="chat" className="size-5" />
-                    </a>
                     <SmartLink
-                        href={form.surveyUrl}
-                        onClick={openSurvey}
-                        className="flex h-12 items-center rounded-full bg-terracotta px-5 font-semibold text-white no-underline"
+                        href={contact.surveyUrl}
+                        data-cluster={cluster.name}
+                        data-position="sticky_survey"
+                        className="flex h-12 items-center gap-2 rounded-full bg-terracotta px-5 font-semibold text-white no-underline"
                     >
+                        <Icon name="calendar" className="size-5" />
                         {mobileBar.surveyLabel}
                     </SmartLink>
                 </div>

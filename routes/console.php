@@ -26,7 +26,7 @@ Schedule::command('backup:run')->dailyAt('01:30');
 Schedule::command('backup:monitor')->dailyAt('09:00');
 
 // Queue tanpa Supervisor: tiap menit cron `schedule:run` menyalakan worker yang memproses semua job
-// (konversi foto WebP/AVIF, email lead) lalu berhenti sendiri saat antrean kosong. Cukup 1 baris crontab
+// (konversi foto WebP/AVIF) lalu berhenti sendiri saat antrean kosong. Cukup 1 baris crontab
 // (lihat README → Deploy). Aman berdampingan dengan worker Supervisor kalau suatu saat dipasang.
 Schedule::command('queue:work', [
     '--queue' => collect(['default', config('media-library.queue_name')])->filter()->unique()->implode(','),

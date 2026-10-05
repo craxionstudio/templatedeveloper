@@ -18,7 +18,11 @@ return [
         'hotline' => '[NO. HOTLINE]',
         // Format 62xxxxxxxxxx. Kosong = tombol WA diarahkan ke halaman kontak.
         'whatsapp' => '',
-        'whatsapp_message' => 'Halo, saya ingin info tentang rumah di BSD City.',
+        // Template pesan WhatsApp otomatis per konteks. {nama_cluster} = nama cluster.
+        'whatsapp_message' => 'Halo, saya ingin konsultasi rumah di BSD City.',
+        'whatsapp_cluster_message' => 'Halo, saya tertarik dengan {nama_cluster}. Boleh minta info harga & brosurnya?',
+        'whatsapp_promo_message' => 'Halo, saya tertarik dengan promo di {nama_cluster}. Boleh minta informasi lengkapnya?',
+        'whatsapp_survey_message' => 'Halo, saya ingin jadwalkan survey ke {nama_cluster}.',
         'phone' => '[NO. TELEPON]',
         'email' => '[EMAIL]',
         'office_address' => '[ALAMAT KANTOR PEMASARAN]',
@@ -71,13 +75,8 @@ return [
         'title' => 'Bingung pilih cluster? Ngobrol dulu dengan tim marketing kami.',
         'description' => 'Kami bantu hitung cicilan, cek unit yang masih tersedia, dan atur jadwal kunjungan ke rumah contoh.',
         'whatsapp_label' => 'Chat via WhatsApp',
-        'visit_label' => 'Jadwalkan Kunjungan',
-        'visit_url' => '/kontak',
-        // Tombol kunjungan membuka form singkat (modal); visit_url tetap jadi link cadangan tanpa JavaScript.
-        'modal_enabled' => true,
-        'modal_title' => 'Jadwalkan kunjungan',
-        'modal_description' => 'Tinggalkan nama dan nomor WhatsApp, tim marketing kami akan menghubungi kamu untuk mengatur jadwal.',
-        'modal_submit_label' => 'Kirim',
+        // Tombol kedua: chat WhatsApp dengan template "jadwal survey".
+        'visit_label' => 'Jadwalkan Survey',
     ],
 
     'mobile' => [
@@ -88,32 +87,10 @@ return [
     ],
 
     'tracking' => [
-        'gtm_id' => '',
+        // GA4 via gtag.js. Kosong = tidak ada script tracking yang dimuat.
         'ga4_id' => '',
-        'meta_pixel_id' => '',
         'google_verification' => '',
         'bing_verification' => '',
-        'turnstile_site_key' => '',
-        // Rahasia disimpan terenkripsi (App\Support\Secret) dan tidak pernah dikirim ke browser.
-        'turnstile_secret_key' => '',
-        // Kosong = pakai meta_pixel_id (Pixel yang dipasang langsung).
-        'meta_capi_pixel_id' => '',
-        'meta_capi_token' => '',
-        // Opsional: kode "Test events" dari Meta Events Manager untuk uji coba CAPI.
-        'meta_test_event_code' => '',
-        // Domain tambahan CSP halaman publik per direktif (https://domain), digabung ke bawaan
-        // App\Support\CspSources. Lihat docs/TRACKING.md "Menambah tag baru di GTM".
-        'csp_extra' => [
-            'script_src' => [],
-            'connect_src' => [],
-            'img_src' => [],
-            'frame_src' => [],
-        ],
-    ],
-
-    'notifications' => [
-        // Satu atau lebih email penerima notifikasi lead.
-        'emails' => [],
     ],
 
     'labels' => [
@@ -126,15 +103,6 @@ return [
         'kawasan_list' => 'Daftar kawasan',
         'article_list' => 'Daftar artikel',
         'preview_notice' => 'Pratinjau: hanya terlihat oleh admin dan tidak diindeks mesin pencari.',
-        'form_name' => 'Nama',
-        'form_name_placeholder' => 'Nama lengkap',
-        'form_whatsapp' => 'WhatsApp',
-        'form_whatsapp_placeholder' => '08xx xxxx xxxx',
-        'form_email' => 'Email',
-        'form_consent' => 'Saya setuju data saya diproses sesuai Kebijakan Privasi.',
-        'form_submit' => 'Kirim',
-        'form_sending' => 'Mengirim…',
-        'form_error' => 'Periksa kembali isian yang ditandai.',
         'privacy_policy' => 'Kebijakan Privasi',
         'main_menu' => 'Menu utama',
         'open_menu' => 'Buka menu',

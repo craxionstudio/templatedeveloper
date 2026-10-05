@@ -8,7 +8,6 @@ use App\Settings\ArticleIndexPageSettings;
 use App\Settings\ContactPageSettings;
 use App\Settings\FacilityPageSettings;
 use App\Settings\PrivacyPageSettings;
-use App\Settings\ThankYouPageSettings;
 use BackedEnum;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -20,7 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Halaman Lain: Tentang Kami, Kontak, Artikel, Fasilitas, Kebijakan Privasi (dan Terima Kasih).
+ * Halaman Lain: Tentang Kami, Kontak, Artikel, Fasilitas, Kebijakan Privasi.
  */
 class ManageOtherPages extends GroupedSettingsPage
 {
@@ -44,7 +43,6 @@ class ManageOtherPages extends GroupedSettingsPage
             'articles' => ArticleIndexPageSettings::class,
             'facility' => FacilityPageSettings::class,
             'privacy' => PrivacyPageSettings::class,
-            'thanks' => ThankYouPageSettings::class,
         ];
     }
 
@@ -91,10 +89,6 @@ class ManageOtherPages extends GroupedSettingsPage
                     DatePicker::make('privacy.content.effective_date')->label('Tanggal berlaku')->native(false),
                     RichEditor::make('privacy.content.body')->label('Isi')
                         ->toolbarButtons([['bold', 'italic', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['undo', 'redo']]),
-                ]),
-                Tab::make('Terima Kasih')->schema([
-                    Fields::text('thanks.content.title', 'Judul (H1)')->placeholder('Terima kasih, data kamu sudah kami terima'),
-                    Fields::textarea('thanks.content.message', 'Pesan', 2)->placeholder('Tim marketing kami akan menghubungi kamu lewat WhatsApp.'),
                 ]),
             ]),
         ]);

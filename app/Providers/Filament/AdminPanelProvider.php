@@ -40,7 +40,6 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Konten'),
                 NavigationGroup::make('Artikel'),
                 NavigationGroup::make('Pengaturan'),
-                NavigationGroup::make('Marketing'),
                 NavigationGroup::make('Sistem')->collapsed(),
             ])
             ->sidebarCollapsibleOnDesktop()

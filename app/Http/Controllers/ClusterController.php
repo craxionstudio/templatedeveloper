@@ -19,8 +19,8 @@ use App\Support\DataSource;
 use App\Support\PageMeta;
 use App\Support\RichText;
 use App\Support\Rupiah;
-use App\Support\SiteLayout;
 use App\Support\StructuredData;
+use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -67,7 +67,6 @@ class ClusterController extends Controller
         $sections = $settings->section('sections');
         $pricing = $settings->section('pricing');
         $form = $settings->section('form');
-        $contact = $global->section('contact');
         $mobile = $global->section('mobile');
         $seoPattern = $settings->section('seo');
         $values = [
@@ -78,12 +77,8 @@ class ClusterController extends Controller
             'summary' => $cluster->summary,
         ];
 
-        $marketingWhatsapp = $cluster->marketing_whatsapp ?: ($form['marketing_whatsapp'] ?: $contact['whatsapp']);
-        $whatsappTemplate = $form['whatsapp_message'];
-        $clusterWhatsappUrl = SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill(
-            trim((string) preg_replace('/\s*(tipe\s*)?\{type\}/iu', '', $whatsappTemplate)),
-            ['cluster' => $cluster->name],
-        )) ?? '/kontak';
+        // Nomor WA cluster, kalau kosong nomor global; pesan dari template di Pengaturan Umum.
+        $clusterWhatsappUrl = WhatsApp::url(WhatsApp::CLUSTER, $cluster);
 
         $crumbs = Breadcrumbs::make(array_values(array_filter([
             [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
@@ -154,11 +149,8 @@ class ClusterController extends Controller
                 'installment' => Rupiah::short($type->installment_from),
                 'floorplan' => Image::media($type, 'floorplan', $type->floorplan_alt, trim('Denah '.($type->displayName() ?? $cluster->name))),
                 'whatsappUrl' => $type->displayName()
-                    ? SiteLayout::whatsappUrl($marketingWhatsapp, PageMeta::fill(
-                        // Nama tipe yang sudah diawali "Tipe" tidak diberi "tipe" lagi.
-                        preg_match('/^tipe\s/iu', $type->displayName()) ? (string) preg_replace('/tipe\s*\{type\}/iu', '{type}', $whatsappTemplate) : $whatsappTemplate,
-                        ['cluster' => $cluster->name, 'type' => $type->displayName()],
-                    )) ?? '/kontak'
+                    // {nama_cluster} = "Lynelle Tipe 5 Standard"; nama tipe yang sudah diawali "Tipe" tidak diberi "Tipe" lagi.
+                    ? WhatsApp::url(WhatsApp::CLUSTER, $cluster, $cluster->name.' '.(preg_match('/^tipe\s/iu', $type->displayName()) ? '' : 'Tipe ').$type->displayName())
                     : $clusterWhatsappUrl,
             ])->values()->all(),
             'selectedType' => $selected?->slug,
@@ -172,7 +164,7 @@ class ClusterController extends Controller
                 'bookingFeeNote' => $cluster->booking_fee_note ?: $pricing['booking_fee_note'],
                 'kprLink' => $pricing['kpr_link_url'] ? ['label' => $pricing['kpr_link_label'], 'url' => $pricing['kpr_link_url']] : ['label' => $pricing['kpr_link_label'], 'url' => '/kontak'],
             ],
-            'benefits' => $this->benefits($cluster, $sections['benefits'], $marketingWhatsapp),
+            'benefits' => $this->benefits($cluster, $sections['benefits']),
             'sections' => [
                 // Section tersembunyi otomatis kalau datanya kosong.
                 'specs' => Content::filled($cluster->specifications) ? $sections['specs']['title'] : null,
@@ -192,15 +184,11 @@ class ClusterController extends Controller
                     ? Image::media($cluster, 'marketing_photo', null, 'Foto '.($cluster->marketing_name ?: 'marketing'))
                     : Image::path($form['marketing_photo'], 'Foto '.$form['marketing_name']),
             ],
-            'form' => [
-                'nameLabel' => $form['name_label'],
-                'namePlaceholder' => $form['name_placeholder'],
-                'whatsappLabel' => $form['whatsapp_label'],
-                'whatsappPlaceholder' => $form['whatsapp_placeholder'],
-                'submitLabel' => $form['submit_label'],
+            // Kartu marketing: tombol WhatsApp (info harga & brosur) dan jadwal survey, keduanya ke WhatsApp.
+            'contact' => [
                 'whatsappButtonLabel' => $form['whatsapp_button_label'],
                 'surveyButtonLabel' => $form['survey_button_label'],
-                'surveyUrl' => $global->section('cta')['visit_url'],
+                'surveyUrl' => WhatsApp::url(WhatsApp::SURVEY, $cluster),
             ],
             'mobileBar' => [
                 'priceLabel' => $mobile['sticky_price_label'],
@@ -208,11 +196,7 @@ class ClusterController extends Controller
                 'surveyLabel' => $mobile['sticky_survey_label'],
             ],
             'others' => $this->others($cluster, $sections['others'], $settings->section('others')),
-            'cta' => Cta::resolve(
-                $settings->section('cta'),
-                PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $selected?->name]),
-                ['clusterId' => $cluster->id, 'houseTypeId' => $selected?->id],
-            ),
+            'cta' => Cta::resolve($settings->section('cta'), $cluster),
         ]);
     }
 
@@ -223,7 +207,7 @@ class ClusterController extends Controller
      * @param  array<string, mixed>  $section
      * @return array<string, mixed>|null
      */
-    private function benefits(Cluster $cluster, array $section, ?string $whatsapp): ?array
+    private function benefits(Cluster $cluster, array $section): ?array
     {
         $benefits = $cluster->activeBenefits()->get();
 
@@ -247,7 +231,7 @@ class ClusterController extends Controller
                 ->all(),
             'disclaimer' => $section['disclaimer'],
             'buttonLabel' => $section['button_label'],
-            'whatsappUrl' => SiteLayout::whatsappUrl($whatsapp, PageMeta::fill($section['whatsapp_message'], ['cluster' => $cluster->name])) ?? '/kontak',
+            'whatsappUrl' => WhatsApp::url(WhatsApp::PROMO, $cluster),
         ];
     }
 

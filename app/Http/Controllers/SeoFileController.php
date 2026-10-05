@@ -28,7 +28,7 @@ class SeoFileController extends Controller
     }
 
     /**
-     * Production: izinkan crawl, blok /admin, /livewire, /terima-kasih. URL filter/urutan/pencarian
+     * Production: izinkan crawl, blok /admin dan /livewire. URL filter/urutan/pencarian
      * SENGAJA tidak diblok: Google harus bisa merayapinya untuk membaca meta robots
      * "noindex, follow" + canonical ke versi tanpa query (keputusan pemilik, koreksi brief 8.4).
      * Non-production: blok semuanya.
@@ -44,7 +44,6 @@ class SeoFileController extends Controller
             'Allow: /',
             'Disallow: /admin',
             'Disallow: /livewire',
-            'Disallow: /terima-kasih',
             '',
             'Sitemap: '.StructuredData::url('/sitemap.xml'),
         ];

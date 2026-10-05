@@ -1,20 +1,18 @@
 /**
- * Event analytics (brief 8.8), GTM-first: SEMUA event di-push ke dataLayer dengan nama &
- * parameter di docs/TRACKING.md. GA4 (gtag) dan Meta Pixel (fbq) langsung hanya dikirim kalau
- * ID-nya diisi di admin — kosongkan kalau GA4/Pixel sudah dipasang lewat GTM.
+ * Tracking organik GA4 langsung lewat gtag.js (docs/TRACKING.md). Tanpa GA4 Measurement ID di
+ * Pengaturan Umum, `window.gtag` tidak ada dan semua fungsi di sini tidak melakukan apa pun.
+ *
+ * Konversi utama: `click_whatsapp` (tandai sebagai Key event di GA4).
  */
 type Params = Record<string, string | number | boolean | null | undefined>;
 
 export type AnalyticsEvent =
-    | 'generate_lead'
     | 'click_whatsapp'
     | 'click_phone'
     | 'download_brochure'
     | 'download_pricelist'
     | 'view_listing'
     | 'select_house_type';
-
-export type PixelEvent = 'PageView' | 'Lead' | 'Contact' | 'ViewContent';
 
 function clean(params: Params): Record<string, string | number | boolean> {
     return Object.fromEntries(
@@ -25,110 +23,29 @@ function clean(params: Params): Record<string, string | number | boolean> {
     ) as Record<string, string | number | boolean>;
 }
 
-export function track(event: AnalyticsEvent, params: Params = {}): void {
-    if (typeof window === 'undefined') {
-        return;
-    }
-
-    const data = clean(params);
-
-    window.dataLayer = window.dataLayer ?? [];
-    window.dataLayer.push({ event, ...data });
-
-    // GA4 langsung (opsional, tanpa GTM).
-    window.gtag?.('event', event, data);
-}
-
 /**
- * eventId dipakai Meta untuk deduplikasi dengan Conversions API (server).
+ * @param beacon true = kirim lewat navigator.sendBeacon (transport beacon) supaya event tetap
+ *   terkirim walau halaman langsung pindah ke WhatsApp.
  */
-export function pixel(
-    event: PixelEvent,
+export function track(
+    event: AnalyticsEvent,
     params: Params = {},
-    eventId?: string,
+    beacon = false,
 ): void {
-    if (typeof window === 'undefined' || !window.fbq) {
+    if (typeof window === 'undefined' || !window.gtag) {
         return;
     }
 
-    window.fbq(
-        'track',
-        event,
-        clean(params),
-        eventId ? { eventID: eventId } : undefined,
-    );
-}
-
-/** Klik WhatsApp juga dikirim ke server (Meta CAPI)? Diisi dari props `site.tracking.capi`. */
-let capiEnabled = false;
-
-export function configureTracking(
-    config: { capi?: boolean } | undefined,
-): void {
-    capiEnabled = Boolean(config?.capi);
-}
-
-function newEventId(): string {
-    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-        return crypto.randomUUID();
-    }
-
-    // Cadangan UUID v4 untuk browser lama.
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-
-        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    window.gtag('event', event, {
+        ...clean(params),
+        ...(beacon ? { transport_type: 'beacon' } : {}),
     });
 }
 
-function cookie(name: string): string | null {
-    const match = document.cookie.match(
-        new RegExp(`(?:^|; )${name.replace(/[-.]/g, '\\$&')}=([^;]*)`),
-    );
-
-    return match ? decodeURIComponent(match[1]) : null;
-}
-
-/**
- * Event Contact ke server (Meta CAPI) dengan event_id yang sama dengan Pixel. keepalive supaya
- * tetap terkirim walau tab berpindah ke WhatsApp.
- */
-function sendContactToServer(
-    eventId: string,
-    cluster?: string,
-    source?: string,
-): void {
-    if (!capiEnabled || typeof fetch === 'undefined') {
-        return;
-    }
-
-    const xsrf = cookie('XSRF-TOKEN');
-
-    void fetch('/track/contact', {
-        method: 'POST',
-        keepalive: true,
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            ...(xsrf ? { 'X-XSRF-TOKEN': xsrf } : {}),
-        },
-        body: JSON.stringify({
-            event_id: eventId,
-            cluster: cluster ?? null,
-            source: source ?? null,
-            page_url: window.location.href,
-        }),
-    }).catch(() => undefined);
-}
-
-let firstPageView = true;
 let lastPageView: string | null = null;
 
 /**
- * Page view untuk setiap kunjungan Inertia (termasuk halaman pertama untuk GA4 langsung & Pixel).
- * GTM sudah menghitung halaman pertama sendiri (gtm.js), jadi hanya navigasi berikutnya yang
- * dikirim sebagai `virtual_page_view`.
+ * Page view untuk setiap kunjungan Inertia (gtag dikonfigurasi dengan send_page_view: false).
  */
 export function pageView(title?: string | null): void {
     if (typeof window === 'undefined') {
@@ -146,31 +63,20 @@ export function pageView(title?: string | null): void {
     }
 
     lastPageView = key;
-    const isFirst = firstPageView;
-    firstPageView = false;
 
     // Judul dari props halaman baru (event `navigate` muncul sebelum <Head> mengganti <title>).
     window.setTimeout(() => {
-        const page = {
+        window.gtag?.('event', 'page_view', {
             page_location: window.location.href,
             page_path: window.location.pathname + window.location.search,
             page_title: title ?? document.title,
-        };
-
-        if (!isFirst) {
-            window.dataLayer = window.dataLayer ?? [];
-            window.dataLayer.push({ event: 'virtual_page_view', ...page });
-        }
-
-        window.gtag?.('event', 'page_view', page);
-
-        window.fbq?.('track', 'PageView');
+        });
     }, 0);
 }
 
 /**
  * Klik link WhatsApp / telepon / unduhan di mana pun (delegasi satu listener).
- * Unduhan ditandai dengan data-track="download_brochure" | "download_pricelist".
+ * Atribut link: data-cluster (nama cluster), data-position (posisi tombol), data-track (unduhan).
  */
 export function listenForClicks(): void {
     if (typeof document === 'undefined') {
@@ -187,42 +93,32 @@ export function listenForClicks(): void {
             }
 
             const href = link.getAttribute('href') ?? '';
-            const context = {
-                page_path: window.location.pathname,
-                link_position: link.dataset.position,
-                cluster: link.dataset.cluster,
-                link_url: href,
-            };
+            const halaman = window.location.pathname;
 
             if (
                 link.dataset.track === 'download_brochure' ||
                 link.dataset.track === 'download_pricelist'
             ) {
-                track(link.dataset.track, { ...context, file_url: href });
-            } else if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(href)) {
-                // Satu event_id untuk dataLayer, Pixel, dan CAPI (deduplikasi di Meta).
-                const eventId = newEventId();
-                track('click_whatsapp', {
-                    ...context,
-                    sumber: link.dataset.source,
-                    event_id: eventId,
+                track(link.dataset.track, {
+                    cluster: link.dataset.cluster,
+                    halaman,
+                    file_url: href,
                 });
-                pixel(
-                    'Contact',
+            } else if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(href)) {
+                track(
+                    'click_whatsapp',
                     {
-                        content_name: link.dataset.cluster,
-                        method: 'whatsapp',
+                        cluster: link.dataset.cluster,
+                        posisi_tombol: link.dataset.position ?? 'lainnya',
+                        halaman,
                     },
-                    eventId,
-                );
-                sendContactToServer(
-                    eventId,
-                    link.dataset.cluster,
-                    link.dataset.source ?? link.dataset.position,
+                    true,
                 );
             } else if (href.startsWith('tel:')) {
-                track('click_phone', context);
-                pixel('Contact', { method: 'phone' });
+                track('click_phone', {
+                    posisi_tombol: link.dataset.position,
+                    halaman,
+                });
             }
         },
         { capture: true },

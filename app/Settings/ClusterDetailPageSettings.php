@@ -37,7 +37,6 @@ class ClusterDetailPageSettings extends PageSettings
             'sections.benefits.disclaimer',
             'pricing.price_note',
             'form.marketing_name',
-            'form.marketing_whatsapp',
             'form.marketing_photo',
         ];
     }

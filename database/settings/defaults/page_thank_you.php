@@ -1,5 +1,8 @@
 <?php
 
+// Halaman Terima Kasih sudah dihapus (Okt 2026). File ini hanya dipakai migrasi settings lama
+// (2026_09_24_100120); propertinya dihapus lagi oleh 2026_10_05_200000_whatsapp_only_and_ga4.
+
 return [
     'content' => [
         'title' => 'Terima kasih, data kamu sudah kami terima',

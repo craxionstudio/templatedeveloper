@@ -63,7 +63,6 @@ export default function BenefitSection({
                 rel="noopener noreferrer"
                 data-cluster={clusterName}
                 data-position="promo_section"
-                data-source="promo_section"
                 className="mt-4 inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-terracotta px-6 py-3 text-center font-semibold text-white no-underline transition-colors hover:bg-terracotta-hover"
             >
                 <Icon name="chat" className="size-5 shrink-0" />
