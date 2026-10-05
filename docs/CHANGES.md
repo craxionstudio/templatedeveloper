@@ -566,6 +566,11 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
 - **Deploy ketiga: 502 hilang, tapi website membalas 500 lewat web server** (request internal tetap OK), dan `.env` kembali di-rollback otomatis. Langkah yang diambil:
   - Cache halaman dan cache layout dibuat tahan gagal: kalau cache tidak bisa dibaca/ditulis (mis. izin folder milik user lain), halaman tetap dikirim. Ada test untuk ini.
   - Saat gagal, `verify-env.sh` sekarang menampilkan diagnosis: user deploy & PHP-FPM, pemilik/izin folder storage & cache, dan baris pertama error terakhir di log Laravel.
+- **Deploy keempat: penyebab 500 ketemu lewat diagnosis.** Log berisi `touch(): Utime failed: Operation not permitted` pada file view hasil kompilasi.
+  - View Blade dikompilasi saat deploy (`php artisan optimize`) oleh user deploy, sedangkan PHP-FPM berjalan sebagai `www-data`.
+  - Kalau timestamp view dicek, Laravel memanggil `touch()` pada file kompilasi itu, dan Linux menolak karena pemiliknya user lain.
+  - Perbaikan: `config/view.php` mematikan `check_cache_timestamps` di production. Setiap deploy menghapus dan mengompilasi ulang semua view, jadi pengecekan ini tidak diperlukan. Di lokal tetap aktif; bisa diatur lewat `VIEW_CHECK_CACHE_TIMESTAMPS`.
+  - Sudah direproduksi di container (file kompilasi milik root, PHP berjalan sebagai `nobody`): error muncul saat pengecekan aktif dan hilang saat dimatikan. Ada test regresi.
 - **Diuji di container:** `.env` kotor (key dobel, tanda kutip, tanpa newline), dua kali jalan (kedua tanpa perubahan), `SITE_INDEXABLE=true` tidak disentuh, rollback saat situs error, dan simulasi langkah 4b + 12 dengan `script_stop`.
 
 ---

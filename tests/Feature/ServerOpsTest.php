@@ -107,3 +107,21 @@ it('menjaga header respons production di bawah 4 KB (batas buffer bawaan nginx)'
         expect(substr_count((string) $response->headers->get('Link'), 'rel='))->toBeLessThanOrEqual(4);
     }
 });
+
+it('tidak mengecek timestamp view Blade di production (hindari touch() file kompilasi milik user deploy)', function () {
+    $load = function (string $env): bool {
+        $original = $_SERVER['APP_ENV'] ?? null;
+        $_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = $env;
+
+        try {
+            return (require config_path('view.php'))['check_cache_timestamps'];
+        } finally {
+            $_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = $original;
+        }
+    };
+
+    expect($load('production'))->toBeFalse()
+        ->and($load('local'))->toBeTrue()
+        ->and(config('view.compiled'))->toBe(realpath(storage_path('framework/views')))
+        ->and(config('view.paths'))->toBe([resource_path('views')]);
+});
