@@ -124,6 +124,9 @@ jobs:
             QUEUE_INFO=$(php artisan tinker --execute 'echo DB::table("jobs")->count()." job antre (tertua: ".(DB::table("jobs")->min("created_at") ? date("Y-m-d H:i", (int) DB::table("jobs")->min("created_at")) : "-")."), ".DB::table("failed_jobs")->count()." job gagal; per queue: ".DB::table("jobs")->selectRaw("queue, count(*) n, max(attempts) a, sum(reserved_at is not null) r")->groupBy("queue")->get()->map(fn ($q) => "{$q->queue}={$q->n} (attempts {$q->a}, reserved {$q->r})")->join(", ")."; heartbeat scheduler: ".(Storage::disk("local")->exists("scheduler-heartbeat") ? Storage::disk("local")->get("scheduler-heartbeat") : "belum ada");' 2>/dev/null || echo "tidak terbaca")
             echo "--- 5 baris terakhir storage/logs/queue-worker.log ---"
             tail -n 5 storage/logs/queue-worker.log 2>/dev/null || echo "(belum ada log worker)"
+            echo "--- folder aplikasi (harus sama dengan folder di baris cron) ---"
+            pwd
+            if (crontab -l 2>/dev/null | grep -v '^\s*#' | grep "schedule:run" | grep -qF "cd $(pwd) "); then echo "Folder cron COCOK"; else echo "PERINGATAN: folder di baris cron BERBEDA dengan folder aplikasi ($(pwd))"; echo "::warning title=Cron beda folder::Baris cron schedule:run tidak menunjuk ke folder aplikasi ini. Ganti dengan: * * * * * cd $(pwd) && php artisan schedule:run >> /dev/null 2>&1"; fi
             echo "--- crontab ---"
             (crontab -l 2>/dev/null | grep -v '^\s*#' | grep "schedule:run") || true
             (systemctl is-active cron 2>/dev/null || service cron status 2>/dev/null | head -1) || true
