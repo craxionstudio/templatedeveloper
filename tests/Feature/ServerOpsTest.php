@@ -92,3 +92,18 @@ it('melaporkan environment, indeks, robots, dan perilaku production', function (
         ->toContain('robots.txt: User-agent: * | Disallow: /')
         ->toContain('Paksa host & HTTPS (APP_URL): aktif');
 });
+
+it('menjaga header respons production di bawah 4 KB (batas buffer bawaan nginx)', function () {
+    // Tanpa batas, header Link semua aset + nonce CSP + cookie > 4 KB dan nginx membalas 502
+    // "upstream sent too big header" (terjadi di server saat APP_ENV diubah ke production).
+    app()->detectEnvironment(fn () => 'production');
+    config(['app.url' => 'http://templatedeveloper.craxionstudio.com', 'site.csp.enabled' => true]);
+
+    foreach (['/', '/properti', '/properti/vega-garden', '/artikel'] as $path) {
+        $response = $this->get('http://templatedeveloper.craxionstudio.com'.$path);
+        $size = strlen("HTTP/1.1 200 OK\r\n".$response->headers);
+
+        expect($size)->toBeLessThan(3584, "{$path}: header {$size} byte");
+        expect(substr_count((string) $response->headers->get('Link'), 'rel='))->toBeLessThanOrEqual(4);
+    }
+});

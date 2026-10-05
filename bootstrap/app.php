@@ -29,7 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             // Cache HTML halaman publik untuk tamu (setelah session; header Link preload ikut tersimpan).
             CachePublicPages::class,
-            AddLinkHeadersForPreloadedAssets::class,
+            // Hanya 4 aset terpenting (2 font, CSS, JS utama) di header Link; sisanya tetap di-preload lewat
+            // <link> di HTML. Header semua aset (+ nonce CSP di production) melewati 4 KB, batas buffer
+            // bawaan nginx, sehingga nginx membalas 502 "upstream sent too big header".
+            AddLinkHeadersForPreloadedAssets::using(4),
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
