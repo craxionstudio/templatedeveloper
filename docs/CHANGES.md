@@ -636,6 +636,72 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - Template kawasan, dan link per halaman walau layout di-cache.
   - Migrasi template, nomor wajib di admin, contoh hasil di admin, dan peringatan dashboard/deploy.
 
+
+**Update 3: cluster dengan halaman sendiri + halaman "Cluster Lainnya"** (permintaan pemilik 6 Okt 2026; data di `docs/data/bsd-city-update-3.json`)
+
+*Data*
+1. **Kolom baru:**
+   - `clusters.tampil_sebagai` (enum `App\Enums\ClusterDisplay`: `halaman` / `daftar`, default `halaman`).
+   - `kawasans.punya_halaman` (boolean, default `true`).
+   - Migrasi `2026_10_06_300000_add_display_columns_to_clusters_and_kawasans`.
+2. **Import:** `import:bsd-update` membaca `cluster_tampilan` (slug → tampil_sebagai) dan `kawasan_tampilan` (slug → punya_halaman). Isi file: 43 cluster `halaman`, sisanya `daftar`.
+   - Deploy menjalankan `import_if_changed docs/data/bsd-city-update-3.json import:bsd-update ""` setelah update-2.
+   - Aman diulang. Data cluster, tipe, dan benefit lain tidak disentuh.
+3. **Satu aturan untuk semua tampilan publik:** scope `Cluster::published()` sekarang = dipublikasikan + `halaman`. Akibatnya cluster "daftar" otomatis hilang dari semua tempat di bawah ini:
+   - Kartu dan `/properti`, filter, urutan, dan harga mulai.
+   - Beranda, "Listing lainnya", dan kartu kawasan.
+   - Sitemap dan JSON-LD.
+
+   Scope baru `listedOnly()` = dipublikasikan + `daftar`.
+   - `Kawasan::visible()` sekarang juga mensyaratkan `punya_halaman = true`.
+   - Slug `cluster-lainnya` dicadangkan.
+
+*Website*
+4. **Cluster "daftar":** tanpa halaman detail. URL lamanya **301** ke `/properti/cluster-lainnya#{slug-kawasan}`; cluster tanpa kawasan ke `#lainnya`.
+5. **Kawasan `punya_halaman = false`**, atau kawasan yang semua clusternya "daftar":
+   - Tanpa halaman detail, dan tidak tampil di daftar kawasan, footer, atau sitemap.
+   - URL lamanya **301** ke grupnya di Cluster Lainnya.
+   - Cluster berhalaman di kawasan itu menautkan kawasannya (breadcrumb, label) ke grup tersebut.
+6. **Halaman baru `/properti/cluster-lainnya`:**
+   - Judul "Cluster Lainnya di BSD City", subjudul "Kawasan dan cluster yang telah tumbuh bersama BSD City."
+   - Layout sama dengan `/properti`: header halaman, breadcrumb Beranda / Properti / Cluster Lainnya, container. Kotak angka di header tidak tampil.
+   - Grup per kawasan, urut abjad; cluster tanpa kawasan di grup "Lainnya" paling bawah. Anchor `id` = slug kawasan.
+   - Nama cluster tampil sebagai chip (gaya chip nama cluster di kartu kawasan), tanpa link, foto, atau status.
+   - Title/meta sendiri dan masuk sitemap (selama ada cluster "daftar").
+7. **Detail Kawasan:** section "Cluster lain di kawasan ini" (judul section seperti section lain, chip nama di kartu putih). Tersembunyi kalau kosong.
+8. **Di bawah kartu `/properti`:** kotak putih "Masih banyak cluster lain di BSD City." dengan link "Lihat cluster lainnya →". Footer kolom Properti mendapat link "Cluster lainnya". Keduanya hanya muncul kalau ada cluster "daftar".
+
+*Copywriting (tanpa jumlah & istilah teknis)*
+9. **Jumlah cluster/kawasan dihapus dari:**
+   - Statistik header `/properti` dan `/properti/kawasan` (tinggal "Harga mulai").
+   - Angka di toggle Cluster | Kawasan.
+   - Baris "Menampilkan N cluster · N tipe rumah" dan ringkasan "N kawasan dengan total N cluster…".
+   - Badge "N cluster" di kartu kawasan.
+   - Statistik "Cluster" di hero Detail Kawasan.
+   - Judul section cluster di Detail Kawasan, sekarang "Pilihan rumah di {kawasan}".
+10. **Teks diganti:**
+    - **Judul `/properti`:** "Temukan Rumah Anda di BSD City". Settings migrasi `2026_10_06_300000_natural_listing_copy` mengisinya, juga meta title kalau masih bawaan.
+    - **Meta description `/properti`:** "Semua cluster rumah… dalam satu halaman" diganti.
+    - **Deskripsi hero Beranda:** "Lebih dari 20 kawasan hunian, …" diganti "Dari cluster baru di Vireya dan Terravia sampai NavaPark, temukan rumah yang pas untuk keluarga. …".
+    - **Label "Fasilitas aktif"** jadi "Fasilitas umum".
+
+    Teks yang sudah diubah admin tidak ditimpa, kecuali judul `/properti` (permintaan pemilik).
+11. Istilah "Halaman lengkap / Daftar Cluster Lainnya saja" hanya ada di admin.
+
+*Admin*
+12. **Form Cluster:** pilihan **Tampil sebagai** (Halaman lengkap / Daftar Cluster Lainnya saja). Kalau Daftar, hanya nama dan kawasan yang tampil; foto tidak wajib, dan tab lain serta Lanjutan disembunyikan.
+13. **Tabel Cluster:** kolom dan filter **Tampil sebagai**. **Form Kawasan → Publikasi:** toggle **Punya halaman sendiri**.
+
+- **Test:** `tests/Feature/OtherClustersTest.php` (15):
+  - Kolom default, import file update-3 (sama dengan isi file dan aman diulang).
+  - Cluster daftar hilang dari listing/filter/kartu/beranda/sitemap, dan 301 cluster & kawasan.
+  - Halaman Cluster Lainnya (judul, breadcrumb, urutan grup, "Lainnya" terakhir), section kawasan, kotak ajakan, dan link footer.
+  - Tanpa jumlah di props, dan HTML SSR tanpa pola "N cluster/kawasan" atau istilah teknis.
+  - Admin form/tabel/toggle.
+
+  Test lama yang memeriksa angka hasil dan teks lama disesuaikan.
+- Tetap: tidak ada label sold out, sisa unit, atau periode harga.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

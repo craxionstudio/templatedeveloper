@@ -43,7 +43,6 @@ export type KawasanCardData = {
     name: string;
     url: string;
     summary: string | null;
-    clustersCount: number;
     clusters: string[];
     priceFrom: string | null;
     image: ImageData;

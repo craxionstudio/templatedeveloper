@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\ClusterDisplay;
 use App\Enums\PromoPlacement;
 use App\Models\Benefit;
 use App\Models\BenefitCluster;
 use App\Models\Cluster;
+use App\Models\Kawasan;
 use App\Models\Promo;
 use App\Support\PageCache;
 use App\Support\Sitemaps;
@@ -23,6 +25,10 @@ use JsonException;
  *   relasi dari admin tidak dilepas). "sumber" disimpan sebagai catatan internal. is_published dari
  *   file hanya dipakai saat promo dibuat, supaya promo yang sudah dipublikasikan admin tidak ikut mati.
  *
+ * - cluster_tampilan (update 3): slug → tampil_sebagai ("halaman" / "daftar"); kawasan_tampilan: slug →
+ *   punya_halaman (true / false). Nilai dari file selalu dipakai (bisa diubah lagi di admin, lalu ditimpa
+ *   kalau file yang sama di-import ulang).
+ *
  * - benefits: benefit per cluster (Bank Benefit), upsert per (cluster, benefit); pivot yang diubah
  *   atau dilepas di admin setelah import sebelumnya tidak disentuh.
  *
@@ -35,7 +41,7 @@ class ImportBsdUpdate extends Command
         {path : File JSON update (relatif ke root project atau path absolut)}
         {--force : Jalankan di production tanpa konfirmasi (untuk script deploy)}';
 
-    protected $description = 'Import update data BSD City: tanggal launching dan promo';
+    protected $description = 'Import update data BSD City: tanggal launching, promo, benefit, dan tampilan cluster/kawasan';
 
     /** @var array<string, int> */
     private array $counts = [];
@@ -63,6 +69,8 @@ class ImportBsdUpdate extends Command
             $this->importLaunchDates($data['tanggal_launching'] ?? []);
             $this->importPromos($data['promos'] ?? []);
             $this->importBenefits($data['benefits'] ?? []);
+            $this->importClusterDisplay($data['cluster_tampilan'] ?? []);
+            $this->importKawasanPages($data['kawasan_tampilan'] ?? []);
         });
 
         Sitemaps::flush();
@@ -101,6 +109,65 @@ class ImportBsdUpdate extends Command
                 $cluster->update(['tanggal_launching' => sprintf('%04d-01-01', $cluster->launch_year)]);
                 $this->count('Tanggal launching dari tahun (1 Jan)', 1);
             });
+    }
+
+    /**
+     * Daftar {slug, tampil_sebagai} atau peta slug → tampil_sebagai.
+     *
+     * @param  array<int|string, mixed>  $rows
+     */
+    private function importClusterDisplay(array $rows): void
+    {
+        foreach (self::pairs($rows, 'tampil_sebagai') as $slug => $value) {
+            $display = ClusterDisplay::tryFrom((string) $value);
+
+            if (! $display) {
+                $this->warn("Tampilan cluster tidak dikenal untuk {$slug}: {$value}");
+
+                continue;
+            }
+
+            if (Cluster::query()->where('slug', $slug)->update(['tampil_sebagai' => $display->value]) === 0) {
+                $this->warn("Cluster tidak ditemukan: {$slug}");
+                $this->count('Cluster tidak ditemukan', 1);
+
+                continue;
+            }
+
+            $this->count($display === ClusterDisplay::Halaman ? 'Cluster dengan halaman sendiri' : 'Cluster di daftar Cluster Lainnya', 1);
+        }
+    }
+
+    /**
+     * Daftar {slug, punya_halaman} atau peta slug → punya_halaman.
+     *
+     * @param  array<int|string, mixed>  $rows
+     */
+    private function importKawasanPages(array $rows): void
+    {
+        foreach (self::pairs($rows, 'punya_halaman') as $slug => $value) {
+            $hasPage = filter_var($value, FILTER_VALIDATE_BOOL);
+
+            if (Kawasan::query()->where('slug', $slug)->update(['punya_halaman' => $hasPage]) === 0) {
+                $this->warn("Kawasan tidak ditemukan: {$slug}");
+                $this->count('Kawasan tidak ditemukan', 1);
+
+                continue;
+            }
+
+            $this->count($hasPage ? 'Kawasan dengan halaman sendiri' : 'Kawasan tanpa halaman sendiri', 1);
+        }
+    }
+
+    /**
+     * @param  array<int|string, mixed>  $rows
+     * @return array<string, mixed>
+     */
+    private static function pairs(array $rows, string $key): array
+    {
+        return array_is_list($rows)
+            ? collect($rows)->filter(fn ($row): bool => is_array($row) && filled($row['slug'] ?? null))->mapWithKeys(fn (array $row): array => [$row['slug'] => $row[$key] ?? null])->all()
+            : $rows;
     }
 
     /**

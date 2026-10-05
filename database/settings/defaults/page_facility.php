@@ -8,7 +8,7 @@ return [
         'title' => 'Semua yang kamu butuhkan, dalam jarak jalan kaki.',
         'description' => 'Sekolah, kampus, rumah sakit, pusat belanja, dan ruang terbuka di BSD City, terus bertambah seiring pengembangan kota.',
         'stats' => [
-            ['value' => '[XX]+', 'label' => 'Fasilitas aktif'],
+            ['value' => '[XX]+', 'label' => 'Fasilitas umum'],
             ['value' => '[XX] ha', 'label' => 'Ruang terbuka hijau'],
             ['value' => '24 jam', 'label' => 'Keamanan terpadu'],
         ],

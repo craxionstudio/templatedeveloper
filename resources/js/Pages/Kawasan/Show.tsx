@@ -1,5 +1,6 @@
 import { ListingHeader } from '@/components/listing/listing-header';
 import ClusterCard from '@/components/site/cluster-card';
+import ClusterNameChips from '@/components/site/cluster-name-chips';
 import CtaSection from '@/components/site/cta-section';
 import { ContentIcon, Icon } from '@/components/site/icons';
 import { KawasanCardCompact } from '@/components/site/kawasan-card';
@@ -50,6 +51,7 @@ type Props = {
         link: { label: string; url: string };
         items: ClusterCardData[];
     } | null;
+    otherClusters: { eyebrow: string; title: string; names: string[] } | null;
     others: {
         eyebrow: string;
         title: string;
@@ -68,6 +70,7 @@ export default function KawasanShow({
     facilities,
     access,
     clusters,
+    otherClusters,
     others,
     cta,
     preview = false,
@@ -209,6 +212,19 @@ export default function KawasanShow({
                                 />
                             ))}
                         </div>
+                    </div>
+                </section>
+            ) : null}
+
+            {/* Cluster tanpa halaman sendiri di kawasan ini: chip nama saja. Tersembunyi kalau kosong. */}
+            {otherClusters ? (
+                <section className="container-site flex flex-col gap-8 pt-14 xl:gap-10 xl:pt-[120px]">
+                    <SectionHeading
+                        eyebrow={otherClusters.eyebrow}
+                        title={otherClusters.title}
+                    />
+                    <div className="rounded-card bg-white p-6 xl:p-8">
+                        <ClusterNameChips names={otherClusters.names} />
                     </div>
                 </section>
             ) : null}

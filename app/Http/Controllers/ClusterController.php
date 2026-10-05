@@ -8,6 +8,7 @@ use App\Models\Benefit;
 use App\Models\Cluster;
 use App\Models\GalleryItem;
 use App\Models\HouseType;
+use App\Models\Kawasan;
 use App\Presenters\ClusterCard;
 use App\Presenters\Image;
 use App\Settings\ClusterDetailPageSettings;
@@ -22,6 +23,7 @@ use App\Support\Rupiah;
 use App\Support\StructuredData;
 use App\Support\WhatsApp;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -32,11 +34,16 @@ use Inertia\Response;
  */
 class ClusterController extends Controller
 {
-    public function show(Request $request, string $slug, ClusterDetailPageSettings $settings, GlobalSettings $global): Response
+    public function show(Request $request, string $slug, ClusterDetailPageSettings $settings, GlobalSettings $global): Response|RedirectResponse
     {
         $cluster = Cluster::query()->published()->where('slug', $slug)
             ->with(['kawasan', 'seo', 'media', 'galleryItems.media', 'publishedHouseTypes.media'])
             ->first();
+
+        // Cluster tanpa halaman sendiri (tampil di daftar saja) → 301 ke grup kawasannya di Cluster Lainnya.
+        if (! $cluster && ($listed = Cluster::query()->listedOnly()->where('slug', $slug)->with('kawasan:id,slug')->first())) {
+            return redirect(Kawasan::otherClustersPath($listed->kawasan?->slug), 301);
+        }
 
         // Cluster yang sudah dihapus → 410 Gone (kecuali ada redirect di Redirect Manager).
         abort_if(! $cluster && Cluster::onlyTrashed()->where('slug', $slug)->exists(), 410);
@@ -79,7 +86,7 @@ class ClusterController extends Controller
 
         $crumbs = Breadcrumbs::make(array_values(array_filter([
             [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
-            $cluster->kawasan ? [$cluster->kawasan->name, $cluster->kawasan->publicPath()] : null,
+            $cluster->kawasan ? [$cluster->kawasan->name, $cluster->kawasan->pagePath()] : null,
             [$cluster->name],
         ])));
         $images = $cluster->galleryItems->map(fn (GalleryItem $item) => $item->getFirstMediaUrl('image'))->filter()->values()->all();
@@ -108,7 +115,7 @@ class ClusterController extends Controller
                 'id' => $cluster->id,
                 'name' => $cluster->name,
                 'url' => $cluster->publicPath(),
-                'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
+                'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->pagePath()] : null,
                 'buildingType' => $cluster->building_type,
                 'badge' => $cluster->badge?->getLabel(),
                 // Label "Sold out" tidak pernah ditampilkan di website.

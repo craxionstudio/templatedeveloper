@@ -10,8 +10,7 @@ import ClusterCard from '@/components/site/cluster-card';
 import CtaSection from '@/components/site/cta-section';
 import PageHead from '@/components/site/page-head';
 import Pagination from '@/components/site/pagination';
-import { ButtonLink } from '@/components/site/ui';
-import { fill } from '@/lib/text';
+import { ArrowLink, ButtonLink } from '@/components/site/ui';
 import type { ClusterCardData, Crumb, CtaData } from '@/types/content';
 import type { PageMeta } from '@/types/site';
 
@@ -30,7 +29,7 @@ type Props = {
     header: ListingHeaderData;
     toggle: ToggleData;
     filters: FiltersData;
-    result: { clusters: number; types: number; template: string };
+    others: { text: string; label: string; url: string } | null;
     clusters: Paginated<ClusterCardData>;
     emptyState: { title: string; description: string; button_label: string };
     cta: CtaData;
@@ -46,15 +45,12 @@ export default function PropertiIndex({
     header,
     toggle,
     filters,
-    result,
+    others,
     clusters,
     emptyState,
     cta,
 }: Props) {
     const { labels } = usePage().props.site;
-    // "Menampilkan {clusters} cluster · {types} tipe rumah" → angka cluster + kata sesudahnya ditebalkan.
-    const [before, rest = ''] = result.template.split('{clusters}');
-    const [boldWord, ...tail] = rest.trimStart().split(' ');
 
     const pageUrl = (page: number) => {
         const url = new URL(clusters.path, 'http://x');
@@ -76,14 +72,8 @@ export default function PropertiIndex({
                 <ViewToggle toggle={toggle} label={labels.listing_view} />
                 <FilterBar filters={filters} action="/properti" />
 
-                <div className="flex items-center justify-between gap-4">
-                    <p className="text-[15px] text-body xl:text-base">
-                        {before}
-                        <strong className="text-ink">
-                            {result.clusters} {boldWord}
-                        </strong>{' '}
-                        {fill(tail.join(' '), { types: result.types })}
-                    </p>
+                {/* Tanpa jumlah cluster (Update 3): hanya pilihan urutan. */}
+                <div className="flex items-center justify-end gap-4">
                     <SortSelect filters={filters} action="/properti" />
                 </div>
 
@@ -156,6 +146,16 @@ export default function PropertiIndex({
                         ),
                     }}
                 />
+
+                {/* Ajakan ke cluster tanpa halaman sendiri (/properti/cluster-lainnya). */}
+                {others ? (
+                    <div className="mt-8 flex flex-col gap-2 rounded-card bg-white p-6 md:flex-row md:items-center md:justify-between md:gap-8 md:px-10 md:py-8 xl:mt-12">
+                        <p className="font-display text-2xl leading-tight font-medium xl:text-[28px]">
+                            {others.text}
+                        </p>
+                        <ArrowLink href={others.url}>{others.label}</ArrowLink>
+                    </div>
+                ) : null}
             </section>
 
             <CtaSection cta={cta} />

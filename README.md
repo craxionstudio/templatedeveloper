@@ -234,6 +234,7 @@ php artisan import:bsd-data path/ke/file-lain.json
 
 # File update (tanggal launching, promo), setelah import:bsd-data. Upsert, aman diulang.
 php artisan import:bsd-update docs/data/bsd-city-update-2.json
+php artisan import:bsd-update docs/data/bsd-city-update-3.json
 ```
 
 - `import:bsd-update`: tanggal launching per cluster (dasar urutan "Terbaru"; cluster yang baru punya tahun
@@ -244,6 +245,12 @@ php artisan import:bsd-update docs/data/bsd-city-update-2.json
   `"benefits": [{"cluster_slug": "castilo-at-terravia", "benefit_slug": "diskon", "teks_tampil": "Diskon hingga 13%"}]`.
   Upsert per (cluster, benefit). Benefit yang diubah atau dilepas di admin setelah import sebelumnya, atau ditambahkan
   admin sendiri, tidak ditimpa dan tidak dibuat ulang.
+- `import:bsd-update` (update 3) membaca `"cluster_tampilan": [{"slug": "…", "tampil_sebagai": "halaman"|"daftar"}]` dan
+  `"kawasan_tampilan": [{"slug": "…", "punya_halaman": true|false}]` (format peta `slug → nilai` juga diterima).
+  Cluster "daftar" tidak punya halaman sendiri: hanya nama di `/properti/cluster-lainnya` (per kawasan) dan di
+  section "Cluster lain di kawasan ini"; URL lamanya 301 ke `/properti/cluster-lainnya#{slug-kawasan}`. Kawasan dengan
+  `punya_halaman = false` tidak punya halaman detail, tidak tampil di daftar kawasan/footer/sitemap, dan URL lamanya
+  301 ke grupnya di halaman itu.
 
 - Yang diisi: Profil Lokasi, 23 kawasan, 144 cluster (kawasan kosong = cluster mandiri), tipe rumah, SEO tiap
   kawasan/cluster, dan SEO halaman (Beranda, Properti, Kawasan, Fasilitas, Artikel, Tentang Kami, serta pola
@@ -286,6 +293,7 @@ Nomor WhatsApp global wajib diisi di Pengaturan Umum. Selama di database masih k
     | `/properti` (+ filter `?kawasan=`, `tipe`, `kamar`, `harga`, `status`, `urut`) | `Pages/Properti/Index.tsx`                              | 02a                                         |
     | `/properti/kawasan`                                                            | `Pages/Properti/Kawasan.tsx`                            | 02b                                         |
     | `/properti/kawasan/{slug}`                                                     | `Pages/Kawasan/Show.tsx`                                | 02c                                         |
+    | `/properti/cluster-lainnya`                                                    | `Pages/Properti/Lainnya.tsx`                            | layout sama dengan /properti                |
     | `/properti/{slug}` (+ `?tipe=`)                                                | `Pages/Cluster/Show.tsx`                                | 03                                          |
     | `/fasilitas`                                                                   | `Pages/Fasilitas/Index.tsx`                             | 04                                          |
     | `/artikel`, `/artikel/kategori/{slug}`                                         | `Pages/Artikel/Index.tsx`                               | 05                                          |

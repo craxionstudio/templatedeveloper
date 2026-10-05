@@ -14,6 +14,7 @@ use App\Presenters\KawasanCard;
 use App\Settings\ListingPageSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Cta;
+use App\Support\OtherClusters;
 use App\Support\PageMeta;
 use App\Support\Rupiah;
 use App\Support\StructuredData;
@@ -37,7 +38,6 @@ class PropertyListingController extends Controller
         $sort = array_key_exists((string) $request->query('urut'), $view['sort_options']) ? $request->query('urut') : $view['default_sort'];
 
         $query = $this->filteredQuery($filters, $view);
-        $typesCount = (clone $query)->sum('house_types_count');
 
         $paginator = $this->sorted($query, $sort)
             ->with(ClusterCard::with())
@@ -93,11 +93,12 @@ class PropertyListingController extends Controller
                     'sort' => $view['sort_label'],
                 ],
             ],
-            'result' => [
-                'clusters' => $paginator->total(),
-                'types' => (int) $typesCount,
-                'template' => $view['result_template'],
-            ],
+            // Ajakan di bawah kartu: cluster tanpa halaman sendiri ada di /properti/cluster-lainnya.
+            'others' => OtherClusters::exists() ? [
+                'text' => 'Masih banyak cluster lain di BSD City.',
+                'label' => 'Lihat cluster lainnya',
+                'url' => OtherClusters::PATH,
+            ] : null,
             'clusters' => Inertia::scroll(fn () => $paginator->through(fn (Cluster $cluster) => ClusterCard::make($cluster))),
             'emptyState' => $settings->section('empty_state'),
         ]);
@@ -126,11 +127,6 @@ class PropertyListingController extends Controller
             ),
             'breadcrumbs' => $crumbs,
             ...$this->shared($settings, 'kawasan'),
-            'summary' => PageMeta::fill($view['summary_template'], [
-                'kawasan' => $kawasans->count(),
-                'clusters' => $kawasans->sum(fn (Kawasan $k) => $k->publishedClusters->count()),
-                'standalone' => $standalone->count(),
-            ]),
             'kawasanEyebrow' => $view['kawasan_eyebrow'],
             'viewLabel' => $view['view_button_label'],
             'kawasans' => KawasanCard::collection($kawasans),
@@ -140,6 +136,30 @@ class PropertyListingController extends Controller
                 'description' => $view['standalone']['description'],
                 'items' => ClusterCard::collection($standalone),
             ] : null,
+        ]);
+    }
+
+    /**
+     * /properti/cluster-lainnya: nama cluster tanpa halaman sendiri, dikelompokkan per kawasan (anchor = slug
+     * kawasan, "lainnya" untuk cluster tanpa kawasan). Tanpa link, foto, status, atau jumlah.
+     */
+    public function others(ListingPageSettings $settings): Response
+    {
+        $crumbs = Breadcrumbs::make([[Breadcrumbs::nav('/properti', 'Properti'), '/properti'], ['Cluster Lainnya']]);
+        $shared = $this->shared($settings, 'cluster', ['title' => OtherClusters::TITLE, 'description' => OtherClusters::DESCRIPTION]);
+
+        return Inertia::render('Properti/Lainnya', [
+            'meta' => PageMeta::make(
+                OtherClusters::TITLE,
+                OtherClusters::META_DESCRIPTION,
+                section: 'properti',
+                breadcrumbs: $crumbs,
+            ),
+            'breadcrumbs' => $crumbs,
+            // Layout sama dengan /properti (header, breadcrumb, container), tanpa angka statistik dan toggle.
+            'header' => [...$shared['header'], 'stats' => []],
+            'groups' => OtherClusters::groups(),
+            'cta' => $shared['cta'],
         ]);
     }
 
@@ -156,9 +176,6 @@ class PropertyListingController extends Controller
         $toggle = $settings->section('toggle');
         $area = Area::current();
 
-        $kawasanCount = Kawasan::query()->visible()->count();
-        $clusterCount = Cluster::query()->published()->count();
-
         return [
             'header' => [
                 'eyebrow' => $header['eyebrow'],
@@ -166,17 +183,16 @@ class PropertyListingController extends Controller
                 'description' => $header['description'],
                 'image' => $header['image'] ? Image::path($header['image'], $header['image_alt']) : Image::media($area, 'hero', $area->hero_alt, $header['image_alt']),
                 'imageMobile' => $header['image_mobile'] ? Image::path($header['image_mobile'], $header['image_alt']) : null,
+                // Tanpa jumlah cluster/kawasan (Update 3): hanya harga mulai.
                 'stats' => [
-                    ['value' => (string) $kawasanCount, 'label' => $header['stat_kawasan_label']],
-                    ['value' => (string) $clusterCount, 'label' => $header['stat_cluster_label']],
                     ['value' => Rupiah::short(Cluster::query()->published()->min('price_min')) ?? '–', 'label' => $header['stat_price_label']],
                 ],
             ],
             'toggle' => [
                 'active' => $active,
                 'items' => [
-                    ['key' => 'cluster', 'label' => $toggle['cluster_label'], 'url' => '/properti', 'count' => $clusterCount],
-                    ['key' => 'kawasan', 'label' => $toggle['kawasan_label'], 'url' => '/properti/kawasan', 'count' => $kawasanCount],
+                    ['key' => 'cluster', 'label' => $toggle['cluster_label'], 'url' => '/properti'],
+                    ['key' => 'kawasan', 'label' => $toggle['kawasan_label'], 'url' => '/properti/kawasan'],
                 ],
             ],
             'cta' => Cta::resolve($settings->section('cta')),

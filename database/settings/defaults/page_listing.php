@@ -5,14 +5,12 @@ $shared = require __DIR__.'/_shared.php';
 return [
     'header' => [
         'eyebrow' => 'Serpong, Tangerang',
-        'title' => 'Properti BSD City',
+        'title' => 'Temukan Rumah Anda di BSD City',
         'description' => 'Pilih rumah berdasarkan cluster, atau jelajahi dulu kawasan-kawasan di BSD City.',
         'image' => null,
         'image_mobile' => null,
         'image_alt' => 'Foto aerial BSD City',
-        // Angka statistik dihitung otomatis; hanya label yang bisa diubah.
-        'stat_kawasan_label' => 'Kawasan',
-        'stat_cluster_label' => 'Cluster',
+        // Tanpa jumlah cluster/kawasan (Update 3); hanya harga mulai yang dihitung otomatis.
         'stat_price_label' => 'Harga mulai',
     ],
 
@@ -55,13 +53,9 @@ return [
         ],
         'default_sort' => 'terbaru',
         'per_page' => 9,
-        // {clusters} dan {types} diganti angka.
-        'result_template' => 'Menampilkan {clusters} cluster · {types} tipe rumah',
     ],
 
     'kawasan_view' => [
-        // {kawasan}, {clusters}, {standalone} diganti angka.
-        'summary_template' => '{kawasan} kawasan dengan total {clusters} cluster, ditambah {standalone} cluster mandiri.',
         'kawasan_eyebrow' => 'Kawasan',
         'view_button_label' => 'Lihat kawasan',
         'standalone' => [
@@ -82,8 +76,8 @@ return [
 
     'seo_cluster' => [
         ...$shared['seo'],
-        'meta_title' => 'Daftar Cluster Rumah di BSD City',
-        'meta_description' => 'Semua cluster rumah di BSD City dalam satu halaman. Saring per kawasan, tipe, jumlah kamar, dan harga. Info LT, LB, dan cicilan tiap tipe.',
+        'meta_title' => 'Temukan Rumah Anda di BSD City',
+        'meta_description' => 'Temukan rumah di BSD City. Saring per kawasan, tipe, jumlah kamar, dan harga. Info LT, LB, dan cicilan tiap tipe.',
         // /properti?benefit=tanpa-dp (satu benefit) boleh diindex dengan judul sendiri; {benefit} = nama benefit.
         'benefit_title_pattern' => 'Rumah {benefit} di BSD City',
         'benefit_description_pattern' => 'Daftar cluster rumah di BSD City dengan promo {benefit}. Bandingkan tipe, luas, dan harga, lalu tanya syarat lengkapnya ke marketing.',

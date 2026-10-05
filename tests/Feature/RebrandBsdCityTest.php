@@ -93,12 +93,12 @@ it('memakai hero dan header Properti yang baru', function () {
     $this->get('/')->assertInertia(fn (Assert $page) => $page
         ->where('hero.eyebrow', 'Serpong, Tangerang')
         ->where('hero.title', 'Pilih rumah di kota seluas 6.000 hektare.')
-        ->where('hero.description', 'Lebih dari 20 kawasan hunian, dari cluster baru di Vireya dan Terravia sampai NavaPark. Bandingkan tipe dan harga, lalu atur jadwal survey.')
+        ->where('hero.description', 'Dari cluster baru di Vireya dan Terravia sampai NavaPark, temukan rumah yang pas untuk keluarga. Bandingkan tipe dan harga, lalu atur jadwal survey.')
         ->where('hero.primary', fn ($button) => $button['label'] === 'Lihat Semua Cluster' && $button['url'] === '/properti')
         ->where('hero.secondary.label', 'Chat Marketing'));
 
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page
-        ->where('header.title', 'Properti BSD City')
+        ->where('header.title', 'Temukan Rumah Anda di BSD City')
         ->where('header.description', 'Pilih rumah berdasarkan cluster, atau jelajahi dulu kawasan-kawasan di BSD City.'));
 });
 

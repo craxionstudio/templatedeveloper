@@ -213,7 +213,7 @@ class StructuredData
         }
 
         if ($cluster->kawasan) {
-            $residence->containedInPlace(Schema::place()->name($cluster->kawasan->name)->url(self::url($cluster->kawasan->publicPath())));
+            $residence->containedInPlace(Schema::place()->name($cluster->kawasan->name)->url(self::url($cluster->kawasan->pagePath())));
         }
 
         $types = collect($types)->values();

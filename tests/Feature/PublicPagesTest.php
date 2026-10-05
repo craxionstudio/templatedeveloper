@@ -52,18 +52,17 @@ it('tidak menangkap /properti/kawasan sebagai slug cluster', function () {
 
 it('menampilkan semua cluster di tampilan Cluster', function () {
     $this->get('/properti')->assertInertia(fn (Assert $page) => $page
-        ->where('result.clusters', 9)
-        ->where('result.types', 20)
+        ->missing('result')
         ->has('clusters.data', 9));
 });
 
 it('memfilter cluster per kawasan dan cluster mandiri', function () {
     $this->get('/properti?kawasan=arunika-garden')->assertInertia(fn (Assert $page) => $page
-        ->where('result.clusters', 3)
+        ->has('clusters.data', 3)
         ->where('clusters.data', fn ($items) => collect($items)->every(fn ($c) => $c['kawasan']['name'] === 'Arunika Garden')));
 
     $this->get('/properti?kawasan=mandiri')->assertInertia(fn (Assert $page) => $page
-        ->where('result.clusters', 2)
+        ->has('clusters.data', 2)
         ->where('clusters.data', fn ($items) => collect($items)->pluck('kawasan')->filter()->isEmpty()));
 });
 

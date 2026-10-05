@@ -20,7 +20,6 @@ export type ToggleData = {
         key: 'cluster' | 'kawasan';
         label: string;
         url: string;
-        count: number;
     }[];
 };
 
@@ -36,20 +35,25 @@ export function ListingHeader({
     breadcrumbs: Crumb[];
     headingLevel?: 'h1' | 'h2';
 }) {
-    const stats = (
-        <dl className="flex justify-between gap-6 rounded-card-sm bg-white px-4 py-4 md:gap-10 md:px-8 md:py-6 xl:bg-ink/72 xl:text-white">
-            {header.stats.map((stat) => (
-                <div key={stat.label} className="flex flex-col-reverse gap-0.5">
-                    <dt className="text-[13px] text-caption xl:text-sm xl:text-mist">
-                        {stat.label}
-                    </dt>
-                    <dd className="font-display text-xl font-semibold xl:text-[30px]">
-                        {stat.value}
-                    </dd>
-                </div>
-            ))}
-        </dl>
-    );
+    // Tanpa statistik (mis. Cluster Lainnya) = kotak angka tidak tampil.
+    const stats =
+        header.stats.length === 0 ? null : (
+            <dl className="flex justify-between gap-6 rounded-card-sm bg-white px-4 py-4 md:gap-10 md:px-8 md:py-6 xl:bg-ink/72 xl:text-white">
+                {header.stats.map((stat) => (
+                    <div
+                        key={stat.label}
+                        className="flex flex-col-reverse gap-0.5"
+                    >
+                        <dt className="text-[13px] text-caption xl:text-sm xl:text-mist">
+                            {stat.label}
+                        </dt>
+                        <dd className="font-display text-xl font-semibold xl:text-[30px]">
+                            {stat.value}
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+        );
 
     return (
         <section className="container-site flex flex-col gap-4 pt-4 xl:gap-6 xl:pt-6">
@@ -115,14 +119,6 @@ export function ViewToggle({
                         )}
                     >
                         {item.label}
-                        <span
-                            className={cn(
-                                'rounded-full px-2 py-0.5 text-xs',
-                                active ? 'bg-white/20' : 'bg-sand',
-                            )}
-                        >
-                            {item.count}
-                        </span>
                     </SmartLink>
                 );
             })}

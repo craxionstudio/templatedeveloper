@@ -22,7 +22,6 @@ type Props = {
     breadcrumbs: Crumb[];
     header: ListingHeaderData;
     toggle: ToggleData;
-    summary: string;
     kawasanEyebrow: string;
     viewLabel: string;
     kawasans: KawasanCardData[];
@@ -43,7 +42,6 @@ export default function PropertiKawasan({
     breadcrumbs,
     header,
     toggle,
-    summary,
     kawasanEyebrow,
     viewLabel,
     kawasans,
@@ -51,7 +49,6 @@ export default function PropertiKawasan({
     cta,
 }: Props) {
     const { labels } = usePage().props.site;
-    const [count, ...rest] = summary.split(' ');
 
     return (
         <>
@@ -60,12 +57,6 @@ export default function PropertiKawasan({
 
             <section className="container-site flex flex-col gap-5 pt-8 pb-14 xl:gap-6 xl:pt-12 xl:pb-[120px]">
                 <ViewToggle toggle={toggle} label={labels.listing_view} />
-                <p className="text-[15px] text-body xl:text-base">
-                    <strong className="text-ink">
-                        {count} {rest[0]}
-                    </strong>{' '}
-                    {rest.slice(1).join(' ')}
-                </p>
                 <h2 className="sr-only">{labels.kawasan_list}</h2>
                 <div className="grid gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
                     {kawasans.map((kawasan) => (

@@ -18,9 +18,10 @@ Route::get('/sitemap.xml', [SeoFileController::class, 'sitemapIndex'])->name('si
 Route::get('/sitemap-{name}.xml', [SeoFileController::class, 'sitemap'])->whereIn('name', ['pages', 'properti', 'artikel'])->name('sitemap.part');
 Route::get('/robots.txt', [SeoFileController::class, 'robots'])->name('robots');
 
-// Properti. Route kawasan WAJIB didaftarkan sebelum /properti/{cluster} (brief bagian 3).
+// Properti. Route kawasan & cluster-lainnya WAJIB didaftarkan sebelum /properti/{cluster} (brief bagian 3).
 Route::get('/properti', [PropertyListingController::class, 'clusters'])->name('properti.index');
 Route::get('/properti/kawasan', [PropertyListingController::class, 'kawasans'])->name('properti.kawasan');
+Route::get('/properti/cluster-lainnya', [PropertyListingController::class, 'others'])->name('properti.lainnya');
 Route::get('/properti/kawasan/{slug}', [KawasanController::class, 'show'])->name('kawasan.show');
 Route::get('/properti/{slug}', [ClusterController::class, 'show'])->name('cluster.show');
 

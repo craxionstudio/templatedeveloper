@@ -111,6 +111,12 @@ class Sitemaps
                 ->setLastModificationDate(self::latest(Kawasan::query()->visible())));
         }
 
+        // Cluster Lainnya (cluster tanpa halaman sendiri, per kawasan).
+        if (OtherClusters::exists()) {
+            $sitemap->add(Url::create(StructuredData::url(OtherClusters::PATH))
+                ->setLastModificationDate(self::latest(Cluster::query()->listedOnly())));
+        }
+
         // Halaman per benefit (/properti?benefit=tanpa-dp): diindex selama ada cluster terbit yang memakainya.
         if (! ($listing->section('seo_cluster')['noindex'] ?? false)) {
             Benefit::query()->active()->ordered()

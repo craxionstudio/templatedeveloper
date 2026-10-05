@@ -2,7 +2,6 @@ import { usePage } from '@inertiajs/react';
 import { Icon } from '@/components/site/icons';
 import Picture, { IMAGE_SIZES } from '@/components/site/picture';
 import SmartLink from '@/components/site/smart-link';
-import { Badge } from '@/components/site/ui';
 import type { KawasanCardData } from '@/types/content';
 
 /**
@@ -28,11 +27,7 @@ export function KawasanCard({
                 sizes={IMAGE_SIZES.card3}
                 image={kawasan.image}
                 className="aspect-[16/10] xl:aspect-auto xl:h-[300px]"
-            >
-                <Badge tone="dark" className="absolute top-3.5 left-3.5 bg-ink">
-                    {kawasan.clustersCount} {labels.clusters}
-                </Badge>
-            </Picture>
+            />
             <div className="flex flex-1 flex-col gap-3 p-5 md:p-7">
                 <p className="text-[13px] font-semibold tracking-[0.06em] text-terracotta uppercase">
                     {eyebrow}
@@ -99,12 +94,11 @@ export function KawasanCardCompact({ kawasan }: { kawasan: KawasanCardData }) {
                 className="min-h-[140px] text-[11px]"
             />
             <div className="flex flex-col justify-center gap-2 p-5 md:p-6">
-                <span className="text-xs font-semibold text-terracotta">
-                    {kawasan.clustersCount} {labels.clusters}
-                    {kawasan.priceFrom
-                        ? ` · ${labels.price_from.toLowerCase()} ${kawasan.priceFrom}`
-                        : null}
-                </span>
+                {kawasan.priceFrom ? (
+                    <span className="text-xs font-semibold text-terracotta">
+                        {labels.price_from} {kawasan.priceFrom}
+                    </span>
+                ) : null}
                 <h3 className="font-display text-xl leading-tight font-semibold group-hover:text-terracotta xl:text-2xl">
                     {kawasan.name}
                 </h3>

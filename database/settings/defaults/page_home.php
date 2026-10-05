@@ -7,7 +7,7 @@ return [
         'enabled' => true,
         'eyebrow' => 'Serpong, Tangerang',
         'title' => 'Pilih rumah di kota seluas 6.000 hektare.',
-        'description' => 'Lebih dari 20 kawasan hunian, dari cluster baru di Vireya dan Terravia sampai NavaPark. Bandingkan tipe dan harga, lalu atur jadwal survey.',
+        'description' => 'Dari cluster baru di Vireya dan Terravia sampai NavaPark, temukan rumah yang pas untuk keluarga. Bandingkan tipe dan harga, lalu atur jadwal survey.',
         'image' => null,
         'image_mobile' => null,
         'image_alt' => 'Foto aerial BSD City',

@@ -6,7 +6,6 @@ return [
     'hero' => [
         'eyebrow' => 'Kawasan di BSD City',
         'stat_area_label' => 'Luas kawasan',
-        'stat_cluster_label' => 'Cluster',
         'stat_price_label' => 'Harga mulai',
     ],
 
@@ -34,9 +33,11 @@ return [
 
     'clusters' => [
         'enabled' => true,
-        // {kawasan}, {clusters}, {types} diganti otomatis.
+        // {kawasan} diganti otomatis. Tanpa jumlah cluster/tipe (Update 3).
         'eyebrow' => 'Cluster di {kawasan}',
-        'title' => '{clusters} cluster, {types} tipe rumah',
+        'title' => 'Pilihan rumah di {kawasan}',
+        // Cluster tanpa halaman sendiri di kawasan ini: chip nama saja. Kosong = section tidak tampil.
+        'other_title' => 'Cluster lain di kawasan ini',
         'link_label' => 'Semua cluster',
         'link_url' => '/properti',
     ],

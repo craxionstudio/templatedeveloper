@@ -53,7 +53,7 @@ it('lolos ssr:check kalau server SSR berjalan', function () {
     fclose($socket);
 
     $this->artisan('ssr:check', ['path' => '/properti'])
-        ->expectsOutputToContain('SSR OK /properti: H1 "Properti')
+        ->expectsOutputToContain('SSR OK /properti: H1 "Temukan Rumah Anda di BSD City')
         ->assertSuccessful();
 });
 

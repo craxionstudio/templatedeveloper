@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Clusters\Tables;
 
+use App\Enums\ClusterDisplay;
 use App\Enums\ClusterStatus;
 use App\Filament\Resources\Clusters\Actions\DuplicateClusterAction;
 use App\Filament\Resources\Clusters\Schemas\ClusterForm;
@@ -48,6 +49,7 @@ class ClustersTable
                     ->placeholder('Cluster mandiri')
                     ->badge()
                     ->color(fn (Cluster $record): string => $record->isStandalone() ? 'gray' : 'primary'),
+                TextColumn::make('tampil_sebagai')->label('Tampil sebagai')->badge()->sortable()->toggleable(),
                 TextColumn::make('prioritas')->label('Prioritas')->alignCenter()->placeholder('—')
                     // Tanpa prioritas selalu di bawah, baik urut naik maupun turun.
                     ->sortable(query: fn (Builder $query, string $direction): Builder => $query
@@ -88,6 +90,7 @@ class ClustersTable
                         Cluster::STANDALONE_FILTER => $query->whereNull('kawasan_id'),
                         default => $query->where('kawasan_id', $data['value']),
                     }),
+                SelectFilter::make('tampil_sebagai')->label('Tampil sebagai')->options(ClusterDisplay::class),
                 SelectFilter::make('status')->options(ClusterStatus::class),
                 SelectFilter::make('benefit')
                     ->label('Benefit')

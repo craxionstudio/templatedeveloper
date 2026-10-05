@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ClusterBadge;
+use App\Enums\ClusterDisplay;
 use App\Enums\ClusterStatus;
 use App\Enums\PropertyType;
 use App\Models\Concerns\FillsSlugAutomatically;
@@ -36,12 +37,13 @@ class Cluster extends Model implements HasMedia
     /** @use HasFactory<ClusterFactory> */
     use FillsSlugAutomatically, HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
+        HasPublishing::scopePublished as private publishedAnyDisplay;
     }
 
     /**
      * Slug yang bentrok dengan route /properti/{...} lain.
      */
-    public const RESERVED_SLUGS = ['kawasan'];
+    public const RESERVED_SLUGS = ['kawasan', 'cluster-lainnya'];
 
     /**
      * Nilai filter ?kawasan= untuk cluster tanpa kawasan.
@@ -52,7 +54,7 @@ class Cluster extends Model implements HasMedia
         'kawasan_id', 'name', 'slug', 'building_type', 'property_type', 'summary', 'description', 'address',
         'badge', 'status', 'booking_fee', 'price_note', 'installment_note', 'booking_fee_note', 'specifications',
         'legality', 'video_url', 'tour_360_url', 'marketing_name', 'marketing_title',
-        'is_featured', 'sort_order', 'is_published', 'published_at',
+        'is_featured', 'sort_order', 'is_published', 'published_at', 'tampil_sebagai',
         'facilities', 'launch_year', 'tanggal_launching', 'prioritas', 'catatan_internal', 'perlu_dilengkapi',
     ];
 
@@ -62,6 +64,7 @@ class Cluster extends Model implements HasMedia
             'property_type' => PropertyType::class,
             'badge' => ClusterBadge::class,
             'status' => ClusterStatus::class,
+            'tampil_sebagai' => ClusterDisplay::class,
             'booking_fee' => 'integer',
             'specifications' => 'array',
             'facilities' => 'array',
@@ -220,6 +223,29 @@ class Cluster extends Model implements HasMedia
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy($this->qualifyColumn('sort_order'))->orderBy($this->qualifyColumn('name'));
+    }
+
+    /**
+     * Cluster yang punya halaman sendiri dan tampil di publik: dipublikasikan + tampil sebagai "halaman".
+     * Dipakai semua tampilan publik (kartu, listing, filter, pencarian, sitemap, harga, hitungan).
+     * Cluster "daftar" hanya tampil lewat scopeListedOnly().
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $this->publishedAnyDisplay($query)->where($this->qualifyColumn('tampil_sebagai'), ClusterDisplay::Halaman->value);
+    }
+
+    /**
+     * Cluster yang hanya tampil sebagai nama di /properti/cluster-lainnya (dipublikasikan + "daftar").
+     */
+    public function scopeListedOnly(Builder $query): Builder
+    {
+        return $this->publishedAnyDisplay($query)->where($this->qualifyColumn('tampil_sebagai'), ClusterDisplay::Daftar->value);
+    }
+
+    public function hasPage(): bool
+    {
+        return $this->tampil_sebagai !== ClusterDisplay::Daftar;
     }
 
     /**

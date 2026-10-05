@@ -13,20 +13,31 @@ use App\Settings\ListingPageSettings;
 use App\Support\Breadcrumbs;
 use App\Support\Content;
 use App\Support\Cta;
+use App\Support\OtherClusters;
 use App\Support\PageMeta;
 use App\Support\RichText;
 use App\Support\Rupiah;
 use App\Support\StructuredData;
 use App\Support\WhatsApp;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class KawasanController extends Controller
 {
-    public function show(string $slug, KawasanDetailPageSettings $settings, ListingPageSettings $listing): Response
+    public function show(string $slug, KawasanDetailPageSettings $settings, ListingPageSettings $listing): Response|RedirectResponse
     {
         // Tidak dipublikasikan / tanpa cluster publik → 404.
         $kawasan = Kawasan::query()->visible()->where('slug', $slug)->with(['seo', 'media', 'galleryItems.media'])->first();
+
+        // Kawasan tanpa halaman sendiri (punya_halaman = false, atau hanya berisi cluster daftar) → 301 ke
+        // grupnya di Cluster Lainnya.
+        if (! $kawasan && Kawasan::query()->published()->where('slug', $slug)
+            ->where(fn (Builder $q) => $q->where('punya_halaman', false)->orWhereHas('clusters', fn (Builder $c) => $c->listedOnly()))
+            ->exists()) {
+            return redirect(Kawasan::otherClustersPath($slug), 301);
+        }
 
         // Kawasan yang sudah dihapus → 410 Gone.
         abort_if(! $kawasan && Kawasan::onlyTrashed()->where('slug', $slug)->exists(), 410);
@@ -50,14 +61,13 @@ class KawasanController extends Controller
     private function page(Kawasan $kawasan, KawasanDetailPageSettings $settings, ListingPageSettings $listing, bool $preview = false): Response
     {
         $clusters = $kawasan->publishedClusters()->with(ClusterCard::with())->get();
-        $typesCount = $clusters->sum('house_types_count');
 
         $hero = $settings->section('hero');
         $about = $settings->section('about');
         $clustersSection = $settings->section('clusters');
         $others = $settings->section('others');
         $seoPattern = $settings->section('seo');
-        $values = ['name' => $kawasan->name, 'kawasan' => $kawasan->name, 'summary' => $kawasan->summary, 'clusters' => $clusters->count(), 'types' => $typesCount];
+        $values = ['name' => $kawasan->name, 'kawasan' => $kawasan->name, 'summary' => $kawasan->summary];
 
         $crumbs = Breadcrumbs::make([
             [Breadcrumbs::nav('/properti', 'Properti'), '/properti'],
@@ -91,7 +101,6 @@ class KawasanController extends Controller
                 'eyebrow' => $hero['eyebrow'],
                 'stats' => array_values(array_filter([
                     $kawasan->area_ha !== null ? ['value' => rtrim(rtrim(number_format((float) $kawasan->area_ha, 2, ',', '.'), '0'), ',').' ha', 'label' => $hero['stat_area_label']] : null,
-                    ['value' => (string) $clusters->count(), 'label' => $hero['stat_cluster_label']],
                     ['value' => Rupiah::short($clusters->pluck('price_min')->filter(fn ($p) => $p > 0)->min()) ?? app(GlobalSettings::class)->section('labels')['price_on_request'], 'label' => $hero['stat_price_label']],
                 ])),
             ],
@@ -117,6 +126,12 @@ class KawasanController extends Controller
                 'title' => PageMeta::fill($clustersSection['title'], $values),
                 'link' => ['label' => $clustersSection['link_label'], 'url' => $clustersSection['link_url'].'?kawasan='.$kawasan->slug],
                 'items' => ClusterCard::collection($clusters),
+            ] : null,
+            // Cluster tanpa halaman sendiri di kawasan ini: chip nama saja (tanpa link/foto/status).
+            'otherClusters' => ($names = OtherClusters::names($kawasan->listedClusters()->get(['id', 'name']))) !== [] ? [
+                'title' => $clustersSection['other_title'],
+                'eyebrow' => PageMeta::fill($clustersSection['eyebrow'], $values),
+                'names' => $names,
             ] : null,
             'others' => $this->others($kawasan, $others),
             'cta' => Cta::resolve($settings->section('cta'), kawasan: $kawasan),

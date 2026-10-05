@@ -36,7 +36,7 @@ class ClusterCard
             // Maksimal 3 chip benefit + "+N" (tanpa tanda *).
             'benefits' => self::benefits($cluster)->take(3)->map(fn (Benefit $benefit) => $benefit->displayText())->values()->all(),
             'benefitsMore' => max(0, self::benefits($cluster)->count() - 3),
-            'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->publicPath()] : null,
+            'kawasan' => $cluster->kawasan ? ['name' => $cluster->kawasan->name, 'url' => $cluster->kawasan->pagePath()] : null,
             'typesCount' => $types->count(),
             // Chip nama tipe; tipe tanpa nama (harga tingkat cluster) tidak dibuat chip.
             'types' => $types->filter(fn (HouseType $type) => $type->displayName() !== null)

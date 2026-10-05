@@ -142,6 +142,10 @@ class SiteLayout
             $links->push(['label' => $footer['property_all_label'], 'url' => $footer['property_all_url'] ?: '/properti/kawasan']);
         }
 
+        if (OtherClusters::exists()) {
+            $links->push(['label' => 'Cluster lainnya', 'url' => OtherClusters::PATH]);
+        }
+
         return ['title' => $footer['property_title'], 'links' => $links->values()->all()];
     }
 

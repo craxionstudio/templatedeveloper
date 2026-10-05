@@ -7,6 +7,7 @@ use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
+use App\Support\OtherClusters;
 use App\Support\RichText;
 use App\Support\Summary;
 use Database\Factories\KawasanFactory;
@@ -34,7 +35,7 @@ class Kawasan extends Model implements HasMedia
     protected $fillable = [
         'name', 'slug', 'summary', 'about_title', 'description', 'area_ha', 'hero_alt', 'facilities',
         'map_embed_url', 'latitude', 'longitude', 'is_featured', 'sort_order', 'is_published', 'published_at',
-        'access', 'opened_year',
+        'access', 'opened_year', 'punya_halaman',
     ];
 
     protected function casts(): array
@@ -48,6 +49,7 @@ class Kawasan extends Model implements HasMedia
             'opened_year' => 'integer',
             'is_featured' => 'boolean',
             'is_published' => 'boolean',
+            'punya_halaman' => 'boolean',
             'published_at' => 'datetime',
         ];
     }
@@ -91,12 +93,40 @@ class Kawasan extends Model implements HasMedia
     }
 
     /**
-     * Kawasan hanya tampil di publik kalau dipublikasikan DAN punya minimal 1 cluster
-     * yang dipublikasikan (CHANGES.md Revisi 2).
+     * Kawasan hanya tampil di publik (halaman detail, daftar kawasan, footer, sitemap) kalau dipublikasikan,
+     * punya halaman sendiri (punya_halaman), DAN punya minimal 1 cluster dengan halaman yang dipublikasikan
+     * (CHANGES.md Revisi 2 & Update 3).
      */
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->published()->whereHas('clusters', fn (Builder $q) => $q->published());
+        return $query->published()
+            ->where($this->qualifyColumn('punya_halaman'), true)
+            ->whereHas('clusters', fn (Builder $q) => $q->published());
+    }
+
+    /**
+     * Cluster yang hanya tampil sebagai nama ("Cluster lain di kawasan ini" & /properti/cluster-lainnya).
+     */
+    public function listedClusters(): HasMany
+    {
+        return $this->clusters()->listedOnly()->orderBy('name');
+    }
+
+    /**
+     * Link kawasan untuk breadcrumb/kartu cluster: halaman detail, atau grupnya di Cluster Lainnya
+     * kalau kawasan tidak punya halaman sendiri.
+     */
+    public function pagePath(): string
+    {
+        return $this->punya_halaman ? $this->publicPath() : self::otherClustersPath($this->slug);
+    }
+
+    /**
+     * Anchor grup kawasan di /properti/cluster-lainnya.
+     */
+    public static function otherClustersPath(?string $slug): string
+    {
+        return '/properti/cluster-lainnya#'.($slug ?: OtherClusters::STANDALONE_ANCHOR);
     }
 
     public function publicPath(?string $slug = null): string
