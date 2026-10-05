@@ -118,7 +118,12 @@ jobs:
             fi
             WORKERS=$(pgrep -fc "[a]rtisan queue:work" 2>/dev/null || true)
             SUPERVISOR=$( (command -v supervisorctl >/dev/null 2>&1 && (supervisorctl status 2>/dev/null || sudo -n supervisorctl status 2>/dev/null) | grep -ci "queue") || true)
-            QUEUE_INFO=$(php artisan tinker --execute 'echo DB::table("jobs")->count()." job antre (tertua: ".(DB::table("jobs")->min("created_at") ? date("Y-m-d H:i", (int) DB::table("jobs")->min("created_at")) : "-")."), ".DB::table("failed_jobs")->count()." job gagal";' 2>/dev/null || echo "tidak terbaca")
+            QUEUE_INFO=$(php artisan tinker --execute 'echo DB::table("jobs")->count()." job antre (tertua: ".(DB::table("jobs")->min("created_at") ? date("Y-m-d H:i", (int) DB::table("jobs")->min("created_at")) : "-")."), ".DB::table("failed_jobs")->count()." job gagal; per queue: ".DB::table("jobs")->selectRaw("queue, count(*) n, max(attempts) a, sum(reserved_at is not null) r")->groupBy("queue")->get()->map(fn ($q) => "{$q->queue}={$q->n} (attempts {$q->a}, reserved {$q->r})")->join(", ")."; heartbeat scheduler: ".(Storage::disk("local")->exists("scheduler-heartbeat") ? Storage::disk("local")->get("scheduler-heartbeat") : "belum ada");' 2>/dev/null || echo "tidak terbaca")
+            echo "--- 5 baris terakhir storage/logs/queue-worker.log ---"
+            tail -n 5 storage/logs/queue-worker.log 2>/dev/null || echo "(belum ada log worker)"
+            echo "--- crontab ---"
+            (crontab -l 2>/dev/null | grep -v '^\s*#' | grep "schedule:run") || true
+            (systemctl is-active cron 2>/dev/null || service cron status 2>/dev/null | head -1) || true
             echo "Cron schedule:run: $CRON (user $(whoami)); proses queue:work aktif: ${WORKERS:-0}; program queue di Supervisor: ${SUPERVISOR:-0}; $QUEUE_INFO"
             if [ "$CRON" = "terpasang" ]; then
               echo "::notice title=Queue & scheduler::Cron schedule:run terpasang (user $(whoami)). Worker queue: ${WORKERS:-0} proses, Supervisor: ${SUPERVISOR:-0}. $QUEUE_INFO"

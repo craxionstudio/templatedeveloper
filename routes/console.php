@@ -7,6 +7,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Storage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -32,7 +33,12 @@ Schedule::command('queue:work', [
     '--stop-when-empty',
     '--max-time' => 55,
     '--tries' => 3,
-])->name('queue-worker')->everyMinute()->withoutOverlapping(10)->runInBackground();
+])->name('queue-worker')->everyMinute()->withoutOverlapping(10)->runInBackground()
+    ->appendOutputTo(storage_path('logs/queue-worker.log'));
+
+// Jejak bahwa cron `schedule:run` benar-benar berjalan (dibaca pengecekan di script deploy).
+Schedule::call(fn () => Storage::disk('local')->put('scheduler-heartbeat', now()->toIso8601String()))
+    ->name('scheduler-heartbeat')->everyMinute();
 
 Artisan::command('images:variants', function () {
     // Settings halaman: varian di storage/app/public/_variants.

@@ -388,6 +388,7 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 6. **Queue tanpa Supervisor:**
    - Scheduler menjalankan `queue:work --stop-when-empty --max-time=55 --tries=3` tiap menit (`withoutOverlapping`, di background, `routes/console.php`). Konversi foto WebP/AVIF dan email lead jalan selama cron `schedule:run` terpasang.
    - Satu baris crontab yang wajib ada: `* * * * * cd /path/ke/app && php artisan schedule:run >> /dev/null 2>&1`.
+   - Setelah deploy Tahap B, laporan masih menunjukkan 4 job antre sejak 29 Sep. Karena itu ditambahkan diagnosis: heartbeat scheduler (`storage/app/scheduler-heartbeat` tiap menit), log worker `storage/logs/queue-worker.log`, dan rincian job per queue (attempts/reserved) di laporan deploy.
    - Deploy (langkah 9b) mengecek dan melaporkan di ringkasan GitHub Actions: cron terpasang atau belum, jumlah proses `queue:work`, program queue di Supervisor, serta jumlah job antre dan gagal. Laporan ini tidak menggagalkan deploy.
 - **Test:**
   - Test role diganti dengan test migrasi role (user lama jadi Admin dan bisa membuka semua menu).
