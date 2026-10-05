@@ -17,9 +17,9 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 - [ ] `php artisan storage:link` dan `php artisan optimize`.
 - [ ] `npm ci && npm run build` (aset + bundle SSR).
 - [ ] **MAIL_*** diisi (SMTP / layanan email) dan `MAIL_FROM_ADDRESS` memakai domain sendiri. Tes: kirim form lead, lalu pastikan email notifikasi masuk (cek juga folder spam).
-- [ ] **Queue worker** jalan terus lewat Supervisor (`php artisan queue:work`). Tanpa worker: email lead tidak terkirim, event CAPI tidak dikirim, dan foto tidak dibuatkan versi AVIF/WebP.
+- [ ] **Queue worker**: dijalankan scheduler tiap menit (`queue:work --stop-when-empty`), cukup cron di bawah. Supervisor opsional. Tanpa worker: email lead tidak terkirim, event CAPI tidak dikirim, dan foto tidak dibuatkan versi AVIF/WebP. Cek di ringkasan deploy GitHub Actions ("Queue & scheduler").
 - [ ] **SSR** jalan terus lewat Supervisor (`php artisan inertia:start-ssr`). Cek: `curl -s https://domain/ | grep "<h1"` harus mengembalikan judul.
-- [ ] **Scheduler cron:** `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`. Isinya: sitemap harian, backup harian 01.30, pembersihan backup, dan monitor backup.
+- [ ] **Scheduler cron:** `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`. Isinya: queue worker tiap menit, sitemap harian, backup harian 01.30, pembersihan backup, dan monitor backup.
 - [ ] **Backup:** `mysqldump` tersedia di server dan `BACKUP_NOTIFICATION_EMAIL` diisi.
 - [ ] **`mysqldump` terpasang di server** (paket `mysql-client` atau `mariadb-client`): dipakai `php artisan backup:run --only-db --disable-notifications`, yang juga dijalankan script deploy sebelum setiap import data. Tes sekali: perintah itu harus berakhir dengan "Backup completed!" dan `php artisan backup:list` menampilkan file barunya.
 - [ ] **Backup di luar server** (wajib: kalau server rusak, backup `local` ikut hilang). Pilihan murah yang kompatibel S3 (driver `s3` sudah terpasang):
@@ -123,7 +123,6 @@ Panduan lengkap: `docs/TRACKING.md`.
   - email notifikasi masuk;
   - event `Lead` masuk di Meta (Browser + Server) dan `generate_lead` di GA4 (DebugView);
   - tombol "Lanjut chat WhatsApp" membuka nomor yang benar dengan pesan berisi nama cluster.
-- [ ] Newsletter di halaman Artikel: email tersimpan di Admin → Newsletter.
 - [ ] Tombol WhatsApp di header, CTA, sticky bar mobile, dan kartu marketing membuka nomor yang benar.
 - [ ] Hapus lead dan subscriber hasil tes.
 - [ ] Buka website di HP sungguhan (Android & iPhone): menu, galeri, tab tipe, filter listing, form, peta.

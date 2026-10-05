@@ -368,6 +368,32 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
 - Admin: Bank Benefit, repeater, kolom, filter, bulk action.
 - 5 test promo lama di `ImportBsdUpdateTest` diganti 1 test bahwa promo lama tidak tampil lagi walau dipublikasikan.
 
+**Tahap A — Rapikan & percepat** (disetujui pemilik 5 Okt 2026, langsung di `main`)
+
+1. **Paket tidak terpakai dihapus:**
+   - `laravel/wayfinder` (composer), `@laravel/vite-plugin-wayfinder`, dan `lucide-react`. Plugin Wayfinder dilepas dari `vite.config.ts`, beserta folder hasil generate (`resources/js/actions|routes|wayfinder`) dan entri `.gitignore`-nya.
+   - `concurrently`, `typescript`, `@types/react`, dan `@types/react-dom` dipindah ke `devDependencies`. `npm ci` di deploy tetap memasangnya untuk build.
+2. **Fraunces dikunci** ke opsz 72 dan wght 400–700 dengan fontTools instancer (`resources/fonts/fraunces-latin-opsz72-wght-normal.woff2`).
+   - Ukuran file turun dari 66 KB menjadi 33 KB per halaman.
+   - H1 sedikit lebih ramping (opsz 72 dipakai di semua ukuran), jadi pemenggalan baris bisa bergeser. Contohnya, judul cluster di mobile jadi 2 baris, sebelumnya 3.
+   - Bobot yang dipakai situs (400/500/600/700) tidak berubah.
+3. **Newsletter dihapus:**
+   - Yang dihapus: form di halaman Artikel, `POST /newsletter` beserta rate limit-nya, model `NewsletterSubscriber`, menu admin Newsletter, tab Newsletter di Pengaturan Halaman → Artikel, dan label `newsletter_success`.
+   - Tabel `newsletter_subscribers` di-drop lewat migrasi `2026_10_05_100000`.
+4. **Webhook lead dihapus:** job `SendLeadWebhook` dan field "Webhook URL" di Pengaturan Global → Notifikasi lead. Email notifikasi lead tetap ada. Settings migrasi `2026_10_05_100000_remove_newsletter_and_lead_webhook` membuang key lamanya.
+5. **Satu role: Admin** (`UserRole::Admin`, akses semua menu):
+   - Migrasi `2026_10_05_100100` memindahkan semua user lama (Super Admin, Admin Konten, Marketing) ke `admin`. Default kolom jadi `admin`.
+   - Pilihan role di form User dihapus. Seeder hanya membuat `admin@example.com`.
+   - Lead tetap tidak bisa dibuat dari admin.
+6. **Queue tanpa Supervisor:**
+   - Scheduler menjalankan `queue:work --stop-when-empty --max-time=55 --tries=3` tiap menit (`withoutOverlapping`, di background, `routes/console.php`). Konversi foto WebP/AVIF dan email lead jalan selama cron `schedule:run` terpasang.
+   - Satu baris crontab yang wajib ada: `* * * * * cd /path/ke/app && php artisan schedule:run >> /dev/null 2>&1`.
+   - Deploy (langkah 9b) mengecek dan melaporkan di ringkasan GitHub Actions: cron terpasang atau belum, jumlah proses `queue:work`, program queue di Supervisor, serta jumlah job antre dan gagal. Laporan ini tidak menggagalkan deploy.
+- **Test:**
+  - Test role diganti dengan test migrasi role (user lama jadi Admin dan bisa membuka semua menu).
+  - Test baru: newsletter tidak ada lagi.
+  - Test webhook dan newsletter dihapus.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

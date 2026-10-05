@@ -7,7 +7,7 @@ use Illuminate\Validation\Validator;
 
 /**
  * Anti-spam form publik: honeypot (field `website` yang disembunyikan) + Cloudflare Turnstile.
- * Rate limit per IP dipasang di route (throttle:leads / throttle:newsletter).
+ * Rate limit per IP dipasang di route (throttle:leads).
  */
 trait GuardsAgainstSpam
 {

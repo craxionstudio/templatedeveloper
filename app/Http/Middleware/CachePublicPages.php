@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class CachePublicPages
 {
-    private const SKIP = ['admin', 'admin/*', 'livewire*', 'pratinjau/*', 'terima-kasih', 'lead', 'newsletter', 'up'];
+    private const SKIP = ['admin', 'admin/*', 'livewire*', 'pratinjau/*', 'terima-kasih', 'lead', 'up'];
 
     public function handle(Request $request, Closure $next): Response
     {

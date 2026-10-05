@@ -35,7 +35,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $panel->getId() === 'admin';
+        return $panel->getId() === 'admin' && $this->isAdmin();
     }
 
     public function hasRole(UserRole ...$roles): bool
@@ -43,25 +43,12 @@ class User extends Authenticatable implements FilamentUser
         return in_array($this->role, $roles, true);
     }
 
-    public function isSuperAdmin(): bool
-    {
-        return $this->role === UserRole::SuperAdmin;
-    }
-
     /**
-     * Konten (properti, artikel, pengaturan halaman): super admin & admin konten.
+     * Satu-satunya peran: Admin, akses ke semua menu.
      */
-    public function canManageContent(): bool
+    public function isAdmin(): bool
     {
-        return $this->hasRole(UserRole::SuperAdmin, UserRole::AdminKonten);
-    }
-
-    /**
-     * Lead & newsletter: super admin & marketing.
-     */
-    public function canManageLeads(): bool
-    {
-        return $this->hasRole(UserRole::SuperAdmin, UserRole::Marketing);
+        return $this->role === UserRole::Admin;
     }
 
     /**

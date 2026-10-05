@@ -4,7 +4,6 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             site: SiteLayoutData;
-            flash: { newsletter: string | null };
             [key: string]: unknown;
         };
     }

@@ -1,7 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import NewsletterForm from '@/components/lead/newsletter-form';
 import ArticleCard from '@/components/site/article-card';
 import Breadcrumbs from '@/components/site/breadcrumbs';
 import { Icon } from '@/components/site/icons';
@@ -42,12 +41,6 @@ type Props = {
     /** Belum ada artikel yang dipublikasikan sama sekali. */
     empty: EmptyStateData | null;
     articles: { data: ArticleCardData[]; pagination: PaginationData };
-    newsletter: {
-        title: string;
-        description: string;
-        placeholder: string;
-        buttonLabel: string;
-    } | null;
 };
 
 /**
@@ -66,7 +59,6 @@ export default function ArtikelIndex({
     emptyText,
     empty,
     articles,
-    newsletter,
 }: Props) {
     const { labels } = usePage().props.site;
     const [q, setQ] = useState(search?.value ?? '');
@@ -248,25 +240,6 @@ export default function ArtikelIndex({
                     />
                 </section>
             )}
-
-            {newsletter ? (
-                <section className="container-site pb-14 xl:pb-[120px]">
-                    <div className="grid gap-5 rounded-card bg-forest p-6 text-ground xl:grid-cols-2 xl:items-center xl:gap-12 xl:rounded-section xl:p-14">
-                        <div className="flex flex-col gap-2">
-                            <h2 className="font-display text-[26px] leading-snug font-medium xl:text-[34px]">
-                                {newsletter.title}
-                            </h2>
-                            <p className="text-[15px] text-mist">
-                                {newsletter.description}
-                            </p>
-                        </div>
-                        <NewsletterForm
-                            placeholder={newsletter.placeholder}
-                            buttonLabel={newsletter.buttonLabel}
-                        />
-                    </div>
-                </section>
-            ) : null}
         </>
     );
 }

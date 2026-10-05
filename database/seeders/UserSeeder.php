@@ -21,9 +21,7 @@ class UserSeeder extends Seeder
             : 'password';
 
         $users = [
-            ['name' => 'Super Admin', 'email' => 'admin@example.com', 'role' => UserRole::SuperAdmin],
-            ['name' => 'Admin Konten', 'email' => 'konten@example.com', 'role' => UserRole::AdminKonten],
-            ['name' => 'Marketing', 'email' => 'marketing@example.com', 'role' => UserRole::Marketing],
+            ['name' => 'Admin', 'email' => 'admin@example.com', 'role' => UserRole::Admin],
         ];
 
         $created = [];

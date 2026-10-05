@@ -13,7 +13,7 @@ class LeadsPerClusterChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->canManageLeads() ?? false;
+        return auth()->user()?->isAdmin() ?? false;
     }
 
     protected function getType(): string

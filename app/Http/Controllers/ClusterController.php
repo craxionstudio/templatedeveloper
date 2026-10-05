@@ -49,7 +49,7 @@ class ClusterController extends Controller
      */
     public function preview(Request $request, Cluster $cluster, ClusterDetailPageSettings $settings, GlobalSettings $global): Response
     {
-        abort_unless(auth()->user()?->canManageContent(), 403);
+        abort_unless(auth()->user()?->isAdmin(), 403);
 
         $cluster->load(['kawasan', 'seo', 'media', 'galleryItems.media', 'houseTypes.media']);
 

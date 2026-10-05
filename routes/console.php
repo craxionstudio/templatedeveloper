@@ -24,6 +24,16 @@ Schedule::command('backup:clean')->dailyAt('01:00');
 Schedule::command('backup:run')->dailyAt('01:30');
 Schedule::command('backup:monitor')->dailyAt('09:00');
 
+// Queue tanpa Supervisor: tiap menit cron `schedule:run` menyalakan worker yang memproses semua job
+// (konversi foto WebP/AVIF, email lead) lalu berhenti sendiri saat antrean kosong. Cukup 1 baris crontab
+// (lihat README → Deploy). Aman berdampingan dengan worker Supervisor kalau suatu saat dipasang.
+Schedule::command('queue:work', [
+    '--queue' => collect(['default', config('media-library.queue_name')])->filter()->unique()->implode(','),
+    '--stop-when-empty',
+    '--max-time' => 55,
+    '--tries' => 3,
+])->name('queue-worker')->everyMinute()->withoutOverlapping(10)->runInBackground();
+
 Artisan::command('images:variants', function () {
     // Settings halaman: varian di storage/app/public/_variants.
     $paths = collect(DB::table('settings')->pluck('payload'))

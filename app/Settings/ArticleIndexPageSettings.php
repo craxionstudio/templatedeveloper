@@ -11,8 +11,6 @@ class ArticleIndexPageSettings extends PageSettings
 
     public array $list;
 
-    public array $newsletter;
-
     public array $seo;
 
     public static function group(): string

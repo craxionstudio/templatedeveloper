@@ -38,7 +38,7 @@ class KawasanController extends Controller
      */
     public function preview(Kawasan $kawasan, KawasanDetailPageSettings $settings, ListingPageSettings $listing): Response
     {
-        abort_unless(auth()->user()?->canManageContent(), 403);
+        abort_unless(auth()->user()?->isAdmin(), 403);
 
         $kawasan->load(['seo', 'media', 'galleryItems.media']);
 

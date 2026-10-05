@@ -1,5 +1,4 @@
 import inertia from '@inertiajs/vite';
-import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
@@ -18,8 +17,9 @@ export default defineConfig({
                     alias: 'fraunces',
                     variants: [
                         {
-                            src: 'resources/fonts/fraunces-latin-opsz-normal.woff2',
-                            weight: '100 900',
+                            // Dikunci opsz 72 & wght 400–700 (fontTools instancer): 33 KB, bukan 66 KB.
+                            src: 'resources/fonts/fraunces-latin-opsz72-wght-normal.woff2',
+                            weight: '400 700',
                         },
                     ],
                     fallbacks: ['Georgia', 'serif'],
@@ -42,9 +42,6 @@ export default defineConfig({
             presets: [reactCompilerPreset()],
         }),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
     ]),
     server: {
         watch: {
@@ -65,10 +62,7 @@ export default defineConfig({
             'public/**',
             'bootstrap/ssr/**',
             'tailwind.config.js',
-            'resources/js/actions/**',
             'resources/js/components/ui/*',
-            'resources/js/routes/**',
-            'resources/js/wayfinder/**',
         ],
         options: {
             denyWarnings: true,

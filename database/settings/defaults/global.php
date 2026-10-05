@@ -114,8 +114,6 @@ return [
     'notifications' => [
         // Satu atau lebih email penerima notifikasi lead.
         'emails' => [],
-        // Kosong = webhook tidak dikirim.
-        'webhook_url' => '',
     ],
 
     'labels' => [
@@ -137,7 +135,6 @@ return [
         'form_submit' => 'Kirim',
         'form_sending' => 'Mengirim…',
         'form_error' => 'Periksa kembali isian yang ditandai.',
-        'newsletter_success' => 'Terima kasih! Email kamu sudah terdaftar.',
         'privacy_policy' => 'Kebijakan Privasi',
         'main_menu' => 'Menu utama',
         'open_menu' => 'Buka menu',

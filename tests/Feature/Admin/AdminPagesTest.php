@@ -19,12 +19,12 @@ beforeEach(function () {
     Lead::query()->create(['name' => 'Budi', 'whatsapp' => '6281234567890', 'cluster_id' => Cluster::first()->id, 'utm_source' => 'facebook']);
 });
 
-function adminAs(UserRole $role): User
+function admin(): User
 {
-    return User::where('role', $role->value)->firstOrFail();
+    return User::where('email', 'admin@example.com')->firstOrFail();
 }
 
-it('merender semua halaman admin untuk super admin', function (string $url) {
+it('merender semua halaman admin untuk admin', function (string $url) {
     $ids = [
         '{cluster}' => Cluster::first()->id, '{kawasan}' => Kawasan::first()->id, '{promo}' => Promo::first()->id,
         '{facility}' => Facility::first()->id, '{fcat}' => FacilityCategory::first()->id, '{dev}' => FutureDevelopment::first()->id,
@@ -32,7 +32,7 @@ it('merender semua halaman admin untuk super admin', function (string $url) {
         '{author}' => Author::first()->id, '{lead}' => Lead::first()->id, '{user}' => User::first()->id,
     ];
 
-    $this->actingAs(adminAs(UserRole::SuperAdmin))->get(strtr($url, $ids))->assertOk();
+    $this->actingAs(admin())->get(strtr($url, $ids))->assertOk();
 })->with([
     '/admin',
     '/admin/kawasans', '/admin/kawasans/create', '/admin/kawasans/{kawasan}/edit',
@@ -45,7 +45,7 @@ it('merender semua halaman admin untuk super admin', function (string $url) {
     '/admin/articles', '/admin/articles/create', '/admin/articles/{article}/edit',
     '/admin/article-categories', '/admin/article-categories/{acat}/edit',
     '/admin/tags', '/admin/tags/{tag}/edit', '/admin/authors', '/admin/authors/{author}/edit',
-    '/admin/leads', '/admin/leads/{lead}/edit', '/admin/newsletter-subscribers', '/admin/newsletter-subscribers/create',
+    '/admin/leads', '/admin/leads/{lead}/edit',
     '/admin/redirects', '/admin/redirects/create', '/admin/users', '/admin/users/create', '/admin/users/{user}/edit',
     '/admin/pengaturan/global', '/admin/pengaturan/menu', '/admin/pengaturan/beranda', '/admin/pengaturan/properti',
     '/admin/pengaturan/detail-kawasan', '/admin/pengaturan/detail-rumah', '/admin/pengaturan/fasilitas',
@@ -53,29 +53,34 @@ it('merender semua halaman admin untuk super admin', function (string $url) {
     '/admin/pengaturan/kontak', '/admin/pengaturan/terima-kasih', '/admin/pengaturan/kebijakan-privasi',
 ]);
 
-it('membatasi menu sesuai role', function (UserRole $role, string $url, int $status) {
-    $url = str_replace('{lead}', (string) Lead::first()->id, $url);
+it('memindahkan semua user lama ke role Admin dengan akses ke semua menu', function () {
+    foreach (['super_admin' => 'lama-super@example.com', 'admin_konten' => 'lama-konten@example.com', 'marketing' => 'lama-marketing@example.com'] as $role => $email) {
+        DB::table('users')->insert(['name' => $role, 'email' => $email, 'role' => $role, 'password' => bcrypt('password'), 'email_verified_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+    }
 
-    $this->actingAs(adminAs($role))->get($url)->assertStatus($status);
-})->with([
-    'admin konten → cluster' => [UserRole::AdminKonten, '/admin/clusters', 200],
-    'admin konten → settings halaman' => [UserRole::AdminKonten, '/admin/pengaturan/beranda', 200],
-    'admin konten → lead' => [UserRole::AdminKonten, '/admin/leads', 403],
-    'admin konten → user' => [UserRole::AdminKonten, '/admin/users', 403],
-    'marketing → lead' => [UserRole::Marketing, '/admin/leads', 200],
-    'marketing → detail lead' => [UserRole::Marketing, '/admin/leads/{lead}/edit', 200],
-    'marketing → newsletter' => [UserRole::Marketing, '/admin/newsletter-subscribers', 200],
-    'marketing → cluster' => [UserRole::Marketing, '/admin/clusters', 403],
-    'marketing → settings halaman' => [UserRole::Marketing, '/admin/pengaturan/beranda', 403],
-    'marketing → pengaturan global' => [UserRole::Marketing, '/admin/pengaturan/global', 403],
-    'marketing → profil lokasi' => [UserRole::Marketing, '/admin/profil-lokasi', 403],
-]);
+    (require base_path('database/migrations/2026_10_05_100100_merge_user_roles_into_admin.php'))->up();
 
-it('tidak mengizinkan marketing menghapus lead', function () {
+    expect(DB::table('users')->distinct()->pluck('role')->all())->toBe(['admin'])
+        ->and(User::factory()->make()->role)->toBe(UserRole::Admin);
+
+    $marketing = User::where('email', 'lama-marketing@example.com')->firstOrFail();
+    foreach (['/admin/clusters', '/admin/pengaturan/global', '/admin/leads', '/admin/users'] as $url) {
+        $this->actingAs($marketing)->get($url)->assertOk();
+    }
+
+    expect(User::whereIn('email', ['lama-super@example.com', 'lama-konten@example.com'])->get()->every->isAdmin())->toBeTrue();
+});
+
+it('tidak lagi punya menu newsletter', function () {
+    expect(Schema::hasTable('newsletter_subscribers'))->toBeFalse();
+    $this->actingAs(admin())->get('/admin/newsletter-subscribers')->assertNotFound();
+    expect($this->post('/newsletter', ['email' => 'pembaca@example.com'])->status())->toBeIn([404, 405]);
+});
+
+it('mengizinkan admin mengelola lead tapi tidak membuatnya dari admin', function () {
     $lead = Lead::first();
 
-    expect(adminAs(UserRole::Marketing)->can('delete', $lead))->toBeFalse()
-        ->and(adminAs(UserRole::Marketing)->can('update', $lead))->toBeTrue()
-        ->and(adminAs(UserRole::SuperAdmin)->can('delete', $lead))->toBeTrue()
-        ->and(adminAs(UserRole::SuperAdmin)->can('create', Lead::class))->toBeFalse();
+    expect(admin()->can('update', $lead))->toBeTrue()
+        ->and(admin()->can('delete', $lead))->toBeTrue()
+        ->and(admin()->can('create', Lead::class))->toBeFalse();
 });

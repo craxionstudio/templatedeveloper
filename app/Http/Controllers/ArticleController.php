@@ -55,7 +55,7 @@ class ArticleController extends Controller
      */
     public function preview(Article $article, ArticleDetailPageSettings $settings, GlobalSettings $global): Response
     {
-        abort_unless(auth()->user()?->canManageContent(), 403);
+        abort_unless(auth()->user()?->isAdmin(), 403);
 
         $article->load(['category', 'author.media', 'tags', 'seo', 'media']);
 
@@ -126,7 +126,6 @@ class ArticleController extends Controller
     {
         $header = $settings->section('header');
         $list = $settings->section('list');
-        $newsletter = $settings->section('newsletter');
         $search = $list['show_search'] ? trim((string) $request->query('q')) : '';
 
         $published = Article::query()->published()->with(ArticleCard::with());
@@ -196,12 +195,6 @@ class ArticleController extends Controller
                 'data' => ArticleCard::collection($paginator->items()),
                 'pagination' => self::pagination($paginator),
             ],
-            'newsletter' => $newsletter['enabled'] ? [
-                'title' => $newsletter['title'],
-                'description' => $newsletter['description'],
-                'placeholder' => $newsletter['email_placeholder'],
-                'buttonLabel' => $newsletter['button_label'],
-            ] : null,
         ]);
     }
 

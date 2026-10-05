@@ -108,6 +108,24 @@ jobs:
             php artisan inertia:stop-ssr || true
             php artisan queue:restart || true
 
+            echo "=== 9b. Cek queue worker (konversi foto WebP) & scheduler ==="
+            # Hanya laporan, tidak menggagalkan deploy. Baris ::notice/::warning muncul di ringkasan GitHub Actions.
+            CRON_LINE="* * * * * cd $(pwd) && php artisan schedule:run >> /dev/null 2>&1"
+            if (crontab -l 2>/dev/null; cat /etc/crontab /etc/cron.d/* 2>/dev/null) | grep -v '^\s*#' | grep -q "schedule:run"; then
+              CRON="terpasang"
+            else
+              CRON="BELUM terpasang"
+            fi
+            WORKERS=$(pgrep -fc "[a]rtisan queue:work" 2>/dev/null || true)
+            SUPERVISOR=$( (command -v supervisorctl >/dev/null 2>&1 && (supervisorctl status 2>/dev/null || sudo -n supervisorctl status 2>/dev/null) | grep -ci "queue") || true)
+            QUEUE_INFO=$(php artisan tinker --execute 'echo DB::table("jobs")->count()." job antre (tertua: ".(DB::table("jobs")->min("created_at") ? date("Y-m-d H:i", (int) DB::table("jobs")->min("created_at")) : "-")."), ".DB::table("failed_jobs")->count()." job gagal";' 2>/dev/null || echo "tidak terbaca")
+            echo "Cron schedule:run: $CRON (user $(whoami)); proses queue:work aktif: ${WORKERS:-0}; program queue di Supervisor: ${SUPERVISOR:-0}; $QUEUE_INFO"
+            if [ "$CRON" = "terpasang" ]; then
+              echo "::notice title=Queue & scheduler::Cron schedule:run terpasang (user $(whoami)). Worker queue: ${WORKERS:-0} proses, Supervisor: ${SUPERVISOR:-0}. $QUEUE_INFO"
+            else
+              echo "::warning title=Queue & scheduler::Cron schedule:run BELUM terpasang untuk user $(whoami): foto baru tidak dibuatkan WebP & backup harian tidak jalan. Pasang lewat 'crontab -e': $CRON_LINE  | Worker queue: ${WORKERS:-0} proses, Supervisor: ${SUPERVISOR:-0}. $QUEUE_INFO"
+            fi
+
             echo "=== 10. Menonaktifkan Maintenance Mode ==="
             php artisan up
 

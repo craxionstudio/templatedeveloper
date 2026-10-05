@@ -19,7 +19,6 @@ use App\Settings\ListingPageSettings;
 use App\Support\DummyData;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -139,31 +138,7 @@ it('mengekspor lead ke CSV sesuai filter', function () {
         ->assertFileDownloaded();
 });
 
-it('menyembunyikan dan menolak perubahan tab Tracking untuk Admin Konten', function () {
-    $this->actingAs(User::where('email', 'konten@example.com')->first());
-
-    $settings = app(GlobalSettings::class);
-    $settings->tracking = [...$settings->tracking, 'gtm_id' => 'GTM-ASLI'];
-    $settings->save();
-
-    $page = Livewire::test(ManageGlobalSettings::class)
-        ->assertDontSee('Tracking & verifikasi')
-        ->assertDontSee('GTM-ASLI');
-
-    // Tidak ada satu pun nilai tracking yang terkirim ke browser (struktur kosong dari field tersembunyi boleh).
-    expect(collect(Arr::dot((array) $page->get('data.tracking')))->filter(fn ($v) => $v !== false && filled($v))->all())->toBeEmpty();
-
-    $page
-        // Request dimanipulasi: tetap tidak boleh mengubah tracking.
-        ->set('data.tracking', ['gtm_id' => 'GTM-PALSU'])
-        ->fillForm(['identity.brand_name' => 'BSD City'])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
-    expect(app(GlobalSettings::class)->tracking['gtm_id'])->toBe('GTM-ASLI');
-});
-
-it('mengizinkan Super Admin mengubah tab Tracking', function () {
+it('mengizinkan Admin mengubah tab Tracking', function () {
     Livewire::test(ManageGlobalSettings::class)
         ->assertSee('Tracking & verifikasi')
         ->fillForm(['tracking.gtm_id' => 'GTM-BARU'])

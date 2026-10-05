@@ -28,14 +28,6 @@ return [
         'empty_button_url' => '/properti',
     ],
 
-    'newsletter' => [
-        'enabled' => true,
-        'title' => 'Dapatkan info promo & progres kawasan lebih dulu',
-        'description' => 'Satu email per bulan. Bisa berhenti kapan saja.',
-        'email_placeholder' => 'Email',
-        'button_label' => 'Langganan',
-    ],
-
     'seo' => [
         ...$shared['seo'],
         'meta_title' => 'Info & Tips Properti BSD City',

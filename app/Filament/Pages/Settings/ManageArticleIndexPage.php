@@ -57,15 +57,6 @@ class ManageArticleIndexPage extends PageSettingsPage
                     ]),
                     Fields::emptyState('list', 'Tampil kalau belum ada artikel yang dipublikasikan sama sekali. Filter dan pencarian disembunyikan.'),
                 ]),
-                Tab::make('Newsletter')->schema([
-                    Fields::enabled('newsletter'),
-                    Fields::text('newsletter.title', 'Judul'),
-                    Fields::textarea('newsletter.description', 'Deskripsi', 2),
-                    Grid::make(2)->schema([
-                        Fields::text('newsletter.email_placeholder', 'Placeholder email'),
-                        Fields::text('newsletter.button_label', 'Label tombol'),
-                    ]),
-                ]),
                 Tab::make('SEO')->schema(Fields::settingsSeo('seo', '/artikel')),
             ]),
         ]);

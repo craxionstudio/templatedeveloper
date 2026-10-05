@@ -78,14 +78,13 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-Seeder membuat 3 akun admin (lokal: password semua **password**; di production password diambil dari
-`SEED_ADMIN_PASSWORD` atau dibuat acak dan dicetak sekali di terminal). Ganti email & password setelah login pertama:
+Seeder membuat 1 akun admin (lokal: password **password**; di production password diambil dari
+`SEED_ADMIN_PASSWORD` atau dibuat acak dan dicetak sekali di terminal). Ganti email & password setelah login pertama.
+Hanya ada satu role, **Admin**, dengan akses ke semua menu (akun tambahan dibuat di Sistem → User):
 
-| Email                 | Role         | Akses                                                                            |
-| --------------------- | ------------ | -------------------------------------------------------------------------------- |
-| admin@example.com     | Super Admin  | Semua menu, termasuk User & Role                                                 |
-| konten@example.com    | Admin Konten | Properti, Konten, Artikel, Pengaturan Halaman, Pengaturan Global, Menu, Redirect |
-| marketing@example.com | Marketing    | Lead (baca, ubah status, ekspor; tidak bisa hapus) & Newsletter                  |
+| Email             | Role  | Akses      |
+| ----------------- | ----- | ---------- |
+| admin@example.com | Admin | Semua menu |
 
 Data dummy (ikuti desain, teks dalam `[...]` wajib diganti):
 
@@ -131,7 +130,7 @@ Buka:
 Saat `npm run dev` jalan, **SSR sudah aktif otomatis**: plugin `@inertiajs/vite` menyediakan
 endpoint SSR di dev server Vite, jadi tidak perlu proses SSR terpisah selama development.
 
-> **Queue — penting.** Email notifikasi lead, Meta Conversions API, webhook, dan pembuatan varian gambar
+> **Queue — penting.** Email notifikasi lead, Meta Conversions API, dan pembuatan varian gambar
 > (AVIF/WebP) berjalan lewat queue. `.env.example` memakai `QUEUE_CONNECTION=database`, jadi:
 >
 > - **Tes lokal tanpa worker:** set `QUEUE_CONNECTION=sync` di `.env` — semua job langsung dijalankan
@@ -209,9 +208,9 @@ Login ke `/admin`, lalu isi lewat menu:
   (toggle "Tampilkan section"), CTA, dan tab SEO dengan preview Google. Tombol "Lihat halaman"
   di kanan atas.
 - **Marketing** — Lead (ubah status & penanggung jawab, filter tanggal/status/cluster/UTM,
-  ekspor CSV/XLSX sesuai filter), Newsletter.
+  ekspor CSV/XLSX sesuai filter).
 - **Sistem** — Pengaturan Global (identitas, kontak & nomor WA, header, footer, CTA global,
-  mobile, tracking, label umum, SEO default), Menu Navigasi, Redirect, User & Role.
+  mobile, tracking, label umum, SEO default), Menu Navigasi, Redirect, User.
 
 Aturan admin yang berlaku di semua resource:
 
@@ -357,15 +356,15 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 
 - **Form lead** (Detail Rumah sidebar/inline, modal "Jadwalkan Kunjungan/Survey", halaman Kontak) → `POST /lead`
   → redirect `/terima-kasih`. Nomor WA dinormalisasi ke `62…` (`App\Support\Phone`), persetujuan
-  Kebijakan Privasi wajib. Newsletter → `POST /newsletter` (email saja, tanpa duplikat).
+  Kebijakan Privasi wajib.
 - **Anti-spam:** honeypot (field `website`, bot dijawab "sukses" tanpa disimpan) + rate limit per IP
-  (lead 5/menit & 100/hari per IP + maksimal 3 lead per nomor WA per 24 jam; newsletter 5/menit & 20/hari) + Cloudflare Turnstile. Turnstile aktif hanya
+  (lead 5/menit & 100/hari per IP + maksimal 3 lead per nomor WA per 24 jam) + Cloudflare Turnstile. Turnstile aktif hanya
   kalau site key **dan** secret key diisi; kosong (lokal/dev) = dilewati.
 - **Atribusi:** UTM, `fbclid`, `gclid`, landing page pertama, dan referrer ditangkap di kunjungan pertama
   ke cookie `arunika_attribution` (30 hari) lalu disalin ke lead. Landing page & referrer = kunjungan
   pertama; `utm_*` & click ID = kampanye terakhir; `first_utm_source/medium/campaign` = kampanye pertama
   (tidak pernah ditimpa). Keduanya tampil di detail lead dan ekspor CSV/XLSX.
-- **Notifikasi:** email ke satu/lebih alamat + webhook opsional (POST JSON), keduanya lewat queue.
+- **Notifikasi:** email ke satu/lebih alamat, lewat queue.
   Pengaturan Global → Notifikasi lead.
 - **Analytics (GTM-first):** semua event di-push ke `dataLayer`; tag GA4 & Meta Pixel diatur di GTM.
   Panduan event, parameter, dan contoh tag/trigger GTM: **`docs/TRACKING.md`**. GA4 & Pixel langsung
@@ -457,9 +456,13 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
 --disable-notifications`: `import:bsd-data … --fresh --force --no-interaction` hanya di import pertama, setelah itu
    tanpa `--fresh`; `import:bsd-update … --force --no-interaction`. Keduanya tidak pernah bertanya dengan `--force`.
 6. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`
-7. Jalankan proses SSR dan queue worker tetap hidup pakai **Supervisor**. Keduanya proses
-   terpisah dari PHP-FPM, jangan lupa masuk checklist deployment. Contoh
-   `/etc/supervisor/conf.d/arunika.conf`:
+7. **Queue tanpa Supervisor (cara bawaan):** scheduler menyalakan `queue:work --stop-when-empty` tiap menit
+   (`routes/console.php`), jadi cukup cron `schedule:run` di langkah 9: konversi foto WebP/AVIF dan email lead
+   diproses paling lambat ±1 menit setelah upload/submit. Script deploy mengecek cron ini dan menampilkan
+   peringatan di ringkasan GitHub Actions kalau belum terpasang.
+
+    Opsional, SSR dan/atau queue worker yang hidup terus pakai **Supervisor** (worker Supervisor aman berdampingan
+    dengan worker dari scheduler). Contoh `/etc/supervisor/conf.d/arunika.conf`:
 
     ```ini
     [program:arunika-ssr]
@@ -507,6 +510,7 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     Di belakang Cloudflare: aktifkan Brotli, HTTP/3, "Always Use HTTPS"; jangan cache HTML di edge tanpa
     aturan bypass cookie (halaman sudah di-cache di aplikasi).
 
-9. Scheduler: cron `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
-   (antara lain `sitemap:refresh` harian pukul 03.00)
+9. Scheduler (**wajib**, 1 baris crontab untuk user yang menjalankan aplikasi, `crontab -e`):
+   `* * * * * cd /var/www/arunika && php artisan schedule:run >> /dev/null 2>&1`
+   (queue worker tiap menit, `sitemap:refresh` 03.00, backup 01.30, pembersihan & monitor backup)
 10. Setup SSL (Let's Encrypt) + HTTPS redirect.

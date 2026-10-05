@@ -13,7 +13,7 @@ class LeadStatsWidget extends StatsOverviewWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->canManageLeads() ?? false;
+        return auth()->user()?->isAdmin() ?? false;
     }
 
     protected function getStats(): array

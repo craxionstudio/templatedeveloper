@@ -6,29 +6,24 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * Peran user admin.
+ * Peran user admin. Sejak Okt 2026 hanya satu: Admin (semua menu). Kolom `role` dipertahankan
+ * supaya peran baru bisa ditambah lagi tanpa migrasi struktur.
  */
 enum UserRole: string implements HasColor, HasLabel
 {
-    case SuperAdmin = 'super_admin';
-    case AdminKonten = 'admin_konten';
-    case Marketing = 'marketing';
+    case Admin = 'admin';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::SuperAdmin => 'Super Admin',
-            self::AdminKonten => 'Admin Konten',
-            self::Marketing => 'Marketing',
+            self::Admin => 'Admin',
         };
     }
 
     public function getColor(): string
     {
         return match ($this) {
-            self::SuperAdmin => 'danger',
-            self::AdminKonten => 'primary',
-            self::Marketing => 'success',
+            self::Admin => 'primary',
         };
     }
 

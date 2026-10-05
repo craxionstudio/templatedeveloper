@@ -22,7 +22,7 @@ abstract class PageSettingsPage extends SettingsPage
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->canManageContent() ?? false;
+        return auth()->user()?->isAdmin() ?? false;
     }
 
     /**

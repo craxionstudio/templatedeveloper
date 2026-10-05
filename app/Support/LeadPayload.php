@@ -5,7 +5,7 @@ namespace App\Support;
 use App\Models\Lead;
 
 /**
- * Ringkasan lead untuk email notifikasi dan webhook.
+ * Ringkasan lead untuk email notifikasi.
  */
 class LeadPayload
 {

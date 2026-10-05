@@ -204,8 +204,6 @@ class ManageGlobalSettings extends PageSettingsPage
                         ->placeholder('marketing@contoh.com')
                         ->helperText('Bisa lebih dari satu. Tekan Enter setelah tiap email. Kosong = tidak ada email notifikasi.')
                         ->nestedRecursiveRules(['email:rfc']),
-                    TextInput::make('notifications.webhook_url')->label('Webhook URL (opsional)')->url()->maxLength(500)
-                        ->helperText('POST JSON setiap ada lead baru (WA gateway, Google Sheet, dsb). Kosong = tidak dikirim.'),
                 ]),
                 Tab::make('Label umum')->schema([
                     Grid::make(3)->schema(collect(GlobalSettings::defaults()['labels'])
@@ -236,11 +234,11 @@ class ManageGlobalSettings extends PageSettingsPage
     }
 
     /**
-     * Tab "Tracking & verifikasi" hanya untuk Super Admin (keputusan pemilik 24 Sep 2026).
+     * Tab "Tracking & verifikasi" & "Notifikasi lead" hanya untuk Admin.
      */
     public static function canManageTracking(): bool
     {
-        return auth()->user()?->isSuperAdmin() ?? false;
+        return auth()->user()?->isAdmin() ?? false;
     }
 
     /**
@@ -251,7 +249,7 @@ class ManageGlobalSettings extends PageSettingsPage
     public const DOUBLE_COUNT_WARNING = 'Kosongkan jika Pixel/GA4 sudah dipasang lewat GTM, supaya event tidak terhitung dua kali.';
 
     /**
-     * Tab yang hanya untuk Super Admin (tracking & tujuan notifikasi lead).
+     * Tab yang hanya untuk Admin (tracking & tujuan notifikasi lead).
      */
     public const RESTRICTED = ['tracking', 'notifications'];
 

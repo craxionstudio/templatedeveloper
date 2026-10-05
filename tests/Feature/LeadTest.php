@@ -2,11 +2,9 @@
 
 use App\Filament\Pages\Settings\ManageGlobalSettings;
 use App\Filament\Resources\Leads\Tables\LeadsTable;
-use App\Jobs\SendLeadWebhook;
 use App\Jobs\SendMetaLeadEvent;
 use App\Models\Cluster;
 use App\Models\Lead;
-use App\Models\NewsletterSubscriber;
 use App\Models\User;
 use App\Notifications\NewLeadNotification;
 use App\Services\MetaConversions;
@@ -187,31 +185,17 @@ it('melewati Turnstile kalau key kosong, dan memverifikasinya kalau diisi', func
     $this->get('/kontak')->assertInertia(fn (Assert $page) => $page->where('site.tracking.turnstileSiteKey', '0x4AAA'));
 });
 
-it('mengirim notifikasi email ke beberapa alamat dan webhook lewat queue', function () {
+it('mengirim notifikasi email ke beberapa alamat lewat queue', function () {
     Notification::fake();
-    Queue::fake([SendLeadWebhook::class]);
-    configureTracking(notifications: ['emails' => ['marketing@arunika.test', 'sales@arunika.test'], 'webhook_url' => 'https://hooks.example.com/lead']);
+    configureTracking(notifications: ['emails' => ['marketing@arunika.test', 'sales@arunika.test']]);
 
     $this->post('/lead', leadInput());
 
     Notification::assertSentOnDemand(NewLeadNotification::class, fn ($notification, $channels, AnonymousNotifiable $notifiable) => $notifiable->routes['mail'] === ['marketing@arunika.test', 'sales@arunika.test']);
-    Queue::assertPushed(SendLeadWebhook::class, fn (SendLeadWebhook $job) => $job->url === 'https://hooks.example.com/lead');
     expect(new NewLeadNotification(Lead::query()->sole()))->toBeInstanceOf(ShouldQueue::class);
 });
 
-it('mengirim payload webhook berisi data lead', function () {
-    Http::fake(['hooks.example.com/*' => Http::response(['ok' => true])]);
-    configureTracking(notifications: ['webhook_url' => 'https://hooks.example.com/lead']);
-
-    $this->post('/lead', leadInput());
-
-    Http::assertSent(fn (HttpRequest $request) => $request->url() === 'https://hooks.example.com/lead'
-        && $request['event'] === 'lead.created'
-        && $request['lead']['whatsapp'] === '6281234567890'
-        && $request['lead']['cluster'] === 'Vega Garden');
-});
-
-it('tidak mengirim email atau webhook kalau belum diatur', function () {
+it('tidak mengirim email kalau belum diatur', function () {
     Notification::fake();
     Queue::fake();
 
@@ -283,18 +267,6 @@ it('menampilkan tombol lanjut WhatsApp dengan nama cluster di halaman terima kas
         ->where('whatsapp.url', 'https://wa.me/6281111111111?text='.rawurlencode('Halo, saya Budi. Saya baru saja mengisi form untuk Vega Garden.')));
 });
 
-it('menyimpan newsletter tanpa duplikat dan menolak honeypot', function () {
-    $this->from('/artikel')->post('/newsletter', ['email' => 'Pembaca@Example.com', 'source_page' => '/artikel'])
-        ->assertRedirect('/artikel')
-        ->assertSessionHas('newsletter', 'subscribed');
-    $this->from('/artikel')->post('/newsletter', ['email' => 'pembaca@example.com']);
-    $this->from('/artikel')->post('/newsletter', ['email' => 'bot@example.com', 'website' => 'x']);
-    $this->from('/artikel')->post('/newsletter', ['email' => 'salah'])->assertSessionHasErrors('email');
-
-    expect(NewsletterSubscriber::query()->pluck('email')->all())->toBe(['pembaca@example.com'])
-        ->and(NewsletterSubscriber::query()->value('source'))->toBe('/artikel');
-});
-
 it('menyimpan access token CAPI terenkripsi dan tidak menampilkannya ulang', function () {
     $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
 
@@ -324,20 +296,6 @@ it('menyimpan access token CAPI terenkripsi dan tidak menampilkannya ulang', fun
 
     // Rahasia tidak pernah ada di props halaman publik.
     expect($this->get('/')->getContent())->not->toContain('SECRET-TS');
-});
-
-it('hanya Super Admin yang bisa mengubah tujuan notifikasi lead', function () {
-    configureTracking(notifications: ['webhook_url' => 'https://hooks.example.com/asli']);
-    $this->actingAs(User::query()->where('email', 'konten@example.com')->firstOrFail());
-
-    Livewire::test(ManageGlobalSettings::class)
-        ->assertDontSee('Notifikasi lead')
-        ->assertDontSee('hooks.example.com')
-        ->set('data.notifications', ['webhook_url' => 'https://penyerang.example/curi'])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
-    expect(app(GlobalSettings::class)->notifications['webhook_url'])->toBe('https://hooks.example.com/asli');
 });
 
 it('memasang GTM dan Pixel dari settings di head', function () {

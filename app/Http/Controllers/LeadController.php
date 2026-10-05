@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLeadRequest;
-use App\Jobs\SendLeadWebhook;
 use App\Jobs\SendMetaLeadEvent;
 use App\Models\Lead;
 use App\Notifications\NewLeadNotification;
@@ -65,10 +64,6 @@ class LeadController extends Controller
 
         if ($emails !== []) {
             Notification::route('mail', $emails)->notify(new NewLeadNotification($lead));
-        }
-
-        if (filter_var($notifications['webhook_url'] ?? '', FILTER_VALIDATE_URL)) {
-            SendLeadWebhook::dispatch($lead, $notifications['webhook_url']);
         }
 
         if (MetaConversions::enabled()) {

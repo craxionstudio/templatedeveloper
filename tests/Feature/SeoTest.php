@@ -302,10 +302,6 @@ it('menampilkan pratinjau draft artikel hanya lewat URL bertanda tangan untuk ad
         ->where('preview', true)
         ->where('meta.noindex', true));
     $this->get(route('artikel.preview', ['article' => $draft]))->assertForbidden();
-
-    // Admin Konten boleh, Marketing tidak.
-    $this->actingAs(User::query()->where('email', 'marketing@example.com')->firstOrFail());
-    $this->get($url)->assertForbidden();
 });
 
 it('menyusun title dari pola settings dan override meta title admin', function () {
@@ -328,7 +324,7 @@ it('menampilkan pratinjau cluster & kawasan yang belum dipublikasikan untuk admi
     $this->get($publicPath)->assertNotFound();
     $this->get($url)->assertForbidden();
 
-    $this->actingAs(User::query()->where('email', 'konten@example.com')->firstOrFail());
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
     $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component($component)
         ->where('preview', true)

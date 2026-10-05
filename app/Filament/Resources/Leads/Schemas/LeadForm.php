@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Leads\Schemas;
 
 use App\Enums\LeadStatus;
-use App\Enums\UserRole;
 use App\Models\Lead;
 use Closure;
 use Filament\Forms\Components\Select;
@@ -12,7 +11,6 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Lead masuk dari form website; admin hanya membaca detail dan mengubah status follow-up.
@@ -28,7 +26,7 @@ class LeadForm
                     Select::make('status')->label('Status')->options(LeadStatus::class)->required(),
                     Select::make('assigned_to')
                         ->label('Ditangani oleh')
-                        ->relationship('assignee', 'name', fn (Builder $query) => $query->whereIn('role', [UserRole::Marketing->value, UserRole::SuperAdmin->value]))
+                        ->relationship('assignee', 'name')
                         ->preload(),
                     Textarea::make('notes')->label('Catatan')->rows(3)->columnSpanFull(),
                 ]),
