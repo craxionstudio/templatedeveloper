@@ -22,13 +22,17 @@ class FacilityForm
             ->columns(1)
             ->components([
                 Section::make('Fasilitas')->schema([
-                    Grid::make(2)->schema(Fields::titleAndSlug('name', 'Nama fasilitas')),
+                    TextInput::make('name')->label('Nama fasilitas')->required()->maxLength(255)->placeholder('AEON Mall BSD City'),
                     Grid::make(3)->schema([
                         Select::make('facility_category_id')
                             ->label('Kategori')
                             ->relationship('category', 'name', fn (Builder $query) => $query->orderBy('sort_order'))
                             ->preload()
-                            ->required(),
+                            ->required()
+                            ->createOptionForm([
+                                TextInput::make('name')->label('Nama kategori')->required()->maxLength(255)->placeholder('Pusat belanja'),
+                                Fields::icon(),
+                            ]),
                         Select::make('kawasan_id')
                             ->label('Kawasan')
                             ->relationship('kawasan', 'name')
@@ -37,14 +41,14 @@ class FacilityForm
                             ->dummyHint(fn (?Facility $record, $state): bool => DummyData::isFacilityKawasan($record, $state)),
                         Fields::icon(),
                     ]),
-                    Textarea::make('description')->label('Deskripsi')->rows(3),
+                    Textarea::make('description')->label('Deskripsi')->rows(3)->placeholder('Mal dengan lebih dari 300 tenant, 5 menit dari cluster.'),
+                    Fields::imageOnly('photo', 'Foto'),
                 ]),
-                Section::make('Foto')->schema(Fields::image('photo', 'photo_alt', 'Foto')),
-                Section::make('Publikasi')->columns(3)->schema([
+                Section::make('Publikasi')->columns(2)->schema([
                     Toggle::make('is_published')->label('Dipublikasikan')->default(true),
                     Toggle::make('is_featured')->label('Unggulan (Beranda)'),
-                    TextInput::make('sort_order')->label('Urutan')->numeric()->default(0),
                 ]),
+                Fields::advanced([Fields::slug()->placeholder('aeon-mall-bsd-city')]),
             ]);
     }
 }

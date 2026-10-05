@@ -44,30 +44,24 @@ class HouseTypesRelationManager extends RelationManager
         return $schema
             ->columns(1)
             ->components([
-                Grid::make(3)->schema([
-                    ...Fields::titleAndSlug(
-                        'name',
-                        'Nama tipe',
-                        modifyUniqueRule: fn (Unique $rule) => $rule->where('cluster_id', $this->getOwnerRecord()->getKey()),
-                        // Boleh kosong: harga "mulai" tingkat cluster yang tipenya belum diketahui.
-                        required: false,
-                    ),
-                    TextInput::make('lot_size')->label('Kavling')->placeholder('7×15')->maxLength(20),
+                Grid::make(2)->schema([
+                    // Boleh kosong: harga "mulai" tingkat cluster yang tipenya belum diketahui.
+                    TextInput::make('name')->label('Nama tipe')->maxLength(255)->placeholder('Tipe Monard 8'),
+                    TextInput::make('lot_size')->label('Kavling')->placeholder('8×15')->maxLength(20),
                 ]),
                 Section::make('Ukuran & ruang')->columns(4)->schema([
-                    TextInput::make('land_area')->label('LT (m²)')->numeric()->minValue(0),
-                    TextInput::make('building_area')->label('LB (m²)')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'building_area', $state)),
+                    TextInput::make('land_area')->label('LT (m²)')->numeric()->minValue(0)->placeholder('120'),
+                    TextInput::make('building_area')->label('LB (m²)')->numeric()->minValue(0)->placeholder('150')->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'building_area', $state)),
                     TextInput::make('bedrooms')->label('Kamar tidur')->numeric()->minValue(0)->default(0)->required(),
                     TextInput::make('extra_bedrooms')->label('KT tambahan (+1)')->numeric()->minValue(0)->default(0),
                     TextInput::make('bathrooms')->label('Kamar mandi')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'bathrooms', $state)),
                     TextInput::make('floors')->label('Lantai')->numeric()->minValue(1),
                     TextInput::make('carports')->label('Carport (mobil)')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'carports', $state)),
-                    TextInput::make('units_available')->label('Sisa unit')->helperText('Internal, tidak tampil di website.')->numeric()->minValue(0)->dummyHint(fn (?HouseType $record, $state): bool => DummyData::isHouseTypeValue($record, 'units_available', $state)),
                 ]),
                 Section::make('Harga')->columns(2)->schema([
-                    TextInput::make('price_from')->label('Harga mulai')->numeric()->minValue(0)->prefix('Rp')
+                    TextInput::make('price_from')->label('Harga mulai')->numeric()->minValue(0)->prefix('Rp')->placeholder('3500000000')
                         ->helperText('Kosong = tampil "Hubungi kami untuk harga".'),
-                    TextInput::make('installment_from')->label('Cicilan mulai / bulan')->numeric()->minValue(0)->prefix('Rp'),
+                    TextInput::make('installment_from')->label('Cicilan mulai / bulan')->numeric()->minValue(0)->prefix('Rp')->placeholder('18000000'),
                 ]),
                 Section::make('Catatan internal')
                     ->description('Hanya terlihat di admin, tidak tampil di website.')
@@ -75,8 +69,11 @@ class HouseTypesRelationManager extends RelationManager
                         Textarea::make('catatan_internal')->hiddenLabel()->rows(3),
                     ])
                     ->collapsible(),
-                Section::make('Denah')->schema(Fields::image('floorplan', 'floorplan_alt', 'Denah')),
+                Fields::imageOnly('floorplan', 'Denah'),
                 Toggle::make('is_published')->label('Dipublikasikan')->default(true),
+                Fields::advanced([
+                    Fields::slug(modifyUniqueRule: fn (Unique $rule) => $rule->where('cluster_id', $this->getOwnerRecord()->getKey()))->placeholder('monard-8'),
+                ]),
             ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BenefitCategory;
+use App\Models\Concerns\FillsSlugAutomatically;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Benefit extends Model
 {
+    use FillsSlugAutomatically;
+
     protected $fillable = ['name', 'slug', 'category', 'icon', 'sort_order', 'is_active'];
 
     protected function casts(): array

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasResponsiveImages;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Author extends Model implements HasMedia
 {
-    use HasResponsiveImages, InteractsWithMedia {
+    use FillsSlugAutomatically, HasResponsiveImages, InteractsWithMedia {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
     }
 

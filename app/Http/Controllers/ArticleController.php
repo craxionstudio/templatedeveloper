@@ -117,7 +117,7 @@ class ArticleController extends Controller
                 'readingLabel' => $global->section('labels')['reading_time'],
                 'shareLabel' => $global->section('labels')['share'],
             ],
-            'related' => $related['enabled'] ? $this->related($article, $related) : null,
+            'related' => $this->related($article, $related),
             'cta' => Cta::resolve($settings->section('cta')),
         ]);
     }

@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Cluster;
+use App\Models\Facility;
 use App\Settings\HomePageSettings;
+use App\Support\Content;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('merender beranda dengan data layout global', function () {
@@ -16,7 +18,8 @@ it('merender beranda dengan data layout global', function () {
             ->where('site.navigation.0', ['label' => 'Beranda', 'url' => '/', 'new_tab' => false])
             ->has('site.footer.columns', 2)
             ->where('site.footer.columns.0.title', 'Properti')
-            ->has('site.footer.social', 4)
+            // Link media sosial contoh ("#") tidak ditampilkan.
+            ->has('site.footer.social', 0)
             ->has('site.labels.open_menu')
         );
 });
@@ -80,10 +83,33 @@ it('memakai isi awal kalau teks settings dikosongkan', function () {
     $this->get('/')->assertInertia(fn (Assert $page) => $page->where('hero.title', 'Pilih rumah di kota seluas 6.000 hektare.'));
 });
 
-it('tidak merender section yang dimatikan di settings', function () {
+it('menyembunyikan section Beranda otomatis kalau datanya kosong, bukan lewat toggle', function () {
+    $this->seed();
+    // Toggle lama di database tidak berpengaruh lagi.
     $settings = app(HomePageSettings::class);
     $settings->hero = [...$settings->hero, 'enabled' => false];
+    $settings->facilities = [...$settings->facilities, 'enabled' => false];
     $settings->save();
 
-    $this->get('/')->assertInertia(fn (Assert $page) => $page->where('hero', null));
+    $this->get('/')->assertInertia(fn (Assert $page) => $page
+        ->has('hero.title')
+        ->has('facilities.items')
+        ->has('listing.items'));
+
+    Facility::query()->update(['is_published' => false]);
+    Cluster::query()->update(['is_published' => false]);
+
+    $this->get('/')->assertInertia(fn (Assert $page) => $page
+        ->where('facilities', null)
+        ->where('listing', null));
+});
+
+it('menganggap teks contoh dalam kurung siku sebagai kosong', function () {
+    $this->seed();
+    expect(Content::blank('[VISI PERUSAHAAN]'))->toBeTrue()
+        ->and(Content::blank([['year' => '[TAHUN]', 'title' => '[TONGGAK]']]))->toBeTrue()
+        ->and(Content::filled('Visi kami [2026]'))->toBeTrue();
+
+    // Visi & timeline masih teks contoh → section tidak tampil.
+    $this->get('/tentang-kami')->assertInertia(fn (Assert $page) => $page->where('vision', null)->where('timeline', null));
 });

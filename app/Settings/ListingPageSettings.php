@@ -27,4 +27,22 @@ class ListingPageSettings extends PageSettings
     {
         return 'page_listing';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [
+            'header.title',
+            'header.description',
+            'header.image',
+            'seo_cluster.meta_title',
+            'seo_cluster.meta_description',
+            'seo_kawasan.meta_title',
+            'seo_kawasan.meta_description',
+        ];
+    }
 }

@@ -49,4 +49,18 @@ class SeoTab
                     ]),
             ]);
     }
+
+    /**
+     * Meta title & description (relasi seo_meta) untuk section Lanjutan. Gambar share, canonical,
+     * dan noindex otomatis (foto utama, URL halaman, index).
+     */
+    public static function fields(): Group
+    {
+        return Group::make()
+            ->relationship('seo')
+            ->schema([
+                Fields::metaTitle()->placeholder('Kosong = otomatis dari nama'),
+                Fields::metaDescription()->placeholder('Kosong = otomatis dari ringkasan'),
+            ]);
+    }
 }

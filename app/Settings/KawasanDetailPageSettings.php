@@ -27,4 +27,14 @@ class KawasanDetailPageSettings extends PageSettings
     {
         return 'page_kawasan_detail';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [];
+    }
 }

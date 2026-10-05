@@ -5,15 +5,14 @@ namespace App\Filament\Pages\Settings;
 use App\Filament\Forms\Fields;
 use App\Settings\HomePageSettings;
 use BackedEnum;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
+/**
+ * Beranda: hanya teks yang sering diubah. Section tampil otomatis kalau datanya ada
+ * (cluster, fasilitas, pengembangan, artikel yang dipublikasikan); sisanya teks tetap di kode.
+ */
 class ManageHomePage extends PageSettingsPage
 {
     protected static string $settings = HomePageSettings::class;
@@ -31,69 +30,24 @@ class ManageHomePage extends PageSettingsPage
     public function form(Schema $schema): Schema
     {
         return $schema->columns(1)->components([
-            Tabs::make('Beranda')->persistTabInQueryString()->tabs([
-                Tab::make('Hero')->schema([
-                    Fields::enabled('hero'),
-                    Fields::text('hero.eyebrow', 'Eyebrow'),
-                    Fields::text('hero.title', 'Headline'),
-                    Fields::textarea('hero.description', 'Sub-headline'),
-                    ...Fields::settingsImage('hero.image', 'hero.image_alt', 'Gambar / poster desktop'),
-                    Fields::settingsImage('hero.image_mobile', 'hero.image_alt', 'Gambar mobile (opsional)')[0],
-                    TextInput::make('hero.video_url')->label('URL video (opsional)')->url()
-                        ->helperText('Video dimuat setelah halaman siap; poster tampil lebih dulu.'),
-                    Fields::button('hero.primary', 'tombol utama'),
-                    Fields::button('hero.secondary', 'tombol kedua', 'Kosong = link WhatsApp.'),
-                ]),
-                Tab::make('Tentang Developer')->schema([
-                    Fields::enabled('about'),
-                    Fields::text('about.eyebrow', 'Eyebrow'),
-                    Toggle::make('about.use_profile')->label('Ambil judul, isi, statistik, dan foto dari Profil Developer')->live(),
-                    Fields::text('about.title', 'Judul (override)')->hidden(fn (Get $get): bool => (bool) $get('about.use_profile')),
-                    Fields::textarea('about.description', 'Isi (override)', 4)->hidden(fn (Get $get): bool => (bool) $get('about.use_profile')),
-                    Fields::button('about.link', 'link "Profil lengkap"'),
-                ]),
-                Tab::make('Listing Produk')->schema([
-                    Fields::enabled('listing'),
-                    Fields::text('listing.eyebrow', 'Eyebrow'),
-                    Fields::text('listing.title', 'Judul'),
-                    ...Fields::dataSource('listing', fn (): array => Options::clusters(), 'Otomatis (cluster unggulan)'),
-                    Fields::button('listing.button', 'tombol "Lihat Semua Listing"'),
-                ]),
-                Tab::make('Keunggulan Wilayah')->schema([
-                    Fields::enabled('region'),
-                    Fields::text('region.eyebrow', 'Eyebrow'),
-                    Fields::text('region.title', 'Judul'),
-                    Fields::textarea('region.description', 'Deskripsi'),
-                    Toggle::make('region.use_area')->label('Peta, badge jarak, dan poin keunggulan dari Profil Lokasi')
-                        ->helperText('Ubah isinya di Properti → Profil Lokasi.'),
-                ]),
-                Tab::make('Fasilitas')->schema([
-                    Fields::enabled('facilities'),
-                    Fields::text('facilities.eyebrow', 'Eyebrow'),
-                    Fields::text('facilities.title', 'Judul'),
-                    ...Fields::dataSource('facilities', fn (): array => Options::facilities(), 'Otomatis (fasilitas unggulan)'),
-                    Fields::button('facilities.link', 'link'),
-                ]),
-                Tab::make('Pengembangan Mendatang')->schema([
-                    Fields::enabled('developments'),
-                    Fields::text('developments.eyebrow', 'Eyebrow'),
-                    Fields::text('developments.title', 'Judul'),
-                    Fields::textarea('developments.description', 'Deskripsi'),
-                    Fields::textarea('developments.disclaimer', 'Catatan disclaimer', 2),
-                    ...Fields::dataSource('developments', fn (): array => Options::developments(), 'Otomatis (semua, sesuai urutan)'),
-                ]),
-                Tab::make('Artikel Highlight')->schema([
-                    Fields::enabled('articles'),
-                    Fields::text('articles.eyebrow', 'Eyebrow'),
-                    Fields::text('articles.title', 'Judul'),
-                    Select::make('articles.main_article_id')->label('Artikel utama')->options(fn (): array => Options::articles())
-                        ->placeholder('Otomatis (highlight terbaru)')->searchable(),
-                    ...Fields::dataSource('articles', fn (): array => Options::articles(), 'Otomatis (terbaru)'),
-                    Fields::button('articles.link', 'link'),
-                ]),
-                Tab::make('CTA')->schema([Fields::cta()]),
-                Tab::make('SEO')->schema(Fields::settingsSeo('seo', '/')),
+            Section::make('Hero')->schema([
+                Fields::text('hero.eyebrow', 'Subjudul kecil di atas judul')->placeholder('Serpong, Tangerang'),
+                Fields::text('hero.title', 'Judul (H1)')->placeholder('Pilih rumah di kota seluas 6.000 hektare.'),
+                Fields::textarea('hero.description', 'Teks di bawah judul', 2)->placeholder('Lebih dari 20 kawasan hunian, dari cluster baru di Vireya dan Terravia sampai NavaPark.'),
+                Fields::settingsImageOnly('hero.image', 'Foto hero'),
             ]),
+            Section::make('Judul section')
+                ->description('Section tampil otomatis kalau ada isinya (cluster, fasilitas, pengembangan, artikel yang dipublikasikan).')
+                ->schema([
+                    Fields::text('listing.title', 'Pilihan properti')->placeholder('Temukan rumah di BSD City'),
+                    Fields::text('region.title', 'Keunggulan wilayah')->placeholder('Lokasi yang terhubung ke pusat kota'),
+                    Fields::textarea('region.description', 'Teks keunggulan wilayah', 2)->placeholder('Terhubung ke tol Jakarta-Serpong, JORR, dan Commuter Line.'),
+                    Fields::text('facilities.title', 'Fasilitas')->placeholder('Semua kebutuhan harian, ada di dalam kawasan'),
+                    Fields::text('developments.title', 'Pengembangan mendatang')->placeholder('Kawasan yang terus bertumbuh'),
+                    Fields::textarea('developments.description', 'Teks pengembangan mendatang', 2)->placeholder('Rencana pengembangan BSD City untuk beberapa tahun ke depan.'),
+                    Fields::text('articles.title', 'Artikel')->placeholder('Kabar terbaru dari BSD City'),
+                ]),
+            Fields::advanced(Fields::settingsMeta()),
         ]);
     }
 }

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use App\Support\RichText;
+use App\Support\Summary;
 use Database\Factories\ArticleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +21,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Article extends Model implements HasMedia
 {
     /** @use HasFactory<ArticleFactory> */
-    use HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
+    use FillsSlugAutomatically, HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
     }
 
@@ -43,6 +45,8 @@ class Article extends Model implements HasMedia
         static::saving(function (self $article): void {
             $article->body = RichText::sanitize($article->body);
             $article->reading_minutes = RichText::readingMinutes($article->body);
+            // Ringkasan terisi otomatis dari isi artikel kalau dikosongkan.
+            $article->excerpt = filled($article->excerpt) ? $article->excerpt : Summary::from($article->body, 200);
         });
     }
 
@@ -77,5 +81,10 @@ class Article extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('cover')->singleFile();
+    }
+
+    protected function slugSourceColumn(): string
+    {
+        return 'title';
     }
 }

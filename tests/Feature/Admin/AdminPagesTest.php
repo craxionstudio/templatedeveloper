@@ -47,10 +47,8 @@ it('merender semua halaman admin untuk admin', function (string $url) {
     '/admin/tags', '/admin/tags/{tag}/edit', '/admin/authors', '/admin/authors/{author}/edit',
     '/admin/leads', '/admin/leads/{lead}/edit',
     '/admin/redirects', '/admin/redirects/create', '/admin/users', '/admin/users/create', '/admin/users/{user}/edit',
-    '/admin/pengaturan/global', '/admin/pengaturan/menu', '/admin/pengaturan/beranda', '/admin/pengaturan/properti',
-    '/admin/pengaturan/detail-kawasan', '/admin/pengaturan/detail-rumah', '/admin/pengaturan/fasilitas',
-    '/admin/pengaturan/artikel', '/admin/pengaturan/detail-artikel', '/admin/pengaturan/tentang-kami',
-    '/admin/pengaturan/kontak', '/admin/pengaturan/terima-kasih', '/admin/pengaturan/kebijakan-privasi',
+    '/admin/pengaturan/umum', '/admin/pengaturan/menu', '/admin/pengaturan/beranda', '/admin/pengaturan/properti',
+    '/admin/pengaturan/halaman-lain',
 ]);
 
 it('memindahkan semua user lama ke role Admin dengan akses ke semua menu', function () {
@@ -64,7 +62,7 @@ it('memindahkan semua user lama ke role Admin dengan akses ke semua menu', funct
         ->and(User::factory()->make()->role)->toBe(UserRole::Admin);
 
     $marketing = User::where('email', 'lama-marketing@example.com')->firstOrFail();
-    foreach (['/admin/clusters', '/admin/pengaturan/global', '/admin/leads', '/admin/users'] as $url) {
+    foreach (['/admin/clusters', '/admin/pengaturan/umum', '/admin/leads', '/admin/users'] as $url) {
         $this->actingAs($marketing)->get($url)->assertOk();
     }
 

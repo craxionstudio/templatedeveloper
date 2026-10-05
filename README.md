@@ -198,19 +198,22 @@ Login ke `/admin`, lalu isi lewat menu:
       atau sekaligus untuk banyak cluster lewat bulk action di tabel Cluster. Tanpa tanggal berakhir: benefit tampil
       selama dicentang. Tampil di Detail Rumah (section "Promo & Benefit" + tombol WA), chip di kartu (maks 3 + "+N"),
       badge "Promo" (kedua, setelah badge admin seperti "Baru"), filter `/properti?benefit=tanpa-dp` (satu benefit = halaman SEO sendiri), dan urutan "Promo".
-- **Konten** — Fasilitas + Kategori, Pengembangan Mendatang, Profil Developer. (Menu Promo lama disembunyikan sejak
+- **Konten** — Fasilitas (kategori dibuat langsung dari form), Pengembangan Mendatang, Profil Developer. (Menu Promo lama disembunyikan sejak
   Bank Benefit; datanya belum dihapus.)
-- **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight, tab SEO),
-  Kategori, Tag, Penulis.
-- **Pengaturan Halaman** — satu menu per halaman: Beranda, Properti (dipakai `/properti` dan
-  `/properti/kawasan`), Detail Kawasan, Detail Rumah, Fasilitas, Artikel, Detail Artikel,
-  Tentang Kami, Kontak, Terima Kasih, Kebijakan Privasi. Tiap halaman: satu tab per section
-  (toggle "Tampilkan section"), CTA, dan tab SEO dengan preview Google. Tombol "Lihat halaman"
-  di kanan atas.
+- **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight; tag dibuat langsung dari form),
+  Kategori, Penulis.
+- **Pengaturan** (4 menu) — **Beranda**; **Properti** (listing, Detail Kawasan, Detail Rumah); **Halaman Lain**
+  (Tentang Kami, Kontak, Artikel, Fasilitas, Kebijakan Privasi); **Pengaturan Umum** (nomor & pesan WhatsApp,
+  kontak, logo, GA4 Measurement ID, verifikasi Search Console). Hanya judul, subjudul, dan teks yang sering
+  diubah yang tampil di admin; sisanya teks tetap di kode (`database/settings/defaults/*.php`, daftar field yang
+  bisa diubah ada di `editable()` tiap kelas `App\Settings`). Tidak ada toggle "Tampilkan section": section
+  tersembunyi otomatis kalau datanya kosong (teks contoh `[...]` dianggap kosong).
+- **Form ringkas:** slug, meta title/description, gambar share, ringkasan, alt text foto, dan tahun launching
+  terisi otomatis. Field SEO/teknis ada di section **Lanjutan** (tertutup). Form Cluster hanya mewajibkan nama,
+  kawasan (atau "Cluster mandiri"), dan minimal 1 foto; ada aksi **Duplikat cluster** (tabel & halaman edit).
 - **Marketing** — Lead (ubah status & penanggung jawab, filter tanggal/status/cluster/UTM,
   ekspor CSV/XLSX sesuai filter).
-- **Sistem** — Pengaturan Global (identitas, kontak & nomor WA, header, footer, CTA global,
-  mobile, tracking, label umum, SEO default), Menu Navigasi, Redirect, User.
+- **Sistem** — Menu Navigasi, Redirect, User.
 
 Aturan admin yang berlaku di semua resource:
 

@@ -14,6 +14,7 @@ use App\Presenters\ClusterCard;
 use App\Presenters\FacilityCard;
 use App\Presenters\Image;
 use App\Settings\HomePageSettings;
+use App\Support\Content;
 use App\Support\Cta;
 use App\Support\DataSource;
 use App\Support\PageMeta;
@@ -38,7 +39,7 @@ class HomeController extends Controller
                 section: 'home',
                 schema: [StructuredData::marketingOffice()],
             ),
-            'hero' => $hero['enabled'] ? [
+            'hero' => [
                 'eyebrow' => $hero['eyebrow'],
                 'title' => $hero['title'],
                 'description' => $hero['description'],
@@ -47,7 +48,7 @@ class HomeController extends Controller
                 'videoUrl' => $hero['video_url'] ?: null,
                 'primary' => ['label' => $hero['primary_label'], 'url' => $hero['primary_url']],
                 'secondary' => ['label' => $hero['secondary_label'], 'url' => $hero['secondary_url'] ?: null],
-            ] : null,
+            ],
             'about' => $this->about($settings->section('about')),
             // Banner promo lama (tabel promos) disembunyikan sejak Bank Benefit.
             'promos' => null,
@@ -66,11 +67,12 @@ class HomeController extends Controller
      */
     private function about(array $section): ?array
     {
-        if (! $section['enabled']) {
+        $profile = DeveloperProfile::current();
+
+        // Section tersembunyi otomatis kalau Profil Developer belum diisi.
+        if (Content::blank([$profile->headline, $profile->description])) {
             return null;
         }
-
-        $profile = DeveloperProfile::current();
 
         return [
             'eyebrow' => $section['eyebrow'],
@@ -91,16 +93,16 @@ class HomeController extends Controller
      */
     private function listing(array $section): ?array
     {
-        if (! $section['enabled']) {
-            return null;
-        }
-
         $clusters = DataSource::resolve(
             $section,
             Cluster::query()->published()->with(ClusterCard::with()),
             fn (Builder $q) => $q->orderByDesc('is_featured')->ordered(),
             4,
         );
+
+        if ($clusters->isEmpty()) {
+            return null;
+        }
 
         return [
             'eyebrow' => $section['eyebrow'],
@@ -116,17 +118,19 @@ class HomeController extends Controller
      */
     private function region(array $section): ?array
     {
-        if (! $section['enabled']) {
+        $area = Area::current();
+        $map = Image::media($area, 'map', null, 'Peta kawasan & aksesibilitas');
+
+        // Tersembunyi otomatis kalau Profil Lokasi belum punya peta maupun poin keunggulan.
+        if ($map['url'] === null && blank($area->map_embed_url) && Content::blank($area->advantages)) {
             return null;
         }
-
-        $area = Area::current();
 
         return [
             'eyebrow' => $section['eyebrow'],
             'title' => $section['title'],
             'description' => $section['description'],
-            'map' => Image::media($area, 'map', null, 'Peta kawasan & aksesibilitas'),
+            'map' => $map,
             'mapEmbedUrl' => $area->map_embed_url,
             'badge' => $area->map_badge_label ? ['label' => $area->map_badge_label, 'value' => $area->map_badge_value] : null,
             'points' => array_values($area->advantages ?? []),
@@ -139,16 +143,16 @@ class HomeController extends Controller
      */
     private function facilities(array $section): ?array
     {
-        if (! $section['enabled']) {
-            return null;
-        }
-
         $facilities = DataSource::resolve(
             $section,
             Facility::query()->published()->with(FacilityCard::with()),
             fn (Builder $q) => $q->orderByDesc('is_featured')->ordered(),
             4,
         );
+
+        if ($facilities->isEmpty()) {
+            return null;
+        }
 
         return [
             'eyebrow' => $section['eyebrow'],
@@ -164,16 +168,16 @@ class HomeController extends Controller
      */
     private function developments(array $section): ?array
     {
-        if (! $section['enabled']) {
-            return null;
-        }
-
         $items = DataSource::resolve(
             $section,
             FutureDevelopment::query()->published()->with('media'),
             fn (Builder $q) => $q->ordered(),
             4,
         );
+
+        if ($items->isEmpty()) {
+            return null;
+        }
 
         return [
             'eyebrow' => $section['eyebrow'],
@@ -198,10 +202,6 @@ class HomeController extends Controller
      */
     private function articles(array $section): ?array
     {
-        if (! $section['enabled']) {
-            return null;
-        }
-
         $published = Article::query()->published()->with(ArticleCard::with());
 
         $main = $section['main_article_id']

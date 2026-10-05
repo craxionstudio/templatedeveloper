@@ -19,4 +19,19 @@ class FacilityPageSettings extends PageSettings
     {
         return 'page_facility';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [
+            'header.title',
+            'header.description',
+            'seo.meta_title',
+            'seo.meta_description',
+        ];
+    }
 }

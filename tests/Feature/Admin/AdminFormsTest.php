@@ -2,7 +2,8 @@
 
 use App\Filament\Pages\Settings\ManageGlobalSettings;
 use App\Filament\Pages\Settings\ManageHomePage;
-use App\Filament\Pages\Settings\ManageListingPage;
+use App\Filament\Pages\Settings\ManageOtherPages;
+use App\Filament\Pages\Settings\ManagePropertyPages;
 use App\Filament\Resources\Clusters\Pages\CreateCluster;
 use App\Filament\Resources\Clusters\Pages\EditCluster;
 use App\Filament\Resources\Kawasans\Pages\CreateKawasan;
@@ -13,6 +14,8 @@ use App\Models\Kawasan;
 use App\Models\Lead;
 use App\Models\Redirect;
 use App\Models\User;
+use App\Settings\ClusterDetailPageSettings;
+use App\Settings\ContactPageSettings;
 use App\Settings\GlobalSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\ListingPageSettings;
@@ -35,14 +38,67 @@ it('menolak slug cluster "kawasan" di form admin', function () {
 });
 
 it('membuat cluster mandiri dari form admin', function () {
+    Storage::fake('public');
+
     Livewire::test(CreateCluster::class)
-        ->fillForm(['name' => 'Cluster Baru', 'slug' => 'cluster-baru', 'kawasan_id' => null])
+        ->fillForm(['name' => 'Cluster Baru', 'kawasan_id' => Cluster::STANDALONE_FILTER, 'galleryItems' => newClusterPhoto()])
         ->call('create')
         ->assertHasNoFormErrors();
 
-    expect(Cluster::where('slug', 'cluster-baru')->first())
-        ->not->toBeNull()
-        ->kawasan_id->toBeNull();
+    // Slug otomatis dari nama, alt foto otomatis dari nama cluster.
+    $cluster = Cluster::where('slug', 'cluster-baru')->first();
+    expect($cluster)->not->toBeNull()
+        ->kawasan_id->toBeNull()
+        ->and($cluster->galleryItems()->first()->alt)->toBe('Foto Cluster Baru');
+});
+
+it('hanya mewajibkan nama, kawasan, dan foto di form cluster', function () {
+    Livewire::test(CreateCluster::class)
+        ->fillForm(['name' => null, 'kawasan_id' => null])
+        ->call('create')
+        ->assertHasFormErrors(['name' => 'required', 'kawasan_id' => 'required', 'galleryItems' => 'required']);
+
+    $required = collect(Livewire::test(CreateCluster::class)->instance()->form->getFlatFields(withHidden: true))
+        ->filter(fn ($field) => method_exists($field, 'isRequired') && $field->isRequired())
+        ->keys()
+        ->reject(fn (string $key) => str_contains($key, '.'))
+        ->values()
+        ->all();
+
+    expect($required)->toEqualCanonicalizing(['kawasan_id', 'name', 'galleryItems']);
+});
+
+it('mengisi slug, ringkasan, dan tahun launching cluster otomatis', function () {
+    $kawasan = Kawasan::first();
+    $cluster = Cluster::query()->create([
+        'name' => 'Vega Garden',
+        'kawasan_id' => $kawasan->id,
+        'description' => '<p>Cluster dua lantai dengan taman tematik dan clubhouse.</p>',
+        'tanggal_launching' => '2026-07-07',
+    ]);
+
+    expect($cluster->slug)->toBe('vega-garden-2')
+        ->and($cluster->summary)->toBe('Cluster dua lantai dengan taman tematik dan clubhouse.')
+        ->and($cluster->launch_year)->toBe(2026);
+});
+
+it('menduplikat cluster beserta tipe, benefit, dan foto', function () {
+    Storage::fake('public');
+    $cluster = withClusterPhoto(Cluster::where('slug', 'vega-garden')->first());
+    $types = $cluster->houseTypes()->count();
+
+    Livewire::test(EditCluster::class, ['record' => $cluster->getRouteKey()])
+        ->callAction('duplikat')
+        ->assertHasNoActionErrors();
+
+    $copy = Cluster::where('name', 'Vega Garden (salinan)')->first();
+
+    expect($copy)->not->toBeNull()
+        ->slug->toBe('vega-garden-salinan')
+        ->is_published->toBeFalse()
+        ->and($copy->houseTypes()->count())->toBe($types)
+        ->and($copy->galleryItems()->first()->getFirstMedia('image'))->not->toBeNull()
+        ->and($cluster->fresh()->houseTypes()->count())->toBe($types);
 });
 
 it('membuat kawasan dan menolak slug yang sudah dipakai', function () {
@@ -60,7 +116,8 @@ it('membuat kawasan dan menolak slug yang sudah dipakai', function () {
 });
 
 it('membuat redirect saat slug cluster diubah dari admin', function () {
-    $cluster = Cluster::where('slug', 'vega-garden')->first();
+    Storage::fake('public');
+    $cluster = withClusterPhoto(Cluster::where('slug', 'vega-garden')->first());
 
     Livewire::test(EditCluster::class, ['record' => $cluster->getRouteKey()])
         ->fillForm(['slug' => 'vega-garden-residence'])
@@ -83,49 +140,63 @@ it('menyimpan settings halaman tanpa menghilangkan field lain', function () {
         ->and($hero['enabled'])->toBeTrue();
 });
 
-it('menyimpan settings listing untuk kedua tampilan', function () {
-    Livewire::test(ManageListingPage::class)
-        ->fillForm(['toggle.kawasan_label' => 'Per kawasan', 'kawasan_view.standalone.enabled' => false])
+it('meringkas pengaturan halaman jadi 4 menu', function () {
+    $labels = collect(Filament\Facades\Filament::getNavigation())
+        ->firstWhere(fn ($group) => $group->getLabel() === 'Pengaturan')
+        ->getItems();
+
+    expect(collect($labels)->map->getLabel()->all())->toBe(['Beranda', 'Properti', 'Halaman Lain', 'Pengaturan Umum']);
+});
+
+it('menyimpan beberapa settings halaman dari satu menu Properti dan Halaman Lain', function () {
+    Livewire::test(ManagePropertyPages::class)
+        ->fillForm(['listing.header.title' => 'Rumah di BSD', 'cluster.pricing.price_note' => 'Harga belum termasuk PPN.'])
         ->call('save')
         ->assertHasNoFormErrors();
 
     $settings = app(ListingPageSettings::class);
 
-    expect($settings->toggle['kawasan_label'])->toBe('Per kawasan')
-        ->and($settings->kawasan_view['standalone']['enabled'])->toBeFalse()
-        ->and($settings->kawasan_view['standalone']['title'])->toBe('Cluster yang berdiri sendiri');
+    expect($settings->header['title'])->toBe('Rumah di BSD')
+        ->and($settings->toggle['kawasan_label'])->toBe('Kawasan')
+        ->and(app(ClusterDetailPageSettings::class)->pricing['price_note'])->toBe('Harga belum termasuk PPN.');
+
+    $this->get('/properti')->assertInertia(fn ($page) => $page->where('header.title', 'Rumah di BSD'));
+
+    Livewire::test(ManageOtherPages::class)
+        ->fillForm(['contact.header.title' => 'Hubungi kami', 'about.vision.vision' => 'Kota yang nyaman.'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(ContactPageSettings::class)->header['title'])->toBe('Hubungi kami');
+    $this->get('/tentang-kami')->assertInertia(fn ($page) => $page->where('vision.vision', 'Kota yang nyaman.'));
 });
 
-it('mewajibkan alt text saat mengunggah gambar', function () {
+it('memakai teks tetap di kode untuk field yang tidak ada di admin', function () {
+    $settings = app(ListingPageSettings::class);
+    $settings->toggle = [...$settings->toggle, 'kawasan_label' => 'Teks lama dari database'];
+    $settings->save();
+
+    expect(app(ListingPageSettings::class)->section('toggle')['kawasan_label'])->toBe('Kawasan');
+});
+
+it('mengisi slug, ringkasan, dan alt text gambar kawasan otomatis', function () {
     Storage::fake('public');
 
     Livewire::test(CreateKawasan::class)
         ->fillForm([
             'name' => 'Arunika Valley',
-            'slug' => 'arunika-valley',
-            'summary' => 'Ringkasan',
-            'hero' => [UploadedFile::fake()->image('hero.jpg', 1600, 900)],
-            'hero_alt' => '',
-        ])
-        ->call('create')
-        ->assertHasFormErrors(['hero_alt' => 'required']);
-
-    Livewire::test(CreateKawasan::class)
-        ->fillForm([
-            'name' => 'Arunika Valley',
-            'slug' => 'arunika-valley',
-            'summary' => 'Ringkasan',
+            'description' => '<p>Kawasan hunian di tepi danau.</p>',
             'hero' => [UploadedFile::fake()->image('IMG_0001.jpg', 1600, 900)],
-            'hero_alt' => 'Foto aerial Arunika Valley',
         ])
         ->call('create')
         ->assertHasNoFormErrors();
 
-    $media = Kawasan::where('slug', 'arunika-valley')->first()->getFirstMedia('hero');
+    $kawasan = Kawasan::where('slug', 'arunika-valley')->first();
+    $media = $kawasan->getFirstMedia('hero');
 
-    expect($media)->not->toBeNull()
-        ->and($media->file_name)->toStartWith('foto-aerial-arunika-valley-')
-        ->and($media->getCustomProperty('alt'))->toBe('Foto aerial Arunika Valley');
+    expect($kawasan->summary)->toBe('Kawasan hunian di tepi danau.')
+        ->and($media)->not->toBeNull()
+        ->and($media->file_name)->toStartWith('arunika-valley-');
 });
 
 it('mengekspor lead ke CSV sesuai filter', function () {
@@ -138,14 +209,26 @@ it('mengekspor lead ke CSV sesuai filter', function () {
         ->assertFileDownloaded();
 });
 
-it('mengizinkan Admin mengubah tab Tracking', function () {
+it('menyimpan Pengaturan Umum: WhatsApp, kontak, GA4, dan verifikasi Search Console', function () {
     Livewire::test(ManageGlobalSettings::class)
-        ->assertSee('Tracking & verifikasi')
-        ->fillForm(['tracking.gtm_id' => 'GTM-BARU'])
+        ->assertSee('Pengaturan Umum')
+        ->fillForm([
+            'contact.whatsapp' => '6281234567890',
+            'contact.email' => 'marketing@bsdcity.test',
+            'tracking.ga4_id' => 'G-AB12CD34EF',
+            'tracking.google_verification' => 'kode-verifikasi',
+        ])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(app(GlobalSettings::class)->tracking['gtm_id'])->toBe('GTM-BARU');
+    $settings = app(GlobalSettings::class);
+    expect($settings->tracking['ga4_id'])->toBe('G-AB12CD34EF')
+        ->and($settings->contact['whatsapp'])->toBe('6281234567890');
+
+    Livewire::test(ManageGlobalSettings::class)
+        ->fillForm(['tracking.ga4_id' => 'UA-123'])
+        ->call('save')
+        ->assertHasFormErrors(['tracking.ga4_id' => 'regex']);
 });
 
 it('menandai data dummy di admin sampai nilainya diganti', function () {

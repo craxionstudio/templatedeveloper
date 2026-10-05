@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasResponsiveImages;
 use Database\Factories\HouseTypeFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class HouseType extends Model implements HasMedia
 {
     /** @use HasFactory<HouseTypeFactory> */
-    use HasFactory, HasResponsiveImages, InteractsWithMedia {
+    use FillsSlugAutomatically, HasFactory, HasResponsiveImages, InteractsWithMedia {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
     }
 
@@ -100,5 +101,18 @@ class HouseType extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('floorplan')->singleFile();
+    }
+
+    /**
+     * Slug tipe unik per cluster.
+     */
+    protected function slugQuery(): Builder
+    {
+        return static::query()->where('cluster_id', $this->cluster_id);
+    }
+
+    protected function slugSourceColumn(): string
+    {
+        return 'name';
     }
 }

@@ -25,4 +25,20 @@ class ClusterDetailPageSettings extends PageSettings
     {
         return 'page_cluster_detail';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [
+            'sections.benefits.disclaimer',
+            'pricing.price_note',
+            'form.marketing_name',
+            'form.marketing_whatsapp',
+            'form.marketing_photo',
+        ];
+    }
 }

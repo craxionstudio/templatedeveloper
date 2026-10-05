@@ -126,12 +126,13 @@ it('memasang noindex di halaman terima kasih', function () {
     $this->get('/terima-kasih')->assertInertia(fn (Assert $page) => $page->where('meta.noindex', true));
 });
 
-it('tidak merender section listing yang dimatikan', function () {
+it('selalu memakai CTA global di listing (toggle lama diabaikan) dan tanpa CTA di Kontak', function () {
     $settings = app(ListingPageSettings::class);
     $settings->cta = [...$settings->cta, 'enabled' => false];
     $settings->save();
 
-    $this->get('/properti')->assertInertia(fn (Assert $page) => $page->where('cta', null));
+    $this->get('/properti')->assertInertia(fn (Assert $page) => $page->has('cta.title'));
+    $this->get('/kontak')->assertInertia(fn (Assert $page) => $page->where('cta', null));
 });
 
 it('merender H1, canonical, dan JSON-LD di HTML awal lewat SSR (tanpa JavaScript)', function (string $path) {

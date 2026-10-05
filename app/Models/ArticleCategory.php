@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ArticleCategory extends Model
 {
-    use HasSeoMeta, RedirectsOldSlug;
+    use FillsSlugAutomatically, HasSeoMeta, RedirectsOldSlug;
 
     protected $fillable = ['name', 'slug', 'description', 'sort_order'];
 

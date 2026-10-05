@@ -1,6 +1,5 @@
 <?php
 
-use App\Filament\Pages\Settings\ManageGlobalSettings;
 use App\Filament\Resources\Leads\Tables\LeadsTable;
 use App\Jobs\SendMetaLeadEvent;
 use App\Models\Cluster;
@@ -21,7 +20,6 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Testing\AssertableInertia as Assert;
-use Livewire\Livewire;
 
 beforeEach(function () {
     $this->seed();
@@ -267,37 +265,6 @@ it('menampilkan tombol lanjut WhatsApp dengan nama cluster di halaman terima kas
         ->where('whatsapp.url', 'https://wa.me/6281111111111?text='.rawurlencode('Halo, saya Budi. Saya baru saja mengisi form untuk Vega Garden.')));
 });
 
-it('menyimpan access token CAPI terenkripsi dan tidak menampilkannya ulang', function () {
-    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
-
-    Livewire::test(ManageGlobalSettings::class)
-        ->fillForm(['tracking.meta_capi_token' => 'TOKEN-RAHASIA', 'tracking.turnstile_secret_key' => 'SECRET-TS'])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
-    $stored = app(GlobalSettings::class)->tracking;
-    expect($stored['meta_capi_token'])->not->toBe('TOKEN-RAHASIA')
-        ->and(Secret::decrypt($stored['meta_capi_token']))->toBe('TOKEN-RAHASIA')
-        ->and(Secret::decrypt($stored['turnstile_secret_key']))->toBe('SECRET-TS');
-
-    // Tidak dikirim ulang ke browser; field kosong saat disimpan = nilai lama dipertahankan.
-    $page = Livewire::test(ManageGlobalSettings::class)->assertDontSee('TOKEN-RAHASIA');
-    expect($page->get('data.tracking.meta_capi_token'))->toBeNull();
-
-    $page->fillForm(['tracking.gtm_id' => 'GTM-ABC123'])->call('save')->assertHasNoFormErrors();
-    expect(Secret::decrypt(app(GlobalSettings::class)->tracking['meta_capi_token']))->toBe('TOKEN-RAHASIA');
-
-    // Centang "hapus" = dikosongkan.
-    Livewire::test(ManageGlobalSettings::class)
-        ->fillForm(['tracking.meta_capi_token_clear' => true])
-        ->call('save')
-        ->assertHasNoFormErrors();
-    expect(app(GlobalSettings::class)->tracking['meta_capi_token'])->toBe('');
-
-    // Rahasia tidak pernah ada di props halaman publik.
-    expect($this->get('/')->getContent())->not->toContain('SECRET-TS');
-});
-
 it('memasang GTM dan Pixel dari settings di head', function () {
     expect($this->get('/')->getContent())->not->toContain('googletagmanager.com')->not->toContain('fbevents.js');
 
@@ -407,13 +374,4 @@ it('memakai Pixel ID khusus CAPI kalau Pixel dipasang lewat GTM', function () {
     expect($this->get('/')->getContent())
         ->toContain('window.dataLayer = window.dataLayer || []')
         ->not->toContain('fbevents.js');
-});
-
-it('memperingatkan dobel hitung kalau GA4/Pixel langsung diisi bersama GTM', function () {
-    configureTracking(['gtm_id' => 'GTM-ABC123', 'meta_pixel_id' => '1234567890']);
-    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
-
-    Livewire::test(ManageGlobalSettings::class)
-        ->assertSee('Kosongkan jika Pixel/GA4 sudah dipasang lewat GTM, supaya event tidak terhitung dua kali.')
-        ->assertSee('GTM juga terisi');
 });

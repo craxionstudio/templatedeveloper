@@ -41,19 +41,19 @@ class ManageDeveloperProfile extends SingletonRecordPage
     {
         return $schema->components([
             Section::make('Profil')->schema([
-                TextInput::make('headline')->label('Headline')->required()->maxLength(255),
-                Textarea::make('description')->label('Deskripsi singkat')->rows(4),
+                TextInput::make('headline')->label('Headline')->required()->maxLength(255)->placeholder('Membangun kota mandiri sejak 1989'),
+                Textarea::make('description')->label('Deskripsi singkat')->rows(4)->placeholder('BSD City adalah kota terencana yang dikembangkan Sinar Mas Land.'),
                 RichEditor::make('history')
                     ->label('Sejarah')
                     ->toolbarButtons([['bold', 'italic', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['undo', 'redo']]),
-                TextInput::make('vision_quote')->label('Kutipan visi / filosofi')->maxLength(255),
+                TextInput::make('vision_quote')->label('Kutipan visi / filosofi')->maxLength(255)->placeholder('Kota yang tumbuh bersama penghuninya.'),
             ]),
             Section::make('Statistik')->schema([
                 Repeater::make('stats')
                     ->hiddenLabel()
                     ->schema([
-                        TextInput::make('value')->label('Nilai')->placeholder('[XX] ha')->required()->maxLength(20),
-                        TextInput::make('label')->label('Label')->required()->maxLength(60),
+                        TextInput::make('value')->label('Nilai')->placeholder('6.000 ha')->required()->maxLength(20),
+                        TextInput::make('label')->label('Label')->required()->maxLength(60)->placeholder('Luas kawasan'),
                     ])
                     ->columns(2)
                     ->reorderableWithDragAndDrop()
@@ -61,8 +61,8 @@ class ManageDeveloperProfile extends SingletonRecordPage
                     ->addActionLabel('Tambah statistik'),
             ]),
             Section::make('Foto')->columns(2)->schema([
-                ...Fields::image('photo', 'photo_alt', 'Foto utama (kantor / kawasan)'),
-                ...Fields::image('secondary_photo', 'secondary_photo_alt', 'Foto kedua (tim)'),
+                Fields::imageOnly('photo', 'Foto utama (kantor / kawasan)'),
+                Fields::imageOnly('secondary_photo', 'Foto kedua (tim)'),
             ]),
         ]);
     }

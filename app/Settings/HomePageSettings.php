@@ -31,4 +31,28 @@ class HomePageSettings extends PageSettings
     {
         return 'page_home';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [
+            'hero.eyebrow',
+            'hero.title',
+            'hero.description',
+            'hero.image',
+            'listing.title',
+            'region.title',
+            'region.description',
+            'facilities.title',
+            'developments.title',
+            'developments.description',
+            'articles.title',
+            'seo.meta_title',
+            'seo.meta_description',
+        ];
+    }
 }

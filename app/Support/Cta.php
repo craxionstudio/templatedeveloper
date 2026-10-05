@@ -12,14 +12,10 @@ class Cta
     /**
      * @param  array<string, mixed>  $section  section "cta" dari settings halaman
      * @param  array{clusterId?: ?int, houseTypeId?: ?int}  $lead  konteks lead untuk form modal
-     * @return array<string, mixed>|null null = section dimatikan
+     * @return array<string, mixed>
      */
-    public static function resolve(array $section, ?string $whatsappMessage = null, array $lead = []): ?array
+    public static function resolve(array $section, ?string $whatsappMessage = null, array $lead = []): array
     {
-        if (! ($section['enabled'] ?? true)) {
-            return null;
-        }
-
         $global = app(GlobalSettings::class);
         $cta = $global->section('cta');
         $contact = $global->section('contact');

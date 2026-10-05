@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use App\Support\RichText;
+use App\Support\Summary;
 use Database\Factories\KawasanFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +27,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Kawasan extends Model implements HasMedia
 {
     /** @use HasFactory<KawasanFactory> */
-    use HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
+    use FillsSlugAutomatically, HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
     }
 
@@ -58,7 +60,11 @@ class Kawasan extends Model implements HasMedia
     protected static function booted(): void
     {
         // Rich text dari admin: hanya tag yang diizinkan (brief 10).
-        static::saving(fn (self $kawasan) => $kawasan->description = RichText::sanitize($kawasan->description));
+        static::saving(function (self $kawasan): void {
+            $kawasan->description = RichText::sanitize($kawasan->description);
+            // Ringkasan terisi otomatis dari deskripsi kalau dikosongkan.
+            $kawasan->summary = filled($kawasan->summary) ? $kawasan->summary : (Summary::from($kawasan->description) ?? $kawasan->name);
+        });
     }
 
     public function publishedClusters(): HasMany

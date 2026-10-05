@@ -6,7 +6,6 @@ use App\Models\Facility;
 use App\Models\FutureDevelopment;
 use App\Models\Promo;
 use App\Models\User;
-use App\Settings\ArticleIndexPageSettings;
 use App\Settings\GlobalSettings;
 use App\Settings\HomePageSettings;
 use App\Settings\ListingPageSettings;
@@ -113,12 +112,6 @@ it('menampilkan maksimal 8 kawasan di footer, kawasan cluster prioritas dulu, pl
         ->where('site.footer.columns.0.links.2.label', 'Vireya')     // Vyorelle, prioritas 3
         ->where('site.footer.columns.0.links.3.label', 'Terravia')   // Castilo, prioritas 4
         ->where('site.footer.columns.0.links.8', ['label' => 'Semua kawasan', 'url' => '/properti/kawasan']));
-
-    $global = app(GlobalSettings::class);
-    $global->footer = [...$global->footer, 'property_limit' => 3];
-    $global->save();
-
-    $this->get('/')->assertInertia(fn (Assert $page) => $page->has('site.footer.columns.0.links', 4));
 });
 
 it('mematikan section Fasilitas, Pengembangan Mendatang, dan Artikel di Beranda', function () {
@@ -145,15 +138,6 @@ it('menampilkan keadaan kosong di /fasilitas dan /artikel kalau belum ada konten
         ->where('empty.title', 'Artikel segera hadir')
         ->where('highlight', null)
         ->has('articles.data', 0));
-
-    // Teks keadaan kosong bisa diubah admin.
-    $settings = app(ArticleIndexPageSettings::class);
-    $settings->list = [...$settings->list, 'empty_title' => 'Segera terbit', 'empty_button_label' => 'Lihat kawasan', 'empty_button_url' => '/properti/kawasan'];
-    $settings->save();
-
-    $this->get('/artikel')->assertInertia(fn (Assert $page) => $page
-        ->where('empty.title', 'Segera terbit')
-        ->where('empty.button', ['label' => 'Lihat kawasan', 'url' => '/properti/kawasan']));
 });
 
 it('tidak memakai keadaan kosong selama masih ada konten, termasuk pencarian tanpa hasil', function () {

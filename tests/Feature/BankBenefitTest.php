@@ -19,6 +19,7 @@ use App\Support\Secret;
 use App\Support\Sitemaps;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
 
@@ -108,9 +109,9 @@ it('memakai nomor WA global kalau cluster tidak punya, dan menyembunyikan benefi
         ->where('benefits.whatsappUrl', fn (string $url) => str_starts_with($url, 'https://wa.me/62811111111?text=')));
 });
 
-it('menampilkan teks syarat & pesan WA dari settings admin', function () {
+it('menampilkan teks syarat dari settings admin dan pesan WA bawaan', function () {
     $settings = app(ClusterDetailPageSettings::class);
-    $settings->sections = [...$settings->sections, 'benefits' => [...$settings->sections['benefits'], 'disclaimer' => '*S&K berlaku.', 'whatsapp_message' => 'Info promo {cluster} dong']];
+    $settings->sections = [...$settings->sections, 'benefits' => [...$settings->sections['benefits'], 'disclaimer' => '*S&K berlaku.', 'whatsapp_message' => 'Teks lama, tidak dipakai lagi']];
     $settings->save();
     $global = app(GlobalSettings::class);
     $global->contact = [...$global->contact, 'whatsapp' => '0811111111'];
@@ -120,7 +121,7 @@ it('menampilkan teks syarat & pesan WA dari settings admin', function () {
 
     $this->get('/properti/vega-garden')->assertInertia(fn (Assert $page) => $page
         ->where('benefits.disclaimer', '*S&K berlaku.')
-        ->where('benefits.whatsappUrl', fn (string $url) => urldecode($url) === 'https://wa.me/62811111111?text=Info promo Vega Garden dong'));
+        ->where('benefits.whatsappUrl', fn (string $url) => str_contains(urldecode($url), 'Vega Garden') && ! str_contains(urldecode($url), 'Teks lama')));
 });
 
 it('menampilkan maksimal 3 chip benefit tanpa tanda * dan badge Promo di kartu cluster', function () {
@@ -282,7 +283,8 @@ it('mengelola Bank Benefit dan benefit cluster dari admin', function () {
         ->assertTableColumnFormattedStateSet('clusters_count', '2 cluster', Benefit::where('slug', 'tanpa-dp')->first());
 
     // Tab "Promo & Benefit": repeater ke pivot, bisa diurutkan.
-    $lyra = benefitCluster('lyra-residence');
+    Storage::fake('public');
+    $lyra = withClusterPhoto(benefitCluster('lyra-residence'));
     $bphtb = Benefit::where('slug', 'free-bphtb')->value('id');
     $diskon = Benefit::where('slug', 'diskon')->value('id');
 

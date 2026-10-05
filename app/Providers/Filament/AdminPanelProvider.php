@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Properti'),
                 NavigationGroup::make('Konten'),
                 NavigationGroup::make('Artikel'),
-                NavigationGroup::make('Pengaturan Halaman')->collapsed(),
+                NavigationGroup::make('Pengaturan'),
                 NavigationGroup::make('Marketing'),
                 NavigationGroup::make('Sistem')->collapsed(),
             ])

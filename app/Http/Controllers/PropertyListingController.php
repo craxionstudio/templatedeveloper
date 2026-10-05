@@ -134,7 +134,7 @@ class PropertyListingController extends Controller
             'kawasanEyebrow' => $view['kawasan_eyebrow'],
             'viewLabel' => $view['view_button_label'],
             'kawasans' => KawasanCard::collection($kawasans),
-            'standalone' => $view['standalone']['enabled'] && $standalone->isNotEmpty() ? [
+            'standalone' => $standalone->isNotEmpty() ? [
                 'eyebrow' => $view['standalone']['eyebrow'],
                 'title' => $view['standalone']['title'],
                 'description' => $view['standalone']['description'],

@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Settings\ClusterDetailPageSettings;
 use App\Settings\GlobalSettings;
 use App\Settings\ListingPageSettings;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
 
@@ -217,7 +218,8 @@ it('bisa membuka dan menyimpan cluster & kawasan hasil import di admin', functio
     importBsd();
     $this->actingAs(User::where('email', 'admin@example.com')->first());
 
-    $cluster = Cluster::where('slug', 'island-villa')->first();
+    Storage::fake('public');
+    $cluster = withClusterPhoto(Cluster::where('slug', 'island-villa')->first());
     Livewire::test(EditCluster::class, ['record' => $cluster->getRouteKey()])
         ->assertSchemaStateSet(['prioritas' => 2, 'catatan_internal' => $cluster->catatan_internal])
         ->fillForm(['catatan_internal' => 'Dicek tim marketing'])

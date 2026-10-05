@@ -16,7 +16,6 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
 
@@ -31,7 +30,7 @@ class ArticleForm
                     ->persistTabInQueryString()
                     ->tabs([
                         Tab::make('Konten')->schema([
-                            Grid::make(2)->schema(Fields::titleAndSlug('title', 'Judul')),
+                            TextInput::make('title')->label('Judul')->required()->maxLength(255)->placeholder('5 Cluster Baru di BSD City dengan Cicilan di Bawah Rp10 Juta'),
                             Grid::make(2)->schema([
                                 Select::make('article_category_id')
                                     ->label('Kategori')
@@ -43,11 +42,6 @@ class ArticleForm
                                     ->relationship('author', 'name')
                                     ->preload(),
                             ]),
-                            Textarea::make('excerpt')
-                                ->label('Ringkasan')
-                                ->rows(2)
-                                ->maxLength(500)
-                                ->helperText('Tampil di kartu artikel dan jadi meta description kalau tab SEO kosong.'),
                             RichEditor::make('body')
                                 ->label('Isi artikel')
                                 ->fileAttachmentsDisk('public')
@@ -74,7 +68,7 @@ class ArticleForm
                                     ['name' => $data['name']],
                                 )->getKey()),
                         ]),
-                        Tab::make('Cover')->schema(Fields::image('cover', 'cover_alt', 'Gambar utama')),
+                        Tab::make('Cover')->schema([Fields::imageOnly('cover', 'Gambar utama')]),
                         Tab::make('Publikasi')->schema([
                             Toggle::make('is_published')->label('Dipublikasikan'),
                             DateTimePicker::make('published_at')->label('Tanggal terbit')->native(false)->default(now()),
@@ -83,8 +77,16 @@ class ArticleForm
                                 ? "Waktu baca: {$record->reading_minutes} menit (otomatis)"
                                 : 'Waktu baca dihitung otomatis saat disimpan.'),
                         ]),
-                        SeoTab::make(fn (Get $get): string => '/artikel/'.$get('../slug'), 'title', 'excerpt'),
                     ]),
+                Fields::advanced([
+                    Fields::slug()->placeholder('cluster-baru-bsd-city-cicilan-ringan'),
+                    Textarea::make('excerpt')
+                        ->label('Ringkasan (kartu artikel & meta description)')
+                        ->rows(2)
+                        ->maxLength(500)
+                        ->placeholder('Kosong = otomatis dari isi artikel.'),
+                    SeoTab::fields(),
+                ]),
             ]);
     }
 }

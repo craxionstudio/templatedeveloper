@@ -21,7 +21,7 @@ class UserResource extends Resource
 
     protected static ?string $modelLabel = 'User';
 
-    protected static ?string $pluralModelLabel = 'User & Role';
+    protected static ?string $pluralModelLabel = 'User';
 
     protected static ?string $recordTitleAttribute = 'name';
 

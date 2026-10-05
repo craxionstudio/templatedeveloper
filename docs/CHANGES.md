@@ -394,6 +394,54 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
   - Test baru: newsletter tidak ada lagi.
   - Test webhook dan newsletter dihapus.
 
+**Tahap B — Admin ringkas** (disetujui pemilik 5 Okt 2026, langsung di `main`)
+
+1. **Terisi otomatis:**
+   - **Slug** dari nama/judul, dibuat unik (`-2`, `-3`, …), lewat trait `FillsSlugAutomatically`. Berlaku untuk cluster, kawasan, artikel, kategori, penulis, benefit, fasilitas, kategori fasilitas, tag, dan tipe rumah (unik per cluster).
+   - **Ringkasan:** cluster/kawasan dari deskripsi, artikel dari isi (`App\Support\Summary`).
+   - **Tahun launching** dari tanggal launching.
+   - **Alt text foto** dari keterangan atau "Foto {nama}". Nama file foto diambil dari nama.
+   - **Meta title/description dan gambar share** memakai fallback yang sudah ada: nama, ringkasan, foto utama.
+   - Field SEO/teknis pindah ke section **Lanjutan** (tertutup): slug, ringkasan, tipe properti, jenis bangunan, meta title, meta description, latitude/longitude.
+   - Field yang dihapus dari form (kolom database tetap ada):
+     - canonical, noindex, dan gambar OG per record;
+     - semua alt text;
+     - urutan (diganti drag di tabel);
+     - tanggal terbit cluster/kawasan;
+     - catatan cicilan/booking fee;
+     - jabatan & foto marketing per cluster;
+     - **sisa unit** di tipe rumah.
+2. **Tanpa toggle "Tampilkan section":**
+   - Section tersembunyi otomatis kalau datanya kosong: cluster/fasilitas/pengembangan/artikel terbit, Profil Developer/Lokasi, visi & timeline, peta, spesifikasi, fasilitas cluster, benefit.
+   - Teks contoh dalam kurung siku (`[VISI PERUSAHAAN]`) dan link `#` dianggap kosong (`App\Support\Content`).
+   - CTA bawah halaman selalu memakai CTA global, kecuali di Kontak yang tanpa CTA.
+   - 69 label teks di Pengaturan Global disembunyikan dan memakai nilai bawaan.
+3. **Pengaturan jadi 4 menu** (grup "Pengaturan"):
+   - **Beranda**
+   - **Properti** (listing + Detail Kawasan + Detail Rumah)
+   - **Halaman Lain** (Tentang Kami, Kontak, Artikel, Fasilitas, Kebijakan Privasi, Terima Kasih)
+   - **Pengaturan Umum** (WhatsApp, template pesan, kontak, nama perusahaan, media sosial, logo, GA4 Measurement ID, verifikasi Search Console, email notifikasi lead)
+
+   Cara kerjanya:
+   - Field yang bisa diubah ditentukan `editable()` tiap kelas `App\Settings`. `PageSettings::section()` hanya membaca key itu dari database; key lain selalu memakai teks tetap di `database/settings/defaults/*.php`.
+   - Satu menu bisa menyimpan beberapa grup settings (`GroupedSettingsPage`).
+   - Teks `[...]` tidak dimuat ke form, jadi admin langsung melihat placeholder contoh.
+   - **Catatan:** teks lama di database untuk field yang tidak lagi ada di admin diabaikan. Contohnya pengaturan GTM/Pixel/Turnstile yang tersimpan: tetap dipakai sampai Tahap C menghapusnya.
+4. **Form Cluster:**
+   - Wajib hanya **nama**, **kawasan** (pilihan "Cluster mandiri (tanpa kawasan)" untuk cluster tanpa kawasan), dan **minimal 1 foto**.
+   - Semua field punya placeholder contoh nyata.
+   - Aksi **Duplikat cluster** (tabel & halaman edit) menyalin data, tipe rumah, benefit, foto, brosur/pricelist. Salinan belum dipublikasikan dan diberi nama "… (salinan)"; catatan internal & prioritas tidak ikut.
+   - Menu Kategori Fasilitas dan Tag disembunyikan. Keduanya dibuat langsung dari form Fasilitas/Artikel.
+5. **Angka akhir** (cara hitung sama dengan audit: field form resource, relation manager, dan halaman admin, termasuk yang tersembunyi; repeater = 1):
+
+   | | Audit (sebelum A) | Sesudah A | Sesudah B |
+   |---|---|---|---|
+   | Field admin | ±700 | 691 | **227** (wajib 28) |
+   | Menu | 30 | 29 | **19** |
+
+   Halaman Promo lama (tersembunyi, 18 field) ikut dihitung.
+- **Test baru:** wajib nama/kawasan/foto, slug/ringkasan/tahun otomatis, duplikat cluster, 4 menu pengaturan, simpan multi-settings, teks tetap di kode, section otomatis tersembunyi, dan teks contoh dianggap kosong. Test lama untuk toggle/label/field yang dihapus disesuaikan.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

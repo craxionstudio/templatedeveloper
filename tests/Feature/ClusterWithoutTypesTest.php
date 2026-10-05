@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Settings\GlobalSettings;
 use App\Settings\ListingPageSettings;
 use App\Support\Rupiah;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
@@ -54,9 +55,10 @@ function cardNamed(TestResponse $response, string $key, string $name): ?array
 
 it('menyimpan cluster tanpa status dari form admin', function () {
     $this->actingAs(User::where('email', 'admin@example.com')->first());
+    Storage::fake('public');
 
     Livewire::test(CreateCluster::class)
-        ->fillForm(['name' => 'Tanpa Status', 'slug' => 'tanpa-status', 'kawasan_id' => null, 'status' => null])
+        ->fillForm(['name' => 'Tanpa Status', 'kawasan_id' => Cluster::STANDALONE_FILTER, 'status' => null, 'galleryItems' => newClusterPhoto()])
         ->call('create')
         ->assertHasNoFormErrors();
 
@@ -148,7 +150,8 @@ it('menampilkan "Hubungi kami untuk harga" di kawasan yang semua clusternya belu
 it('mengurutkan cluster berharga di atas cluster tanpa harga saat urut harga', function (string $query) {
     clusterWithoutTypes(['published_at' => now()]);
 
-    $prices = collect($this->get('/properti'.$query)->inertiaProps('clusters.data'))->pluck('price');
+    // Semua halaman listing (9 cluster per halaman).
+    $prices = collect([1, 2])->flatMap(fn (int $page) => $this->get('/properti'.$query.'&page='.$page)->inertiaProps('clusters.data'))->pluck('price');
 
     // Semua harga non-null lebih dulu, lalu null.
     expect($prices)->toHaveCount(10)

@@ -2,18 +2,19 @@
 
 namespace App\Filament\Pages\Settings;
 
+use App\Support\Content;
 use Filament\Actions\Action;
 use Filament\Pages\SettingsPage;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
 /**
- * Basis settings page per halaman: grup "Pengaturan Halaman", tombol "Lihat halaman",
+ * Basis settings page: grup "Pengaturan", tombol "Lihat halaman",
  * dan akses untuk super admin & admin konten.
  */
 abstract class PageSettingsPage extends SettingsPage
 {
-    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan Halaman';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
 
     /**
      * Path publik halaman terkait (null = tidak ada tombol "Lihat halaman").
@@ -23,6 +24,45 @@ abstract class PageSettingsPage extends SettingsPage
     public static function canAccess(): bool
     {
         return auth()->user()?->isAdmin() ?? false;
+    }
+
+    /**
+     * Teks contoh "[...]" dan link "#" tidak dimuat ke form (dianggap kosong), supaya admin langsung
+     * melihat placeholder contoh dan validasi tidak gagal karena data contoh.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        return self::withoutPlaceholders($data);
+    }
+
+    /**
+     * @param  array<int|string, mixed>  $data
+     * @return array<int|string, mixed>
+     */
+    public static function withoutPlaceholders(array $data): array
+    {
+        $isList = array_is_list($data);
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $value = self::withoutPlaceholders($value);
+            } elseif (is_string($value) && (Content::blank($value) || $value === '#')) {
+                $value = null;
+            }
+
+            if ($isList && (Content::blank($value) || (is_array($value) && array_key_exists('url', $value) && blank($value['url'])))) {
+                unset($data[$key]);
+
+                continue;
+            }
+
+            $data[$key] = $value;
+        }
+
+        return $isList ? array_values($data) : $data;
     }
 
     /**

@@ -13,11 +13,9 @@ use App\Models\Kawasan;
 use App\Support\Rupiah;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -26,10 +24,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Builder;
 
 class ClusterForm
 {
@@ -44,50 +40,43 @@ class ClusterForm
                         Tab::make('Umum')->schema([
                             Select::make('kawasan_id')
                                 ->label('Kawasan')
-                                ->relationship('kawasan', 'name', fn (Builder $query) => $query->orderBy('sort_order'))
-                                ->placeholder('Cluster mandiri (tanpa kawasan)')
+                                ->options(fn (): array => self::kawasanOptions())
                                 ->default(fn (): ?string => request()->query('kawasan_id'))
-                                ->helperText('Kosongkan untuk cluster mandiri. URL cluster tidak ikut berubah kalau kawasannya diganti.')
-                                ->preload()
-                                ->searchable(),
-                            Grid::make(2)->schema(Fields::titleAndSlug('name', 'Nama cluster', Cluster::RESERVED_SLUGS)),
-                            Grid::make(3)->schema([
-                                TextInput::make('building_type')
-                                    ->label('Jenis bangunan')
-                                    ->placeholder('Rumah 2 lantai')
-                                    ->maxLength(80),
-                                Select::make('property_type')
-                                    ->label('Tipe properti (filter)')
-                                    ->options(PropertyType::class)
-                                    ->default(PropertyType::Rumah)
-                                    ->required(),
+                                ->formatStateUsing(fn (?Cluster $record, $state) => $record?->exists && blank($state) ? Cluster::STANDALONE_FILTER : $state)
+                                ->dehydrateStateUsing(fn ($state) => $state === Cluster::STANDALONE_FILTER ? null : $state)
+                                ->required()
+                                ->searchable()
+                                ->helperText('Pilih "Cluster mandiri" kalau cluster tidak masuk kawasan mana pun.'),
+                            TextInput::make('name')
+                                ->label('Nama cluster')
+                                ->required()
+                                ->maxLength(255)
+                                ->placeholder('Monard of The Armont'),
+                            Fields::gallery('Foto (foto pertama = foto utama kartu)')->required()->minItems(1),
+                            Grid::make(2)->schema([
                                 Select::make('status')
-                                    ->label('Status penjualan (opsional)')
+                                    ->label('Status penjualan')
                                     ->options(ClusterStatus::class)
-                                    ->placeholder('Tanpa status')
-                                    ->helperText('Kosong = tidak ada badge status di kartu & Detail Rumah.'),
+                                    ->placeholder('Tanpa status'),
+                                Select::make('badge')
+                                    ->label('Badge')
+                                    ->options(ClusterBadge::class)
+                                    ->placeholder('Tanpa badge'),
                             ]),
-                            Select::make('badge')
-                                ->label('Badge')
-                                ->options(ClusterBadge::class)
-                                ->placeholder('Tanpa badge'),
-                            Textarea::make('summary')
-                                ->label('Ringkasan (meta description & kartu)')
-                                ->rows(2)
-                                ->maxLength(300),
                             RichEditor::make('description')
                                 ->label('Deskripsi rumah')
+                                ->placeholder('Cluster 2 lantai di kawasan The Armont dengan taman tematik, 5 menit ke AEON Mall BSD.')
                                 ->toolbarButtons([['bold', 'italic', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['undo', 'redo']]),
-                            TextInput::make('address')->label('Alamat')->maxLength(255),
+                            TextInput::make('address')->label('Alamat')->maxLength(255)->placeholder('Jl. BSD Grand Boulevard, BSD City, Tangerang'),
                             Grid::make(2)->schema([
                                 DatePicker::make('tanggal_launching')
                                     ->label('Tanggal launching')
                                     ->native(false)
                                     ->displayFormat('j M Y')
-                                    ->helperText('Dasar urutan "Terbaru" di listing. Kosong = paling bawah.'),
-                                TextInput::make('launch_year')->label('Tahun launching')->numeric()->minValue(1900)->maxValue(2100),
+                                    ->placeholder('7 Jul 2026')
+                                    ->helperText('Dasar urutan "Terbaru". Tahun launching ikut terisi otomatis.'),
+                                TextInput::make('legality')->label('Legalitas')->placeholder('SHGB dipecah per unit · PBG sudah terbit')->maxLength(255),
                             ]),
-                            TextInput::make('legality')->label('Legalitas')->placeholder('SHGB dipecah per unit · PBG sudah terbit')->maxLength(255),
                         ]),
                         Tab::make('Harga')->schema([
                             Section::make('Dihitung dari tipe rumah')
@@ -103,35 +92,31 @@ class ClusterForm
                                         : 'Belum ada tipe rumah yang dipublikasikan.'),
                                 ])
                                 ->compact(),
-                            TextInput::make('booking_fee')->label('Booking fee')->numeric()->minValue(0)->prefix('Rp'),
-                            TextInput::make('price_note')->label('Catatan harga')->placeholder('Kosong = pakai default di Pengaturan Halaman → Detail Rumah')->maxLength(255),
-                            TextInput::make('installment_note')->label('Catatan cicilan')->maxLength(255),
-                            TextInput::make('booking_fee_note')->label('Catatan booking fee')->maxLength(255),
+                            TextInput::make('booking_fee')->label('Booking fee')->numeric()->minValue(0)->prefix('Rp')->placeholder('10000000'),
                         ]),
                         Tab::make('Spesifikasi')->schema([
                             Repeater::make('facilities')
                                 ->label('Fasilitas cluster')
                                 ->helperText('Tampil sebagai daftar di Detail Rumah.')
-                                ->simple(TextInput::make('text')->required()->maxLength(200))
+                                ->simple(TextInput::make('text')->required()->maxLength(200)->placeholder('Clubhouse dengan kolam renang'))
                                 ->reorderableWithDragAndDrop()
                                 ->defaultItems(0)
                                 ->addActionLabel('Tambah fasilitas'),
                             Repeater::make('specifications')
                                 ->label('Spesifikasi material')
                                 ->schema([
-                                    TextInput::make('label')->label('Bagian')->required()->maxLength(60),
-                                    TextInput::make('value')->label('Material')->required()->maxLength(120),
+                                    TextInput::make('label')->label('Bagian')->required()->maxLength(60)->placeholder('Lantai'),
+                                    TextInput::make('value')->label('Material')->required()->maxLength(120)->placeholder('Granit 60×60'),
                                 ])
                                 ->columns(2)
                                 ->reorderableWithDragAndDrop()
                                 ->defaultItems(0)
                                 ->addActionLabel('Tambah baris'),
                         ]),
-                        Tab::make('Media')->schema([
-                            Fields::gallery('Galeri foto (foto pertama = foto utama kartu)'),
+                        Tab::make('Video & Brosur')->schema([
                             Grid::make(2)->schema([
-                                TextInput::make('video_url')->label('URL video')->url()->maxLength(255),
-                                TextInput::make('tour_360_url')->label('URL virtual tour 360°')->url()->maxLength(255),
+                                TextInput::make('video_url')->label('URL video')->url()->maxLength(255)->placeholder('https://www.youtube.com/watch?v=…'),
+                                TextInput::make('tour_360_url')->label('URL virtual tour 360°')->url()->maxLength(255)->placeholder('https://my.matterport.com/show/?m=…'),
                             ]),
                             Grid::make(2)->schema([
                                 Fields::pdf('brochure', 'Brosur (PDF)'),
@@ -169,28 +154,15 @@ class ClusterForm
                                         : null),
                             ]),
                         Tab::make('Marketing')->schema([
-                            Section::make('Marketing cluster')
-                                ->description('Kosongkan untuk memakai marketing default di Pengaturan Halaman → Detail Rumah.')
-                                ->schema([
-                                    Grid::make(3)->schema([
-                                        TextInput::make('marketing_name')->label('Nama')->maxLength(80),
-                                        TextInput::make('marketing_title')->label('Jabatan')->maxLength(80),
-                                        TextInput::make('marketing_whatsapp')->label('WhatsApp (62…)')->tel()->maxLength(20),
-                                    ]),
-                                    SpatieMediaLibraryFileUpload::make('marketing_photo')
-                                        ->label('Foto marketing')
-                                        ->collection('marketing_photo')
-                                        ->disk('public')
-                                        ->image()
-                                        ->avatar()
-                                        ->customProperties(fn (Get $get): array => ['alt' => 'Foto '.($get('marketing_name') ?: 'marketing')]),
-                                ]),
+                            Text::make('Kosongkan untuk memakai marketing default (Pengaturan → Properti) dan nomor WhatsApp di Pengaturan Umum.'),
+                            Grid::make(2)->schema([
+                                TextInput::make('marketing_name')->label('Nama marketing')->maxLength(80)->placeholder('Rina'),
+                                TextInput::make('marketing_whatsapp')->label('WhatsApp cluster (62…)')->tel()->maxLength(20)->placeholder('6281234567890'),
+                            ]),
                         ]),
                         Tab::make('Publikasi')->schema([
                             Toggle::make('is_published')->label('Dipublikasikan')->default(true),
-                            DateTimePicker::make('published_at')->label('Tanggal terbit')->native(false)->default(now()),
                             Toggle::make('is_featured')->label('Unggulan (tampil di Beranda)'),
-                            TextInput::make('sort_order')->label('Urutan')->numeric()->default(0),
                         ]),
                         Tab::make('Internal')
                             ->icon(Heroicon::OutlinedLockClosed)
@@ -218,8 +190,24 @@ class ClusterForm
                                     ->defaultItems(0)
                                     ->addActionLabel('Tambah item'),
                             ]),
-                        SeoTab::make(fn (Get $get): string => '/properti/'.$get('../slug')),
                     ]),
+                Fields::advanced([
+                    Grid::make(2)->schema([
+                        Fields::slug(Cluster::RESERVED_SLUGS)->placeholder('monard-of-the-armont'),
+                        Select::make('property_type')
+                            ->label('Tipe properti (filter)')
+                            ->options(PropertyType::class)
+                            ->default(PropertyType::Rumah)
+                            ->selectablePlaceholder(false),
+                    ]),
+                    TextInput::make('building_type')->label('Jenis bangunan')->placeholder('Rumah 2 lantai')->maxLength(80),
+                    Textarea::make('summary')
+                        ->label('Ringkasan (kartu & meta description)')
+                        ->rows(2)
+                        ->maxLength(300)
+                        ->placeholder('Kosong = otomatis dari deskripsi.'),
+                    SeoTab::fields(),
+                ]),
             ]);
     }
 
@@ -230,6 +218,16 @@ class ClusterForm
      */
     public static function kawasanFilterOptions(): array
     {
-        return [Cluster::STANDALONE_FILTER => 'Cluster mandiri'] + Kawasan::query()->orderBy('sort_order')->pluck('name', 'id')->all();
+        return self::kawasanOptions();
+    }
+
+    /**
+     * Pilihan kawasan di form: "Cluster mandiri" + kawasan.
+     *
+     * @return array<string, string>
+     */
+    public static function kawasanOptions(): array
+    {
+        return [Cluster::STANDALONE_FILTER => 'Cluster mandiri (tanpa kawasan)'] + Kawasan::query()->orderBy('sort_order')->pluck('name', 'id')->all();
     }
 }

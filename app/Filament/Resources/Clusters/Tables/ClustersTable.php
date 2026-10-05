@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Clusters\Tables;
 
 use App\Enums\ClusterStatus;
+use App\Filament\Resources\Clusters\Actions\DuplicateClusterAction;
 use App\Filament\Resources\Clusters\Schemas\ClusterForm;
 use App\Models\Benefit;
 use App\Models\BenefitCluster;
@@ -110,6 +111,7 @@ class ClustersTable
                     ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                     ->url(fn (Cluster $record): string => url($record->publicPath()), shouldOpenInNewTab: true),
                 EditAction::make(),
+                DuplicateClusterAction::make()->iconButton()->tooltip('Duplikat cluster'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

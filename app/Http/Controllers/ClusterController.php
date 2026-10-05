@@ -13,6 +13,7 @@ use App\Presenters\Image;
 use App\Settings\ClusterDetailPageSettings;
 use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
+use App\Support\Content;
 use App\Support\Cta;
 use App\Support\DataSource;
 use App\Support\PageMeta;
@@ -171,12 +172,13 @@ class ClusterController extends Controller
                 'bookingFeeNote' => $cluster->booking_fee_note ?: $pricing['booking_fee_note'],
                 'kprLink' => $pricing['kpr_link_url'] ? ['label' => $pricing['kpr_link_label'], 'url' => $pricing['kpr_link_url']] : ['label' => $pricing['kpr_link_label'], 'url' => '/kontak'],
             ],
-            'benefits' => $sections['benefits']['enabled'] ? $this->benefits($cluster, $sections['benefits'], $marketingWhatsapp) : null,
+            'benefits' => $this->benefits($cluster, $sections['benefits'], $marketingWhatsapp),
             'sections' => [
-                'specs' => $sections['specs']['enabled'] ? $sections['specs']['title'] : null,
-                'types' => $sections['types']['enabled'] ? PageMeta::fill($sections['types']['title'], ['cluster' => $cluster->name]) : null,
-                'description' => $sections['description']['enabled'] ? $sections['description']['title'] : null,
-                'facilities' => $sections['facilities']['enabled'] ? PageMeta::fill($sections['facilities']['title'], ['cluster' => $cluster->name]) : null,
+                // Section tersembunyi otomatis kalau datanya kosong.
+                'specs' => Content::filled($cluster->specifications) ? $sections['specs']['title'] : null,
+                'types' => PageMeta::fill($sections['types']['title'], ['cluster' => $cluster->name]),
+                'description' => Content::filled($cluster->description) ? $sections['description']['title'] : null,
+                'facilities' => Content::filled($cluster->facilities) ? PageMeta::fill($sections['facilities']['title'], ['cluster' => $cluster->name]) : null,
             ],
             'specLabels' => $settings->section('spec_labels'),
             'downloads' => [
@@ -205,7 +207,7 @@ class ClusterController extends Controller
                 'whatsappLabel' => $mobile['sticky_whatsapp_label'],
                 'surveyLabel' => $mobile['sticky_survey_label'],
             ],
-            'others' => $sections['others']['enabled'] ? $this->others($cluster, $sections['others'], $settings->section('others')) : null,
+            'others' => $this->others($cluster, $sections['others'], $settings->section('others')),
             'cta' => Cta::resolve(
                 $settings->section('cta'),
                 PageMeta::fill($whatsappTemplate, ['cluster' => $cluster->name, 'type' => $selected?->name]),

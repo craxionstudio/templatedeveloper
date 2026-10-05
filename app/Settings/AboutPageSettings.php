@@ -29,4 +29,23 @@ class AboutPageSettings extends PageSettings
     {
         return 'page_about';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [
+            'hero.title',
+            'hero.description',
+            'hero.image',
+            'vision.vision',
+            'vision.missions',
+            'timeline.items',
+            'seo.meta_title',
+            'seo.meta_description',
+        ];
+    }
 }

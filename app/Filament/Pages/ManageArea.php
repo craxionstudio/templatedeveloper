@@ -43,20 +43,16 @@ class ManageArea extends SingletonRecordPage
         return $schema->components([
             Section::make('Lokasi')->schema([
                 Grid::make(2)->schema([
-                    TextInput::make('name')->label('Nama lokasi / kota mandiri')->required()->maxLength(255),
+                    TextInput::make('name')->label('Nama lokasi / kota mandiri')->required()->maxLength(255)->placeholder('BSD City'),
                     TextInput::make('location')->label('Lokasi')->placeholder('Serpong, Tangerang Selatan')->maxLength(255),
                 ]),
-                Textarea::make('description')->label('Deskripsi')->rows(3),
-                TextInput::make('area_ha')->label('Luas (ha)')->numeric()->minValue(0)->suffix('ha'),
-                ...Fields::image('hero', 'hero_alt', 'Foto hero / aerial'),
+                Textarea::make('description')->label('Deskripsi')->rows(3)->placeholder('Kota mandiri seluas sekitar 6.000 hektare di Serpong.'),
+                TextInput::make('area_ha')->label('Luas (ha)')->numeric()->minValue(0)->suffix('ha')->placeholder('6000'),
+                Fields::imageOnly('hero', 'Foto hero / aerial'),
             ]),
             Section::make('Peta & aksesibilitas')->schema([
-                Textarea::make('map_embed_url')->label('URL embed Google Maps')->rows(2),
-                Grid::make(2)->schema([
-                    TextInput::make('latitude')->numeric(),
-                    TextInput::make('longitude')->numeric(),
-                ]),
-                Fields::image('map', 'hero_alt', 'Gambar peta statis (facade)')[0],
+                Textarea::make('map_embed_url')->label('URL embed Google Maps')->rows(2)->placeholder('https://www.google.com/maps/embed?pb=…'),
+                Fields::imageOnly('map', 'Gambar peta statis (facade)'),
                 Grid::make(2)->schema([
                     TextInput::make('map_badge_label')->label('Label badge di peta')->placeholder('Akses tol langsung')->maxLength(60),
                     TextInput::make('map_badge_value')->label('Nilai badge')->placeholder('± 5 menit')->maxLength(30),
@@ -67,14 +63,20 @@ class ManageArea extends SingletonRecordPage
                     ->hiddenLabel()
                     ->schema([
                         Fields::icon(),
-                        TextInput::make('title')->label('Judul')->required()->maxLength(80),
-                        TextInput::make('distance')->label('Jarak / waktu')->maxLength(40),
+                        TextInput::make('title')->label('Judul')->required()->maxLength(80)->placeholder('Tol Jakarta–Serpong'),
+                        TextInput::make('distance')->label('Jarak / waktu')->maxLength(40)->placeholder('± 5 menit'),
                         Textarea::make('description')->label('Deskripsi')->rows(2)->columnSpanFull(),
                     ])
                     ->columns(3)
                     ->reorderableWithDragAndDrop()
                     ->defaultItems(0)
                     ->addActionLabel('Tambah poin'),
+            ]),
+            Fields::advanced([
+                Grid::make(2)->schema([
+                    TextInput::make('latitude')->numeric()->placeholder('-6.3017'),
+                    TextInput::make('longitude')->numeric()->placeholder('106.6527'),
+                ]),
             ]),
         ]);
     }

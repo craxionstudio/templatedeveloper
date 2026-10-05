@@ -29,6 +29,9 @@ class FacilityCategoryResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    // Tidak tampil di menu (admin ringkas): dibuat langsung dari form Fasilitas (pilihan Kategori). Halaman tetap bisa dibuka lewat URL.
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
     public static function form(Schema $schema): Schema

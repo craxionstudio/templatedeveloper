@@ -61,8 +61,8 @@ return [
             ['label' => 'Facebook', 'url' => '#'],
         ],
         'office_title' => 'Kantor Pemasaran',
-        // {year} diganti tahun berjalan.
-        'copyright' => '© {year} [NAMA PT DEVELOPER]. Hak cipta dilindungi.',
+        // {year} = tahun berjalan, {company} = nama perusahaan (Pengaturan Umum), atau nama brand kalau kosong.
+        'copyright' => '© {year} {company}. Hak cipta dilindungi.',
         'disclaimer' => 'Gambar, harga, dan spesifikasi bersifat ilustrasi dan dapat berubah sewaktu-waktu tanpa pemberitahuan.',
     ],
 

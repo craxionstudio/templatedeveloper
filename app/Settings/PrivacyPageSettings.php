@@ -15,4 +15,17 @@ class PrivacyPageSettings extends PageSettings
     {
         return 'page_privacy';
     }
+
+    /**
+     * Field yang bisa diubah admin; sisanya teks tetap di kode (lihat PageSettings::editable()).
+     *
+     * @return list<string>
+     */
+    public static function editable(): array
+    {
+        return [
+            'content.effective_date',
+            'content.body',
+        ];
+    }
 }

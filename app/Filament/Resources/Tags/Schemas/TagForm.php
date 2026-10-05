@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Tags\Schemas;
 
 use App\Filament\Forms\Fields;
-use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class TagForm
@@ -12,7 +12,8 @@ class TagForm
     {
         return $schema
             ->components([
-                Grid::make(2)->schema(Fields::titleAndSlug('name', 'Nama tag'))->columnSpanFull(),
+                TextInput::make('name')->label('Nama tag')->required()->maxLength(60)->placeholder('KPR'),
+                Fields::advanced([Fields::slug()->placeholder('kpr')]),
             ]);
     }
 }

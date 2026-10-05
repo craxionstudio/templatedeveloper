@@ -5,8 +5,8 @@ namespace App\Filament\Resources\Benefits\Schemas;
 use App\Enums\BenefitCategory;
 use App\Filament\Forms\Fields;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 class BenefitForm
@@ -15,7 +15,7 @@ class BenefitForm
     {
         return $schema
             ->components([
-                Grid::make(2)->schema(Fields::titleAndSlug('name', 'Nama benefit'))->columnSpanFull(),
+                TextInput::make('name')->label('Nama benefit')->required()->maxLength(255)->placeholder('Free BPHTB')->columnSpanFull(),
                 Select::make('category')
                     ->label('Kategori')
                     ->options(BenefitCategory::class)
@@ -25,6 +25,7 @@ class BenefitForm
                     ->label('Aktif')
                     ->helperText('Benefit nonaktif tidak tampil di website, walau masih dicentang di cluster.')
                     ->default(true),
+                Fields::advanced([Fields::slug()->placeholder('free-bphtb')])->columnSpanFull(),
             ]);
     }
 }

@@ -7,7 +7,6 @@ use App\Presenters\Image;
 use App\Settings\ContactPageSettings;
 use App\Settings\GlobalSettings;
 use App\Support\Breadcrumbs;
-use App\Support\Cta;
 use App\Support\PageMeta;
 use App\Support\SiteLayout;
 use App\Support\StructuredData;
@@ -40,26 +39,27 @@ class ContactController extends Controller
             ),
             'breadcrumbs' => $crumbs,
             'header' => $header,
-            'info' => $info['enabled'] ? [
+            'info' => [
                 'title' => $info['title'],
                 'address' => $contact['office_address'],
                 'hours' => ['label' => $info['hours_label'], 'value' => $contact['opening_hours']],
                 'phone' => ['label' => $info['phone_label'], 'value' => $contact['phone'], 'url' => SiteLayout::telUrl($contact['phone'])],
                 'email' => ['label' => $info['email_label'], 'value' => $contact['email'], 'url' => filter_var($contact['email'], FILTER_VALIDATE_EMAIL) ? 'mailto:'.$contact['email'] : null],
                 'whatsapp' => ['label' => $info['whatsapp_label'], 'url' => SiteLayout::whatsappUrl($contact['whatsapp'], $contact['whatsapp_message'])],
-            ] : null,
-            'map' => $map['enabled'] ? [
+            ],
+            'map' => filled($map['embed_url']) || filled($map['image']) ? [
                 'embedUrl' => $map['embed_url'] ?: null,
                 'image' => Image::path($map['image'], $map['image_alt']),
                 'buttonLabel' => $map['button_label'],
             ] : null,
-            'form' => $form['enabled'] ? [
+            'form' => [
                 ...$form,
                 'payment_options' => collect($form['payment_options'] ?? [])->map(fn ($o) => is_array($o) ? ($o['label'] ?? '') : (string) $o)->filter()->values()->all(),
                 'clusters' => Cluster::query()->published()->ordered()->get(['id', 'name'])->map(fn (Cluster $c) => ['value' => $c->id, 'label' => $c->name])->all(),
                 'privacyUrl' => '/kebijakan-privasi',
-            ] : null,
-            'cta' => Cta::resolve($settings->section('cta')),
+            ],
+            // Halaman Kontak sudah berisi ajakan menghubungi, jadi tanpa section CTA.
+            'cta' => null,
         ]);
     }
 }

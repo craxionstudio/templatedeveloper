@@ -29,6 +29,9 @@ class TagResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    // Tidak tampil di menu (admin ringkas): dibuat langsung dari form Artikel (pilihan Tag). Halaman tetap bisa dibuka lewat URL.
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHashtag;
 
     public static function form(Schema $schema): Schema

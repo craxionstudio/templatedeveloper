@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Facility extends Model implements HasMedia
 {
-    use HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, SoftDeletes {
+    use FillsSlugAutomatically, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, SoftDeletes {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
     }
 

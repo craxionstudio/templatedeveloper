@@ -11,6 +11,7 @@ use App\Settings\GlobalSettings;
 use App\Settings\KawasanDetailPageSettings;
 use App\Settings\ListingPageSettings;
 use App\Support\Breadcrumbs;
+use App\Support\Content;
 use App\Support\Cta;
 use App\Support\PageMeta;
 use App\Support\RichText;
@@ -93,7 +94,7 @@ class KawasanController extends Controller
                     ['value' => Rupiah::short($clusters->pluck('price_min')->filter(fn ($p) => $p > 0)->min()) ?? app(GlobalSettings::class)->section('labels')['price_on_request'], 'label' => $hero['stat_price_label']],
                 ])),
             ],
-            'about' => $about['enabled'] ? [
+            'about' => Content::filled($kawasan->description) || $kawasan->getFirstMediaUrl('brochure') || $kawasan->map_embed_url || $kawasan->latitude ? [
                 'eyebrow' => $about['eyebrow'],
                 'title' => $kawasan->about_title ?: $kawasan->name,
                 'description' => RichText::sanitize($kawasan->description),
@@ -102,21 +103,21 @@ class KawasanController extends Controller
                 'mapUrl' => $kawasan->map_embed_url ?: ($kawasan->latitude ? "https://www.google.com/maps?q={$kawasan->latitude},{$kawasan->longitude}" : null),
                 'mapLabel' => $about['map_label'],
             ] : null,
-            'facilities' => $settings->section('facilities')['enabled'] && filled($kawasan->facilities) ? [
+            'facilities' => Content::filled($kawasan->facilities) ? [
                 'title' => $settings->section('facilities')['title'],
                 'items' => array_values($kawasan->facilities),
             ] : null,
-            'access' => $settings->section('facilities')['enabled'] && filled($kawasan->access) ? [
+            'access' => Content::filled($kawasan->access) ? [
                 'title' => $settings->section('facilities')['access_title'],
                 'items' => array_values($kawasan->access),
             ] : null,
-            'clusters' => $clustersSection['enabled'] ? [
+            'clusters' => $clusters->isNotEmpty() ? [
                 'eyebrow' => PageMeta::fill($clustersSection['eyebrow'], $values),
                 'title' => PageMeta::fill($clustersSection['title'], $values),
                 'link' => ['label' => $clustersSection['link_label'], 'url' => $clustersSection['link_url'].'?kawasan='.$kawasan->slug],
                 'items' => ClusterCard::collection($clusters),
             ] : null,
-            'others' => $others['enabled'] ? $this->others($kawasan, $others) : null,
+            'others' => $this->others($kawasan, $others),
             'cta' => Cta::resolve($settings->section('cta')),
         ]);
     }

@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\ClusterBadge;
 use App\Enums\ClusterStatus;
 use App\Enums\PropertyType;
+use App\Models\Concerns\FillsSlugAutomatically;
 use App\Models\Concerns\HasPublishing;
 use App\Models\Concerns\HasResponsiveImages;
 use App\Models\Concerns\HasSeoMeta;
 use App\Models\Concerns\RedirectsOldSlug;
 use App\Support\RichText;
+use App\Support\Summary;
 use Database\Factories\ClusterFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,9 +21,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Cluster = satu halaman Detail Rumah (/properti/{slug}).
@@ -30,7 +34,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Cluster extends Model implements HasMedia
 {
     /** @use HasFactory<ClusterFactory> */
-    use HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
+    use FillsSlugAutomatically, HasFactory, HasPublishing, HasResponsiveImages, HasSeoMeta, InteractsWithMedia, RedirectsOldSlug, SoftDeletes {
         HasResponsiveImages::registerMediaConversions insteadof InteractsWithMedia;
     }
 
@@ -88,9 +92,57 @@ class Cluster extends Model implements HasMedia
             }
 
             $cluster->description = RichText::sanitize($cluster->description);
+            // Terisi otomatis: ringkasan dari deskripsi, tahun launching dari tanggal launching.
+            if (blank($cluster->summary)) {
+                $cluster->summary = Summary::from($cluster->description);
+            }
+            if ($cluster->tanggal_launching) {
+                $cluster->launch_year = $cluster->tanggal_launching->year;
+            }
             $cluster->perlu_dilengkapi_count = collect($cluster->perlu_dilengkapi ?? [])
                 ->filter(fn ($item) => filled($item['item'] ?? null) && ! ($item['selesai'] ?? false))
                 ->count();
+        });
+    }
+
+    /**
+     * Salinan cluster untuk admin ("Duplikat cluster"): semua isi, tipe rumah, benefit, foto, dan
+     * file ikut disalin. Salinan belum dipublikasikan, namanya diberi akhiran "(salinan)", slug baru
+     * dibuat otomatis, dan data internal (catatan, prioritas) tidak ikut.
+     */
+    public function duplicate(): self
+    {
+        return DB::transaction(function (): self {
+            $copy = $this->replicate(['slug', 'published_at', 'house_types_count', 'catatan_internal', 'prioritas', 'perlu_dilengkapi', 'perlu_dilengkapi_count']);
+            $copy->name = $this->name.' (salinan)';
+            $copy->is_published = false;
+            $copy->is_featured = false;
+            $copy->save();
+
+            foreach ($this->houseTypes()->get() as $type) {
+                $newType = $type->replicate(['cluster_id']);
+                $newType->cluster_id = $copy->id;
+                $newType->is_published = $type->is_published;
+                $newType->save();
+                $type->getMedia('floorplan')->each(fn (Media $media) => $media->copy($newType, 'floorplan'));
+            }
+
+            foreach ($this->clusterBenefits()->get() as $benefit) {
+                $copy->clusterBenefits()->create($benefit->only(['benefit_id', 'teks_tampil', 'urutan']));
+            }
+
+            foreach ($this->galleryItems()->get() as $item) {
+                $newItem = $copy->galleryItems()->create($item->only(['alt', 'caption', 'sort_order']));
+                $item->getMedia('image')->each(fn (Media $media) => $media->copy($newItem, 'image'));
+            }
+
+            foreach (['brochure', 'pricelist', 'marketing_photo'] as $collection) {
+                $this->getMedia($collection)->each(fn (Media $media) => $media->copy($copy, $collection));
+            }
+
+            $copy->refreshAggregates();
+
+            return $copy;
         });
     }
 

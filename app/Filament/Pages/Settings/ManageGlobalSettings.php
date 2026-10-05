@@ -4,328 +4,95 @@ namespace App\Filament\Pages\Settings;
 
 use App\Filament\Forms\Fields;
 use App\Settings\GlobalSettings;
-use App\Support\CspSources;
-use App\Support\Secret;
 use BackedEnum;
-use Closure;
-use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use UnitEnum;
 
+/**
+ * Pengaturan Umum: nomor & pesan WhatsApp, kontak, logo, GA4, dan verifikasi Search Console.
+ * Header, footer, CTA, label, dan halaman 404 memakai teks tetap di kode (GlobalSettings::editable()).
+ */
 class ManageGlobalSettings extends PageSettingsPage
 {
     protected static string $settings = GlobalSettings::class;
 
-    protected static ?string $title = 'Pengaturan Global';
+    protected static ?string $title = 'Pengaturan Umum';
 
-    protected static ?string $navigationLabel = 'Pengaturan Global';
+    protected static ?string $navigationLabel = 'Pengaturan Umum';
 
-    protected static ?string $slug = 'pengaturan/global';
+    protected static ?string $slug = 'pengaturan/umum';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Sistem';
-
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+
+    protected static ?string $publicPath = null;
 
     public function form(Schema $schema): Schema
     {
         return $schema->columns(1)->components([
-            Tabs::make('Global')->persistTabInQueryString()->tabs([
-                Tab::make('Identitas')->schema([
-                    Grid::make(3)->schema([
-                        TextInput::make('identity.brand_name')->label('Nama brand')->required()->maxLength(80),
-                        TextInput::make('identity.company_name')->label('Nama PT')->maxLength(120),
-                        TextInput::make('identity.tagline')->label('Tagline')->maxLength(120),
-                    ]),
-                    Grid::make(3)->schema([
-                        self::logo('identity.logo_light', 'Logo (latar terang)'),
-                        self::logo('identity.logo_dark', 'Logo (latar gelap)'),
-                        self::logo('identity.favicon', 'Favicon'),
-                    ]),
+            Section::make('WhatsApp')->schema([
+                TextInput::make('contact.whatsapp')->label('Nomor WhatsApp (62…)')->tel()->regex('/^62\d{8,13}$/')
+                    ->placeholder('6281234567890')
+                    ->validationMessages(['regex' => 'Format nomor: 62 diikuti 8–13 digit, tanpa spasi.'])
+                    ->helperText('Kosong = tombol WhatsApp diarahkan ke halaman Kontak.'),
+                Fields::textarea('contact.whatsapp_message', 'Template pesan WhatsApp', 2)
+                    ->placeholder('Halo, saya ingin konsultasi rumah di BSD City.'),
+            ]),
+            Section::make('Kontak')->schema([
+                Grid::make(2)->schema([
+                    TextInput::make('contact.hotline')->label('Hotline')->maxLength(40)->placeholder('021 5315 9000'),
+                    TextInput::make('contact.phone')->label('Telepon kantor')->maxLength(40)->placeholder('021 5315 9000'),
+                    TextInput::make('contact.email')->label('Email')->email()->maxLength(120)->placeholder('marketing@bsdcity.com'),
+                    TextInput::make('contact.opening_hours')->label('Jam buka')->maxLength(80)->placeholder('Setiap hari, 09.00–17.00'),
                 ]),
-                Tab::make('Kontak')->schema([
-                    Grid::make(3)->schema([
-                        TextInput::make('contact.hotline')->label('Hotline')->maxLength(40),
-                        TextInput::make('contact.whatsapp')->label('Nomor WhatsApp (62…)')->tel()->regex('/^62\d{8,13}$/')
-                            ->validationMessages(['regex' => 'Format nomor: 62 diikuti 8–13 digit, tanpa spasi.'])
-                            ->helperText('Kosong = tombol WhatsApp diarahkan ke halaman Kontak.'),
-                        TextInput::make('contact.phone')->label('Telepon kantor')->maxLength(40),
-                    ]),
-                    Fields::textarea('contact.whatsapp_message', 'Template pesan WhatsApp default', 2),
-                    TextInput::make('contact.email')->label('Email')->maxLength(120),
-                    Fields::textarea('contact.office_address', 'Alamat kantor pemasaran', 2),
-                    Grid::make(3)->schema([
-                        TextInput::make('contact.latitude')->label('Latitude')->numeric(),
-                        TextInput::make('contact.longitude')->label('Longitude')->numeric(),
-                        TextInput::make('contact.opening_hours')->label('Jam buka')->maxLength(80),
-                    ]),
-                ]),
-                Tab::make('Header')->schema([
-                    Fields::button('header.cta', 'tombol CTA', 'Kosong = link WhatsApp.'),
-                    Toggle::make('header.show_hotline')->label('Tampilkan hotline di header'),
-                ]),
-                Tab::make('Footer')->schema([
-                    Fields::textarea('footer.description', 'Deskripsi singkat', 2),
-                    Grid::make(4)->schema([
-                        TextInput::make('footer.property_title')->label('Judul kolom Properti')
-                            ->helperText('Isi otomatis: kawasan yang dipublikasikan, yang punya cluster Prioritas 1–10 dulu.'),
-                        TextInput::make('footer.property_limit')->label('Maksimal kawasan')
-                            ->numeric()->integer()->minValue(1)->maxValue(30)->default(8),
-                        TextInput::make('footer.property_all_label')->label('Label link semua kawasan')->maxLength(40),
-                        TextInput::make('footer.property_all_url')->label('URL link semua kawasan')
-                            ->placeholder('/properti/kawasan')->maxLength(255),
-                    ]),
-                    Repeater::make('footer.columns')
-                        ->label('Kolom link lain')
-                        ->schema([
-                            TextInput::make('title')->label('Judul kolom')->required()->maxLength(40),
-                            self::links('links', 'Link'),
-                        ])
-                        ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
-                        ->collapsible()
-                        ->reorderableWithDragAndDrop()
-                        ->maxItems(3),
-                    TextInput::make('footer.social_title')->label('Judul kolom sosial')->maxLength(40),
-                    Repeater::make('footer.social')
-                        ->label('Link sosial media')
-                        ->schema([
-                            TextInput::make('label')->label('Nama')->required()->maxLength(40),
-                            TextInput::make('url')->label('URL')->required()->maxLength(255),
-                        ])
-                        ->columns(2)
-                        ->reorderableWithDragAndDrop(),
-                    TextInput::make('footer.office_title')->label('Judul kolom kantor')->maxLength(40),
-                    TextInput::make('footer.copyright')->label('Teks copyright')->helperText('{year} diganti tahun berjalan.'),
-                    Fields::textarea('footer.disclaimer', 'Disclaimer', 2),
-                ]),
-                Tab::make('CTA global')->schema([
-                    Fields::text('cta.eyebrow', 'Eyebrow'),
-                    Fields::text('cta.title', 'Judul'),
-                    Fields::textarea('cta.description', 'Deskripsi'),
-                    TextInput::make('cta.whatsapp_label')->label('Label tombol WhatsApp')->maxLength(60),
-                    Fields::button('cta.visit', 'tombol kunjungan'),
-                    Toggle::make('cta.modal_enabled')->label('Tombol kunjungan membuka form singkat (modal)')
-                        ->helperText('Mati = tombol langsung ke URL tombol kunjungan.'),
-                    Fields::text('cta.modal_title', 'Judul form modal'),
-                    Fields::textarea('cta.modal_description', 'Deskripsi form modal', 2),
-                    TextInput::make('cta.modal_submit_label')->label('Label tombol kirim (modal)')->maxLength(40),
-                ]),
-                Tab::make('Mobile')->schema([
-                    Toggle::make('mobile.show_whatsapp_icon')->label('Tampilkan ikon WhatsApp di header mobile'),
-                    Grid::make(3)->schema([
-                        TextInput::make('mobile.sticky_price_label')->label('Sticky bar: label harga')->maxLength(30),
-                        TextInput::make('mobile.sticky_whatsapp_label')->label('Sticky bar: label WhatsApp (aksesibilitas)')->maxLength(40),
-                        TextInput::make('mobile.sticky_survey_label')->label('Sticky bar: tombol survey')->maxLength(40),
-                    ]),
-                ]),
-                Tab::make('Tracking & verifikasi')->visible(fn (): bool => self::canManageTracking())->schema([
-                    Grid::make(3)->schema([
-                        TextInput::make('tracking.gtm_id')->label('Google Tag Manager ID')->placeholder('GTM-XXXXXXX')
-                            ->regex('/^GTM-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: GTM-XXXXXXX.'])
-                            ->live(onBlur: true)
-                            ->helperText('Disarankan. Semua event dikirim ke dataLayer; atur tag GA4 & Meta Pixel di GTM (docs/TRACKING.md).'),
-                        TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID (opsional)')->placeholder('G-XXXXXXXXXX')
-                            ->regex('/^G-[A-Z0-9]+$/i')->validationMessages(['regex' => 'Format: G-XXXXXXXXXX.'])
-                            ->helperText(self::DOUBLE_COUNT_WARNING)
-                            ->hint(fn (Get $get): ?string => filled($get('tracking.gtm_id')) && filled($get('tracking.ga4_id')) ? 'GTM juga terisi' : null)
-                            ->hintColor('warning')
-                            ->hintIcon(fn (Get $get) => filled($get('tracking.gtm_id')) && filled($get('tracking.ga4_id')) ? Heroicon::OutlinedExclamationTriangle : null)
-                            ->live(onBlur: true),
-                        TextInput::make('tracking.meta_pixel_id')->label('Meta Pixel ID (opsional)')
-                            ->regex('/^\d{5,20}$/')->validationMessages(['regex' => 'Pixel ID hanya angka.'])
-                            ->helperText(self::DOUBLE_COUNT_WARNING)
-                            ->hint(fn (Get $get): ?string => filled($get('tracking.gtm_id')) && filled($get('tracking.meta_pixel_id')) ? 'GTM juga terisi' : null)
-                            ->hintColor('warning')
-                            ->hintIcon(fn (Get $get) => filled($get('tracking.gtm_id')) && filled($get('tracking.meta_pixel_id')) ? Heroicon::OutlinedExclamationTriangle : null)
-                            ->live(onBlur: true),
-                    ]),
-                    Section::make('Meta Conversions API')
-                        ->description('Event Lead dikirim juga dari server dengan event_id yang sama dengan Pixel (deduplikasi). Token kosong = CAPI dilewati.')
-                        ->schema([
-                            Grid::make(3)->schema([
-                                TextInput::make('tracking.meta_capi_pixel_id')->label('Pixel ID untuk Conversions API')
-                                    ->regex('/^\d{5,20}$/')->validationMessages(['regex' => 'Pixel ID hanya angka.'])
-                                    ->helperText('Pixel yang sama dengan di GTM. Kosong = pakai Meta Pixel ID di atas.'),
-                                self::secret('tracking.meta_capi_token', 'Access token Conversions API'),
-                                TextInput::make('tracking.meta_test_event_code')->label('Test event code (opsional)')
-                                    ->helperText('Dari Events Manager → Test events. Kosongkan setelah uji coba selesai.')
-                                    ->maxLength(40),
-                            ]),
-                        ]),
-                    Section::make('Cloudflare Turnstile')
-                        ->description('Isi site key dan secret key untuk mengaktifkan Turnstile di semua form. Salah satu kosong = Turnstile dilewati (honeypot dan rate limit tetap jalan).')
-                        ->schema([
-                            Grid::make(2)->schema([
-                                TextInput::make('tracking.turnstile_site_key')->label('Site key')->maxLength(100),
-                                self::secret('tracking.turnstile_secret_key', 'Secret key'),
-                            ]),
-                        ]),
-                    Section::make('Domain tambahan CSP')
-                        ->description('Untuk tag pihak ketiga baru di GTM (mis. TikTok Pixel, Google Ads). Isi domain saja (analytics.tiktok.com) atau https://domain; tekan Enter setelah tiap domain. GTM, GA4, Meta Pixel, Turnstile, Google Maps, dan YouTube sudah diizinkan. Panduan: docs/TRACKING.md.')
-                        ->collapsible()
-                        ->schema([
-                            Grid::make(2)->schema(collect([
-                                'script_src' => ['script-src', 'Script yang dimuat tag (fallback browser lama)'],
-                                'connect_src' => ['connect-src', 'Tujuan kirim data (fetch/beacon)'],
-                                'img_src' => ['img-src', 'Gambar / piksel pelacak'],
-                                'frame_src' => ['frame-src', 'Iframe'],
-                            ])->map(fn (array $meta, string $key) => TagsInput::make("tracking.csp_extra.{$key}")
-                                ->label($meta[0])
-                                ->helperText($meta[1])
-                                ->placeholder('analytics.contoh.com')
-                                ->nestedRecursiveRules([
-                                    fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
-                                        if (CspSources::normalize($value) === null) {
-                                            $fail('Hanya domain atau https://domain (tanpa *, tanpa kata kunci seperti \'unsafe-eval\', tanpa path).');
-                                        }
-                                    },
-                                ]))->values()->all()),
-                        ]),
-                    Grid::make(2)->schema([
-                        TextInput::make('tracking.google_verification')->label('Verifikasi Google Search Console'),
-                        TextInput::make('tracking.bing_verification')->label('Verifikasi Bing Webmaster'),
-                    ]),
-                ]),
-                Tab::make('Notifikasi lead')->visible(fn (): bool => self::canManageTracking())->schema([
-                    TagsInput::make('notifications.emails')->label('Email penerima notifikasi lead')
-                        ->placeholder('marketing@contoh.com')
-                        ->helperText('Bisa lebih dari satu. Tekan Enter setelah tiap email. Kosong = tidak ada email notifikasi.')
-                        ->nestedRecursiveRules(['email:rfc']),
-                ]),
-                Tab::make('Label umum')->schema([
-                    Grid::make(3)->schema(collect(GlobalSettings::defaults()['labels'])
-                        ->map(fn (string $default, string $key) => TextInput::make("labels.{$key}")
-                            ->label(str($key)->replace('_', ' ')->ucfirst()->toString())
-                            ->placeholder($default)
-                            ->maxLength(80))
-                        ->values()
-                        ->all()),
-                ]),
-                Tab::make('Halaman 404')->schema([
-                    Fields::text('not_found.eyebrow', 'Eyebrow'),
-                    Fields::text('not_found.title', 'Judul (H1)'),
-                    Fields::textarea('not_found.message', 'Pesan'),
-                    Repeater::make('not_found.links')->label('Link lanjutan')->schema([
-                        TextInput::make('label')->required()->maxLength(60),
-                        TextInput::make('url')->required()->maxLength(255),
-                    ])->columns(2)->reorderableWithDragAndDrop()->maxItems(4),
-                ]),
-                Tab::make('SEO default')->schema([
-                    TextInput::make('seo.title_pattern')->label('Pola title')->helperText('{title} = judul halaman, {brand} = nama brand.'),
-                    TextInput::make('seo.home_title_pattern')->label('Pola title Beranda')->helperText('{brand} dan {tagline}.'),
-                    FileUpload::make('seo.default_og_image')->label('OG image default (1200×630)')->disk('public')->directory('seo')->visibility('public')->image(),
-                    TagsInput::make('seo.same_as')->label('sameAs (URL profil resmi untuk Organization)')->placeholder('https://instagram.com/…'),
+                Fields::textarea('contact.office_address', 'Alamat kantor pemasaran', 2)
+                    ->placeholder('Marketing Gallery BSD City, Jl. Grand Boulevard, BSD City, Tangerang 15345'),
+                TextInput::make('identity.company_name')->label('Nama perusahaan (footer & data Google)')->maxLength(120)->placeholder('PT Bumi Serpong Damai Tbk'),
+                Repeater::make('footer.social')->label('Media sosial')
+                    ->schema([
+                        TextInput::make('label')->label('Nama')->required()->maxLength(40)->placeholder('Instagram'),
+                        TextInput::make('url')->label('URL')->required()->url()->maxLength(255)->placeholder('https://instagram.com/bsdcity'),
+                    ])
+                    ->columns(2)->reorderableWithDragAndDrop()->defaultItems(0)->addActionLabel('Tambah media sosial'),
+            ]),
+            Section::make('Logo')->schema([
+                Grid::make(3)->schema([
+                    self::logo('identity.logo_light', 'Logo (latar terang)'),
+                    self::logo('identity.logo_dark', 'Logo (latar gelap)'),
+                    self::logo('identity.favicon', 'Favicon'),
                 ]),
             ]),
-        ]);
-    }
-
-    /**
-     * Tab "Tracking & verifikasi" & "Notifikasi lead" hanya untuk Admin.
-     */
-    public static function canManageTracking(): bool
-    {
-        return auth()->user()?->isAdmin() ?? false;
-    }
-
-    /**
-     * Key rahasia di tab Tracking: disimpan terenkripsi, tidak pernah ditampilkan ulang.
-     */
-    public const SECRETS = ['meta_capi_token', 'turnstile_secret_key'];
-
-    public const DOUBLE_COUNT_WARNING = 'Kosongkan jika Pixel/GA4 sudah dipasang lewat GTM, supaya event tidak terhitung dua kali.';
-
-    /**
-     * Tab yang hanya untuk Admin (tracking & tujuan notifikasi lead).
-     */
-    public const RESTRICTED = ['tracking', 'notifications'];
-
-    /**
-     * ID tracking, kode verifikasi, dan tujuan notifikasi tidak dikirim ke browser untuk role
-     * selain Super Admin. Rahasia tidak dikirim ke browser untuk siapa pun.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    protected function mutateFormDataBeforeFill(array $data): array
-    {
-        if (! self::canManageTracking()) {
-            return array_diff_key($data, array_flip(self::RESTRICTED));
-        }
-
-        foreach (self::SECRETS as $key) {
-            $data['tracking'][$key] = null;
-        }
-
-        return $data;
-    }
-
-    /**
-     * Penolakan di sisi server: perubahan tracking/notifikasi dari role lain selalu dibuang,
-     * walaupun request Livewire dimanipulasi. Nilai tersimpan dipertahankan.
-     *
-     * Rahasia: field kosong = pertahankan nilai lama; centang "hapus" = kosongkan; isi baru = enkripsi.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        if (! self::canManageTracking()) {
-            $data = array_diff_key($data, array_flip(self::RESTRICTED));
-        } elseif (isset($data['tracking']) && is_array($data['tracking'])) {
-            // Domain CSP disimpan dalam bentuk baku (https://domain), yang tidak valid dibuang.
-            if (isset($data['tracking']['csp_extra']) && is_array($data['tracking']['csp_extra'])) {
-                $data['tracking']['csp_extra'] = CspSources::normalizeAll($data['tracking']['csp_extra']);
-            }
-
-            foreach (self::SECRETS as $key) {
-                $clear = (bool) ($data['tracking'][$key.'_clear'] ?? false);
-                $value = trim((string) ($data['tracking'][$key] ?? ''));
-                unset($data['tracking'][$key.'_clear'], $data['tracking'][$key]);
-
-                if ($clear) {
-                    $data['tracking'][$key] = '';
-                } elseif ($value !== '') {
-                    $data['tracking'][$key] = Secret::encrypt($value);
-                }
-            }
-        }
-
-        return parent::mutateFormDataBeforeSave($data);
-    }
-
-    private static function secret(string $path, string $label): Group
-    {
-        $key = str($path)->after('tracking.')->toString();
-        $stored = fn (): bool => filled(app(GlobalSettings::class)->tracking[$key] ?? null);
-
-        return Group::make([
-            TextInput::make($path)
-                ->label($label)
-                ->password()
-                ->autocomplete('new-password')
-                ->maxLength(500)
-                ->placeholder(fn (): string => $stored() ? '•••••••• (tersimpan)' : 'Belum diisi')
-                ->helperText(fn (): string => $stored()
-                    ? 'Tersimpan terenkripsi dan tidak ditampilkan ulang. Kosongkan untuk mempertahankan, isi untuk mengganti.'
-                    : 'Disimpan terenkripsi dan tidak ditampilkan ulang setelah disimpan.'),
-            Checkbox::make($path.'_clear')
-                ->label('Hapus nilai tersimpan')
-                ->visible($stored),
+            Section::make('Google')->schema([
+                TextInput::make('tracking.ga4_id')->label('GA4 Measurement ID')->placeholder('G-XXXXXXXXXX')
+                    ->regex('/^G-[A-Z0-9]{4,20}$/')
+                    ->validationMessages(['regex' => 'Format: G- diikuti huruf/angka, mis. G-AB12CD34EF.'])
+                    ->helperText('Kosong = tidak ada script tracking.'),
+                TextInput::make('tracking.google_verification')->label('Verifikasi Google Search Console')->maxLength(200)
+                    ->placeholder('kode dari meta tag google-site-verification')
+                    ->helperText('Isi bagian content="…" saja dari meta tag verifikasi.'),
+            ]),
+            Section::make('Notifikasi lead')->schema([
+                TagsInput::make('notifications.emails')->label('Email penerima notifikasi lead')
+                    ->placeholder('marketing@contoh.com')
+                    ->helperText('Bisa lebih dari satu. Tekan Enter setelah tiap email. Kosong = tidak ada email notifikasi.')
+                    ->nestedRecursiveRules(['email:rfc']),
+            ]),
+            Fields::advanced([
+                FileUpload::make('seo.default_og_image')->label('Gambar share default (1200×630)')->disk('public')->directory('seo')->visibility('public')->image()
+                    ->helperText('Dipakai halaman yang tidak punya foto sendiri saat dibagikan.'),
+                Grid::make(2)->schema([
+                    TextInput::make('contact.latitude')->label('Latitude kantor')->numeric()->placeholder('-6.3017'),
+                    TextInput::make('contact.longitude')->label('Longitude kantor')->numeric()->placeholder('106.6527'),
+                ]),
+            ]),
         ]);
     }
 

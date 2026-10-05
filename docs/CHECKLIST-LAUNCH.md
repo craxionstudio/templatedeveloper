@@ -2,7 +2,7 @@
 
 Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. Centang satu per satu. Langkah teknis lengkapnya ada di `README.md` bagian **Deploy ke VPS**.
 
-> Semua pengaturan "Admin → …" ada di `/admin`. Tab **Tracking & verifikasi** dan **Notifikasi lead** di Pengaturan Global hanya terlihat oleh **Super Admin**.
+> Semua pengaturan "Admin → …" ada di `/admin`. Hanya ada satu role (Admin) dengan akses semua menu. Pengaturan ada di 4 menu: Beranda, Properti, Halaman Lain, Pengaturan Umum.
 
 ## 1. Server & `.env`
 
@@ -59,11 +59,11 @@ Daftar yang harus diisi atau dicek pemilik sebelum website dibuka untuk publik. 
 
 ## 3. Kontak & WhatsApp
 
-- [ ] **Nomor WhatsApp** format `62…` di Admin → Pengaturan Global → Kontak. Selama kosong, semua tombol WA diarahkan ke halaman Kontak dan tombol "Lanjut chat WhatsApp" di halaman terima kasih tidak muncul.
+- [ ] **Nomor WhatsApp** format `62…` di Admin → Pengaturan Umum → WhatsApp. Selama kosong, semua tombol WA diarahkan ke halaman Kontak dan tombol "Lanjut chat WhatsApp" di halaman terima kasih tidak muncul.
 - [ ] Nomor WA marketing per cluster (opsional): Admin → Properti → Cluster → Marketing.
 - [ ] Hotline, telepon, email, alamat kantor pemasaran, jam buka, dan koordinat (untuk peta dan JSON-LD).
 - [ ] Template pesan WA default dan per halaman (Detail Rumah menyebut nama cluster & tipe).
-- [ ] URL embed Google Maps di Admin → Pengaturan Halaman → Kontak → Peta.
+- [ ] URL embed Google Maps di Admin → Pengaturan → Halaman Lain → Kontak.
 
 ## 4. Tracking & iklan
 
@@ -95,7 +95,7 @@ Panduan lengkap: `docs/TRACKING.md`.
 - [ ] **Promo:** 9 promo hasil import masih draft. Konfirmasi periode & angka diskon ke marketing BSD, isi **Mulai/Berakhir**, lalu nyalakan **Dipublikasikan** di Admin → Promo. Promo aktif otomatis tampil di Detail Rumah, Detail Kawasan, dan badge "Promo" di kartu; lewat tanggal berakhir otomatis hilang.
 - [ ] Lengkapi data per cluster mulai dari 10 prioritas (`docs/data/BELUM-LENGKAP.md`, atau Admin → Cluster → filter **Belum lengkap**, urutkan **Prioritas**). Centang item di tab **Internal** setelah dilengkapi.
 - [ ] Teks Arunika sudah diganti BSD City otomatis saat `migrate` (hanya teks yang belum diubah admin). Cek sekilas Pengaturan Global (nama brand, tagline) dan hero Beranda.
-- [ ] Setelah ada fasilitas/artikel/pengembangan mendatang yang asli: publikasikan, lalu nyalakan lagi section **Fasilitas**, **Pengembangan Mendatang**, dan **Artikel & Berita** di Pengaturan Halaman → Beranda. Selama kosong, `/fasilitas` dan `/artikel` menampilkan keadaan kosong (teksnya di tab Daftar masing-masing).
+- [ ] Setelah ada fasilitas/artikel/pengembangan mendatang yang asli: cukup publikasikan, section **Fasilitas**, **Pengembangan Mendatang**, dan **Artikel & Berita** di Beranda tampil otomatis. Selama kosong, `/fasilitas` dan `/artikel` menampilkan keadaan kosong.
 - [ ] Ganti semua data di **`docs/DATA-DUMMY.md`** (LB, kamar mandi, carport, sisa unit, lokasi fasilitas, fasilitas kawasan). Selama belum diganti, field di admin bertanda kuning **Data dummy**.
 - [ ] Cari dan ganti semua teks dalam kurung siku `[...]`: nama PT, alamat, telepon, email, `[XX]`, `[TAHUN]`, `[VISI PERUSAHAAN]`, `[MISI …]`, `[NAMA MARKETING]`, `[NAMA NARASUMBER]`, dll. Cek di setiap Pengaturan Halaman, Profil Developer, Profil Lokasi, Kawasan, Cluster, Artikel, Promo, dan Future Development. Setelah itu, cari `[` di halaman publik.
 - [ ] Unggah foto asli: hero Beranda, galeri cluster (foto pertama = foto utama), hero kawasan, denah tipe, cover artikel, foto fasilitas, foto marketing, logo, dan favicon. Isi **alt text** di setiap foto.
@@ -104,7 +104,7 @@ Panduan lengkap: `docs/TRACKING.md`.
 - [ ] **Kebijakan Privasi**: isi lengkap sesuai UU PDP (dikaji bagian legal) dan tanggal berlaku.
 - [ ] Teks halaman Terima Kasih dan 404.
 - [ ] Artikel contoh: hapus atau ganti dengan artikel asli (penulis asli + foto).
-- [ ] Pengaturan Global → SEO default: pola title, OG image default (1200×630, opsional; bawaan: `public/og/*.png`), dan `sameAs` (URL Instagram/TikTok/YouTube/Facebook resmi). Link sosial di footer masih `#`, jadi ganti juga.
+- [ ] Pengaturan Umum → Kontak → **Media sosial** (Instagram/TikTok/YouTube/Facebook resmi; selama kosong tidak tampil di footer) dan Lanjutan → gambar share default (opsional; bawaan: `public/og/*.png`).
 - [ ] Setelah semua diganti, jalankan `php artisan cache:clear` sekali (cache halaman juga dibuang otomatis setiap kali menyimpan di admin).
 
 ## 7. Search engine

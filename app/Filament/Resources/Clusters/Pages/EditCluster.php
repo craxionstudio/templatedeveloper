@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Clusters\Pages;
 
 use App\Filament\Actions\PreviewAction;
+use App\Filament\Resources\Clusters\Actions\DuplicateClusterAction;
 use App\Filament\Resources\Clusters\ClusterResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -17,6 +18,7 @@ class EditCluster extends EditRecord
     {
         return [
             PreviewAction::make('cluster.preview', 'cluster'),
+            DuplicateClusterAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

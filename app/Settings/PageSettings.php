@@ -2,6 +2,7 @@
 
 namespace App\Settings;
 
+use Illuminate\Support\Arr;
 use Spatie\LaravelSettings\Settings;
 
 /**
@@ -33,13 +34,56 @@ abstract class PageSettings extends Settings
     }
 
     /**
+     * Key (dot path) yang bisa diubah admin, jadi nilainya dibaca dari database. Key lain selalu memakai
+     * teks tetap di kode (database/settings/defaults/{group}.php), walaupun di database masih ada nilai lama.
+     * null = semua key dibaca dari database.
+     *
+     * Harus sama dengan field di form admin (App\Filament\Pages\Settings).
+     *
+     * @return list<string>|null
+     */
+    public static function editable(): ?array
+    {
+        return null;
+    }
+
+    /**
      * Section yang sudah dilengkapi fallback untuk field teks yang kosong.
      *
      * @return array<string, mixed>
      */
     public function section(string $key): array
     {
-        return self::withFallback($this->{$key} ?? [], static::defaults()[$key] ?? []);
+        return self::withFallback(self::onlyEditable($key, (array) ($this->{$key} ?? [])), static::defaults()[$key] ?? []);
+    }
+
+    /**
+     * @param  array<string, mixed>  $stored
+     * @return array<string, mixed>
+     */
+    private static function onlyEditable(string $key, array $stored): array
+    {
+        $editable = static::editable();
+
+        if ($editable === null || in_array($key, $editable, true)) {
+            return $stored;
+        }
+
+        $result = [];
+
+        foreach ($editable as $path) {
+            if (! str_starts_with($path, $key.'.')) {
+                continue;
+            }
+
+            $relative = substr($path, strlen($key) + 1);
+
+            if (Arr::has($stored, $relative)) {
+                Arr::set($result, $relative, Arr::get($stored, $relative));
+            }
+        }
+
+        return $result;
     }
 
     /**

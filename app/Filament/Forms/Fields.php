@@ -64,6 +64,42 @@ class Fields
     }
 
     /**
+     * Slug opsional untuk section Lanjutan: kosong = dibuat otomatis dari nama saat disimpan.
+     *
+     * @param  list<string>  $reserved
+     */
+    public static function slug(array $reserved = [], ?Closure $modifyUniqueRule = null): TextInput
+    {
+        return TextInput::make('slug')
+            ->label('Slug URL')
+            ->maxLength(255)
+            ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')
+            ->notIn($reserved)
+            ->unique(ignoreRecord: true, modifyRuleUsing: $modifyUniqueRule)
+            ->validationMessages([
+                'regex' => 'Slug hanya boleh huruf kecil, angka, dan tanda hubung.',
+                'not_in' => 'Slug ini dipakai sistem, pilih slug lain.',
+            ])
+            ->helperText('Kosong = otomatis dari nama. Kalau diubah, redirect 301 dari URL lama dibuat otomatis.');
+    }
+
+    /**
+     * Satu gambar tanpa field alt text: alt otomatis dari nama record.
+     */
+    public static function imageOnly(string $collection, string $label = 'Gambar', ?string $helper = null): SpatieMediaLibraryFileUpload
+    {
+        return SpatieMediaLibraryFileUpload::make($collection)
+            ->label($label)
+            ->collection($collection)
+            ->disk('public')
+            ->image()
+            ->imageEditor()
+            ->maxSize(8192)
+            ->helperText($helper)
+            ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file, Get $get): string => self::descriptiveFileName($file, $get('name') ?? $get('title')));
+    }
+
+    /**
      * Satu gambar (media library) + alt text yang wajib diisi kalau ada gambar.
      * Nama file diubah jadi slug dari alt text.
      *
@@ -120,7 +156,7 @@ class Fields
             ->grid(2)
             ->defaultItems(0)
             ->addActionLabel('Tambah foto')
-            ->itemLabel(fn (array $state): ?string => $state['alt'] ?? null)
+            ->itemLabel(fn (array $state): ?string => $state['caption'] ?? null)
             ->schema([
                 SpatieMediaLibraryFileUpload::make('image')
                     ->label('Foto')
@@ -130,15 +166,23 @@ class Fields
                     ->imageEditor()
                     ->maxSize(8192)
                     ->required()
-                    ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file, Get $get): string => self::descriptiveFileName($file, $get('alt'))),
-                TextInput::make('alt')
-                    ->label('Alt text')
-                    ->required()
-                    ->maxLength(255),
+                    ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file, Get $get): string => self::descriptiveFileName($file, $get('caption') ?: $get('../../name'))),
                 TextInput::make('caption')
                     ->label('Keterangan (opsional)')
+                    ->placeholder('Fasad rumah tipe 8×15')
                     ->maxLength(255),
-            ]);
+            ])
+            // Alt text otomatis: keterangan foto, atau "Foto {nama}".
+            ->mutateRelationshipDataBeforeCreateUsing(fn (array $data, Get $get): array => [...$data, 'alt' => self::galleryAlt($data, $get('name'))])
+            ->mutateRelationshipDataBeforeSaveUsing(fn (array $data, Get $get): array => [...$data, 'alt' => self::galleryAlt($data, $get('name'))]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private static function galleryAlt(array $data, ?string $name): string
+    {
+        return filled($data['caption'] ?? null) ? $data['caption'] : trim('Foto '.$name);
     }
 
     /**
@@ -164,6 +208,46 @@ class Fields
                 ->maxLength(255)
                 ->required(fn (Get $get): bool => filled($get($path))),
         ];
+    }
+
+    /**
+     * Gambar settings tanpa field alt text: alt otomatis dari teks bawaan halaman.
+     */
+    public static function settingsImageOnly(string $path, string $label = 'Gambar'): FileUpload
+    {
+        return FileUpload::make($path)
+            ->label($label)
+            ->disk('public')
+            ->directory('settings')
+            ->visibility('public')
+            ->image()
+            ->imageEditor()
+            ->maxSize(8192)
+            ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file): string => self::descriptiveFileName($file, null));
+    }
+
+    /**
+     * Section "Lanjutan" (tertutup): field SEO/teknis yang biasanya terisi otomatis.
+     *
+     * @param  array<int, mixed>  $schema
+     */
+    public static function advanced(array $schema, string $description = 'Opsional. Kosongkan untuk memakai nilai otomatis.'): Section
+    {
+        return Section::make('Lanjutan')
+            ->description($description)
+            ->icon('heroicon-o-adjustments-horizontal')
+            ->collapsed()
+            ->schema($schema);
+    }
+
+    /**
+     * Meta title & description halaman (settings) di section Lanjutan.
+     *
+     * @return array<int, mixed>
+     */
+    public static function settingsMeta(string $section = 'seo'): array
+    {
+        return [self::metaTitle("{$section}.meta_title"), self::metaDescription("{$section}.meta_description")];
     }
 
     public static function icon(string $name = 'icon', string $label = 'Ikon'): Select

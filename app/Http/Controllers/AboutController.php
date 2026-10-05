@@ -6,6 +6,7 @@ use App\Models\DeveloperProfile;
 use App\Presenters\Image;
 use App\Settings\AboutPageSettings;
 use App\Support\Breadcrumbs;
+use App\Support\Content;
 use App\Support\Cta;
 use App\Support\PageMeta;
 use App\Support\RichText;
@@ -48,29 +49,29 @@ class AboutController extends Controller
                 'image' => $heroImage,
                 'quote' => $profile->vision_quote,
             ],
-            'history' => $history['enabled'] ? [
+            'history' => Content::filled($history['body'] ?: $profile->history) ? [
                 'title' => $history['title'],
                 'body' => RichText::sanitize($history['body'] ?: $profile->history),
                 'image' => Image::media($profile, 'secondary_photo', $profile->secondary_photo_alt, 'Foto tim'),
             ] : null,
-            'vision' => $vision['enabled'] ? [
+            'vision' => Content::filled($vision['vision']) ? [
                 'title' => $vision['title'],
                 'visionLabel' => $vision['vision_label'],
                 'vision' => $vision['vision'],
                 'missionLabel' => $vision['mission_label'],
-                'missions' => collect($vision['missions'] ?? [])->map(fn ($m) => is_array($m) ? ($m['text'] ?? '') : (string) $m)->filter()->values()->all(),
+                'missions' => collect(Content::items($vision['missions'] ?? []))->map(fn ($m) => is_array($m) ? ($m['text'] ?? '') : (string) $m)->filter()->values()->all(),
             ] : null,
-            'stats' => $stats['enabled'] && filled($profile->stats) ? ['title' => $stats['title'], 'items' => array_values($profile->stats)] : null,
-            'timeline' => $timeline['enabled'] && filled($timeline['items']) ? ['title' => $timeline['title'], 'items' => array_values($timeline['items'])] : null,
-            'team' => $team['enabled'] && filled($team['items']) ? [
+            'stats' => Content::filled($profile->stats) ? ['title' => $stats['title'], 'items' => array_values($profile->stats)] : null,
+            'timeline' => Content::filled($timeline['items']) ? ['title' => $timeline['title'], 'items' => Content::items($timeline['items'])] : null,
+            'team' => Content::filled($team['items']) ? [
                 'title' => $team['title'],
-                'items' => collect($team['items'])->map(fn (array $m) => [
+                'items' => collect(Content::items($team['items']))->map(fn (array $m) => [
                     'name' => $m['name'] ?? '',
                     'role' => $m['role'] ?? '',
                     'photo' => Image::path($m['photo'] ?? null, $m['photo_alt'] ?? null, 'Foto '.($m['name'] ?? '')),
                 ])->values()->all(),
             ] : null,
-            'awards' => $awards['enabled'] && filled($awards['items']) ? ['title' => $awards['title'], 'items' => array_values($awards['items'])] : null,
+            'awards' => Content::filled($awards['items']) ? ['title' => $awards['title'], 'items' => Content::items($awards['items'])] : null,
             'cta' => Cta::resolve($settings->section('cta')),
         ]);
     }
