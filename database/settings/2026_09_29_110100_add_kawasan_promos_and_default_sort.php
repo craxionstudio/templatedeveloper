@@ -11,9 +11,12 @@ return new class extends SettingsMigration
 {
     public function up(): void
     {
-        // Instalasi baru: sudah ditambahkan dari defaults oleh migrasi pembuatnya.
+        // Section promo kawasan sudah dihapus lagi (2026_10_06_400000_remove_old_promo_settings): instalasi baru
+        // tidak lagi menambahkannya. Database lama tetap ditambahkan supaya urutan migrasi tetap sama.
+        $promos = (require PageSettings::defaultsPath('page_kawasan_detail'))['promos'] ?? ['enabled' => false];
+
         if (! $this->migrator->exists('page_kawasan_detail.promos')) {
-            $this->migrator->add('page_kawasan_detail.promos', (require PageSettings::defaultsPath('page_kawasan_detail'))['promos']);
+            $this->migrator->add('page_kawasan_detail.promos', $promos);
         }
 
         $this->migrator->update('page_listing.cluster_view', function (array|object $view): array {

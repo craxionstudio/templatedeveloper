@@ -41,7 +41,7 @@ class ImportBsdData extends Command
 {
     protected $signature = 'import:bsd-data
         {path=docs/data/bsd-city-data.json : File JSON (relatif ke root project atau path absolut)}
-        {--fresh : Hapus dulu SEMUA kawasan, cluster, tipe rumah, dan promo contoh; nonaktifkan konten contoh lain}
+        {--fresh : Hapus dulu SEMUA kawasan, cluster, dan tipe rumah; nonaktifkan konten contoh lain}
         {--force : Jalankan --fresh di production tanpa konfirmasi}';
 
     protected $description = 'Import profil lokasi, kawasan, cluster, tipe rumah, dan SEO dari file JSON data asli';
@@ -154,7 +154,7 @@ class ImportBsdData extends Command
         $this->count('Dihapus: kawasan', Kawasan::withTrashed()->count());
         Kawasan::withTrashed()->each(fn (Kawasan $kawasan) => $kawasan->forceDelete());
 
-        // Konten contoh lain (fasilitas, pengembangan mendatang, artikel, promo) tidak dihapus, hanya dinonaktifkan.
+        // Konten contoh lain (fasilitas, pengembangan mendatang, artikel) tidak dihapus, hanya dinonaktifkan.
         foreach (DummyContent::unpublish() as $type => $n) {
             $this->count("Dinonaktifkan: {$type} contoh", $n);
         }

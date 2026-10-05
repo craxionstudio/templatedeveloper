@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Pengaturan .env production yang aman (idempotent). Hanya mengubah key di bawah; key lain utuh.
 #   APP_ENV=production, APP_DEBUG=false, LOG_LEVEL bukan debug (jadi warning),
-#   INERTIA_DEVTOOLS_ENABLED=false, SITE_INDEXABLE=false HANYA kalau belum ada (tidak pernah diubah ke true).
+#   INERTIA_DEVTOOLS_ENABLED=false, SESSION_SECURE_COOKIE=true (cookie hanya lewat HTTPS),
+#   SITE_INDEXABLE=false HANYA kalau belum ada (tidak pernah diubah ke true).
 # Kalau ada yang berubah: .env dibackup dulu ke .env.backup-{tanggal-jam}, lalu optimize:clear + config:cache.
 # Baris terakhir output: "BACKUP=<file>" (kosong kalau tidak ada perubahan), dipakai deploy untuk rollback.
 #
@@ -20,13 +21,14 @@ declare -A WANT=()
 WANT[APP_ENV]=production
 WANT[APP_DEBUG]=false
 WANT[INERTIA_DEVTOOLS_ENABLED]=false
+WANT[SESSION_SECURE_COOKIE]=true
 
 LOG_LEVEL_NOW="$(current LOG_LEVEL)"
 if [ -z "$LOG_LEVEL_NOW" ] || [ "$LOG_LEVEL_NOW" = "debug" ]; then WANT[LOG_LEVEL]=warning; fi
 grep -qE '^SITE_INDEXABLE=' "$ENV_FILE" || WANT[SITE_INDEXABLE]=false
 
 CHANGES=()
-for KEY in APP_ENV APP_DEBUG LOG_LEVEL INERTIA_DEVTOOLS_ENABLED SITE_INDEXABLE; do
+for KEY in APP_ENV APP_DEBUG LOG_LEVEL INERTIA_DEVTOOLS_ENABLED SESSION_SECURE_COOKIE SITE_INDEXABLE; do
     [ -n "${WANT[$KEY]:-}" ] || continue
     COUNT="$(grep -cE "^$KEY=" "$ENV_FILE" || true)"
     if [ "$(current "$KEY")" != "${WANT[$KEY]}" ] || [ "$COUNT" -gt 1 ]; then

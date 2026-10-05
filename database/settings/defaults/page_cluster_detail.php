@@ -4,8 +4,6 @@ $shared = require __DIR__.'/_shared.php';
 
 return [
     'sections' => [
-        // Sistem promo lama (tabel promos), disembunyikan dari website sejak Bank Benefit.
-        'promo' => ['enabled' => true, 'title' => 'Promo rumah ini', 'period_prefix' => 'Berlaku s.d.'],
         // Bank Benefit: benefit yang dicentang di cluster. Tidak tampil kalau cluster tanpa benefit.
         // Pesan WhatsApp tombol: template "promo" di Pengaturan Umum.
         'benefits' => [

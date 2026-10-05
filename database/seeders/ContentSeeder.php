@@ -3,67 +3,22 @@
 namespace Database\Seeders;
 
 use App\Enums\DevelopmentStatus;
-use App\Enums\PromoPlacement;
-use App\Models\Cluster;
 use App\Models\Facility;
 use App\Models\FacilityCategory;
 use App\Models\FutureDevelopment;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * 2 promo, 9 fasilitas (6 kategori), 4 pengembangan mendatang — teks dari docs/design.
+ * 9 fasilitas (6 kategori), 4 pengembangan mendatang — teks dari docs/design.
  */
 class ContentSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->seedPromos();
         $this->seedFacilities();
         $this->seedFutureDevelopments();
-    }
-
-    /**
-     * Judul promo contoh (dinonaktifkan oleh import:bsd-data --fresh, lihat App\Support\DummyContent).
-     */
-    public const DUMMY_PROMO_TITLES = ['DP 0% dan gratis biaya KPR di semua cluster Arunika.', 'Promo rumah ini'];
-
-    private function seedPromos(): void
-    {
-        Promo::query()->updateOrCreate(['title' => self::DUMMY_PROMO_TITLES[0]], [
-            'label' => 'Promo September',
-            'description' => 'Berlaku untuk pembelian hingga [TANGGAL]. Syarat & ketentuan berlaku.',
-            'placement' => PromoPlacement::HomeBanner,
-            'cta_label' => 'Lihat Unit Promo',
-            'cta_url' => '/properti',
-            'image_alt' => 'Visual promo DP 0% Arunika Land',
-            'starts_at' => now()->subWeek()->startOfDay(),
-            'ends_at' => now()->addMonth()->endOfDay(),
-            'sort_order' => 1,
-            'is_published' => true,
-        ]);
-
-        $detail = Promo::query()->updateOrCreate(['title' => self::DUMMY_PROMO_TITLES[1]], [
-            'label' => 'Promo September',
-            'period_label' => '[TANGGAL]',
-            'placement' => PromoPlacement::Detail,
-            'items' => [
-                ['icon' => 'tag', 'title' => 'DP 0%', 'description' => 'Tanpa uang muka untuk pembelian via KPR bank rekanan.'],
-                ['icon' => 'gift', 'title' => 'Gratis biaya KPR & AJB', 'description' => 'Biaya provisi, notaris, dan AJB ditanggung developer.'],
-                ['icon' => 'zap', 'title' => 'Free upgrade listrik 4.400 VA', 'description' => 'Untuk 10 unit pertama di bulan ini.'],
-                ['icon' => 'check', 'title' => 'Cashback hingga Rp 50 jt', 'description' => 'Untuk pembayaran cash bertahap 12x.'],
-            ],
-            'starts_at' => now()->subWeek()->startOfDay(),
-            'ends_at' => now()->addMonth()->endOfDay(),
-            'sort_order' => 2,
-            'is_published' => true,
-        ]);
-
-        $detail->clusters()->sync(
-            Cluster::query()->whereIn('slug', ['vega-garden', 'lyra-residence', 'orion-park', 'sora-terrace'])->pluck('id'),
-        );
     }
 
     private function seedFacilities(): void

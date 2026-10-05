@@ -1,8 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import AboutSection from '@/components/home/about-section';
 import type { AboutData } from '@/components/home/about-section';
-import PromoSlider from '@/components/home/promo-slider';
-import type { PromoData } from '@/components/home/promo-slider';
 import {
     ArticlesSection,
     DevelopmentsSection,
@@ -37,7 +35,6 @@ type HomeProps = {
         secondary: { label: string; url: string | null };
     } | null;
     about: AboutData | null;
-    promos: PromoData | null;
     listing: ListingData | null;
     region: RegionData | null;
     facilities: FacilitiesData | null;
@@ -50,7 +47,6 @@ export default function Home({
     meta,
     hero,
     about,
-    promos,
     listing,
     region,
     facilities,
@@ -136,7 +132,6 @@ export default function Home({
             ) : (
                 <div className="h-14 xl:h-[120px]" />
             )}
-            {promos ? <PromoSlider promos={promos} /> : null}
             {listing ? <ListingSection listing={listing} /> : null}
             {region ? <RegionSection region={region} /> : null}
             {facilities ? <FacilitiesSection facilities={facilities} /> : null}

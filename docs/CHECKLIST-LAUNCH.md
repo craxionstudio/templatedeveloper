@@ -78,17 +78,17 @@ Panduan lengkap: `docs/TRACKING.md`.
   ```bash
   php artisan import:bsd-data --fresh   # hapus kawasan/cluster/tipe contoh, nonaktifkan konten contoh, lalu import docs/data/bsd-city-data.json
   ```
-  Lalu `php artisan import:bsd-update docs/data/bsd-city-update-2.json` (tanggal launching + 9 promo draft).
+  Lalu `php artisan import:bsd-update` untuk `bsd-city-update-2.json` (tanggal launching), `-3.json` (tampilan cluster/kawasan), dan `-4.json` (benefit per cluster), berurutan.
   Cek hasilnya: 23 kawasan, 144 cluster, 87 tipe rumah. Setelah itu cukup `php artisan import:bsd-data` (tanpa `--fresh`) kalau JSON diperbarui. **Jangan** pakai `--fresh` lagi setelah admin mulai melengkapi data: `--fresh` menghapus semua kawasan & cluster.
-- [ ] **Promo:** 9 promo hasil import masih draft. Konfirmasi periode & angka diskon ke marketing BSD, isi **Mulai/Berakhir**, lalu nyalakan **Dipublikasikan** di Admin → Promo. Promo aktif otomatis tampil di Detail Rumah, Detail Kawasan, dan badge "Promo" di kartu; lewat tanggal berakhir otomatis hilang.
+- [ ] **Promo & Benefit:** benefit hasil update-4 (sumber: halaman resmi, periode September 2026) langsung tampil. Konfirmasi angka diskon ke marketing BSD dan perbarui di Admin → Cluster → tab **Promo & Benefit** (atau nonaktifkan benefit di Bank Benefit).
 - [ ] Lengkapi data per cluster mulai dari 10 prioritas (`docs/data/BELUM-LENGKAP.md`, atau Admin → Cluster → filter **Belum lengkap**, urutkan **Prioritas**). Centang item di tab **Internal** setelah dilengkapi.
 - [ ] Teks Arunika sudah diganti BSD City otomatis saat `migrate` (hanya teks yang belum diubah admin). Cek sekilas Pengaturan Global (nama brand, tagline) dan hero Beranda.
 - [ ] Setelah ada fasilitas/artikel/pengembangan mendatang yang asli: cukup publikasikan, section **Fasilitas**, **Pengembangan Mendatang**, dan **Artikel & Berita** di Beranda tampil otomatis. Selama kosong, `/fasilitas` dan `/artikel` menampilkan keadaan kosong.
 - [ ] Ganti semua data di **`docs/DATA-DUMMY.md`** (LB, kamar mandi, carport, sisa unit, lokasi fasilitas, fasilitas kawasan). Selama belum diganti, field di admin bertanda kuning **Data dummy**.
-- [ ] Cari dan ganti semua teks dalam kurung siku `[...]`: nama PT, alamat, telepon, email, `[XX]`, `[TAHUN]`, `[VISI PERUSAHAAN]`, `[MISI …]`, `[NAMA MARKETING]`, `[NAMA NARASUMBER]`, dll. Cek di setiap Pengaturan Halaman, Profil Developer, Profil Lokasi, Kawasan, Cluster, Artikel, Promo, dan Future Development. Setelah itu, cari `[` di halaman publik.
+- [ ] Cari dan ganti semua teks dalam kurung siku `[...]`: nama PT, alamat, telepon, email, `[XX]`, `[TAHUN]`, `[VISI PERUSAHAAN]`, `[MISI …]`, `[NAMA MARKETING]`, `[NAMA NARASUMBER]`, dll. Cek di setiap Pengaturan Halaman, Profil Developer, Profil Lokasi, Kawasan, Cluster, Artikel, dan Future Development. Setelah itu, cari `[` di halaman publik.
 - [ ] Unggah foto asli: hero Beranda, galeri cluster (foto pertama = foto utama), hero kawasan, denah tipe, cover artikel, foto fasilitas, foto marketing, logo, dan favicon. Isi **alt text** di setiap foto.
 - [ ] Brosur & pricelist PDF per cluster/kawasan.
-- [ ] Harga, cicilan, booking fee, status unit, dan periode promo sesuai kondisi terbaru.
+- [ ] Harga, cicilan, booking fee, status unit, dan benefit sesuai kondisi terbaru.
 - [ ] **Kebijakan Privasi**: isi lengkap sesuai UU PDP (dikaji bagian legal) dan tanggal berlaku.
 - [ ] Artikel contoh: hapus atau ganti dengan artikel asli (penulis asli + foto).
 - [ ] Pengaturan Umum → Kontak → **Media sosial** (Instagram/TikTok/YouTube/Facebook resmi; selama kosong tidak tampil di footer) dan Lanjutan → gambar share default (opsional; bawaan: `public/og/*.png`).

@@ -11,8 +11,6 @@ class HomePageSettings extends PageSettings
 
     public array $about;
 
-    public array $promo;
-
     public array $listing;
 
     public array $region;

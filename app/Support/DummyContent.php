@@ -5,7 +5,6 @@ namespace App\Support;
 use App\Models\Article;
 use App\Models\Facility;
 use App\Models\FutureDevelopment;
-use App\Models\Promo;
 use Database\Seeders\ArticleSeeder;
 use Database\Seeders\ContentSeeder;
 use Illuminate\Support\Str;
@@ -26,7 +25,6 @@ class DummyContent
             'fasilitas' => Facility::query()->whereIn('name', array_column(ContentSeeder::facilityData(), 0))->where('is_published', true)->update(['is_published' => false]),
             'pengembangan mendatang' => FutureDevelopment::query()->whereIn('title', array_column(ContentSeeder::developmentData(), 1))->where('is_published', true)->update(['is_published' => false]),
             'artikel' => Article::query()->whereIn('slug', array_map(fn (array $article) => Str::slug($article[0]), ArticleSeeder::articleData()))->where('is_published', true)->update(['is_published' => false]),
-            'promo' => Promo::query()->whereIn('title', ContentSeeder::DUMMY_PROMO_TITLES)->where('is_published', true)->update(['is_published' => false]),
         ];
 
         // Update massal tidak memicu event model: buang cache halaman & sitemap manual.

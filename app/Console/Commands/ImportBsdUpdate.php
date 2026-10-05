@@ -3,12 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Enums\ClusterDisplay;
-use App\Enums\PromoPlacement;
 use App\Models\Benefit;
 use App\Models\BenefitCluster;
 use App\Models\Cluster;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Support\PageCache;
 use App\Support\Sitemaps;
 use Illuminate\Console\Command;
@@ -21,9 +19,7 @@ use JsonException;
  *
  * - tanggal_launching: diisi per cluster_slug; cluster lain yang hanya punya tahun launching diisi
  *   1 Januari tahun itu (tanggal yang sudah ada tidak diubah).
- * - promos: upsert per judul, placement "detail", relasi ke cluster lewat cluster_slugs (ditambahkan,
- *   relasi dari admin tidak dilepas). "sumber" disimpan sebagai catatan internal. is_published dari
- *   file hanya dipakai saat promo dibuat, supaya promo yang sudah dipublikasikan admin tidak ikut mati.
+ * - promos: sistem promo lama sudah dihapus (6 Okt 2026); bagian "promos" di file lama diabaikan.
  *
  * - cluster_tampilan (update 3): slug → tampil_sebagai ("halaman" / "daftar"); kawasan_tampilan: slug →
  *   punya_halaman (true / false). Nilai dari file selalu dipakai (bisa diubah lagi di admin, lalu ditimpa
@@ -41,7 +37,7 @@ class ImportBsdUpdate extends Command
         {path : File JSON update (relatif ke root project atau path absolut)}
         {--force : Jalankan di production tanpa konfirmasi (untuk script deploy)}';
 
-    protected $description = 'Import update data BSD City: tanggal launching, promo, benefit, dan tampilan cluster/kawasan';
+    protected $description = 'Import update data BSD City: tanggal launching, benefit, dan tampilan cluster/kawasan';
 
     /** @var array<string, int> */
     private array $counts = [];
@@ -67,7 +63,6 @@ class ImportBsdUpdate extends Command
 
         DB::transaction(function () use ($data): void {
             $this->importLaunchDates($data['tanggal_launching'] ?? []);
-            $this->importPromos($data['promos'] ?? []);
             $this->importBenefits($data['benefits'] ?? []);
             $this->importClusterDisplay($data['cluster_tampilan'] ?? []);
             $this->importKawasanPages($data['kawasan_tampilan'] ?? []);
@@ -168,49 +163,6 @@ class ImportBsdUpdate extends Command
         return array_is_list($rows)
             ? collect($rows)->filter(fn ($row): bool => is_array($row) && filled($row['slug'] ?? null))->mapWithKeys(fn (array $row): array => [$row['slug'] => $row[$key] ?? null])->all()
             : $rows;
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $rows
-     */
-    private function importPromos(array $rows): void
-    {
-        foreach (array_values($rows) as $index => $row) {
-            $promo = Promo::withTrashed()->firstOrNew(['title' => $row['judul']]);
-            $isNew = ! $promo->exists;
-
-            $promo->fill([
-                'placement' => PromoPlacement::Detail,
-                'label' => $row['label'] ?? $promo->label,
-                'description' => $row['deskripsi'] ?? $promo->description,
-                'starts_at' => filled($row['starts_at'] ?? null) ? Carbon::parse($row['starts_at'])->startOfDay() : $promo->starts_at,
-                'ends_at' => filled($row['ends_at'] ?? null) ? Carbon::parse($row['ends_at'])->endOfDay() : $promo->ends_at,
-                'catatan_internal' => $row['sumber'] ?? $promo->catatan_internal,
-            ]);
-
-            if ($isNew) {
-                $promo->is_published = (bool) ($row['is_published'] ?? false);
-                $promo->sort_order = $index + 1;
-            }
-
-            $promo->save();
-
-            if ($promo->trashed()) {
-                $promo->restore();
-            }
-
-            $slugs = $row['cluster_slugs'] ?? [];
-            $clusterIds = Cluster::query()->whereIn('slug', $slugs)->pluck('id', 'slug');
-
-            foreach (array_diff($slugs, $clusterIds->keys()->all()) as $missing) {
-                $this->warn("Promo \"{$row['judul']}\": cluster tidak ditemukan ({$missing})");
-            }
-
-            $promo->clusters()->syncWithoutDetaching($clusterIds->values()->all());
-
-            $this->count($isNew ? 'Promo baru' : 'Promo diperbarui', 1);
-            $this->count($promo->is_published ? '  dipublikasikan' : '  belum dipublikasikan', 1);
-        }
     }
 
     /**

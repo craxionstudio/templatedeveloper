@@ -1,18 +1,15 @@
 <?php
 
-use App\Enums\PromoPlacement;
 use App\Filament\Resources\Clusters\Pages\ListClusters;
-use App\Filament\Resources\Promos\Pages\EditPromo;
 use App\Models\Cluster;
-use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Models\User;
 use App\Settings\GlobalSettings;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
 
 /*
- * php artisan import:bsd-update (tanggal launching & promo), urutan "Terbaru", dan promo aktif.
+ * php artisan import:bsd-update (tanggal launching), urutan "Terbaru". Sistem promo lama sudah dihapus.
  */
 
 beforeEach(function () {
@@ -20,19 +17,6 @@ beforeEach(function () {
     $this->artisan('import:bsd-data', ['--fresh' => true])->assertSuccessful();
     $this->artisan('import:bsd-update', ['path' => 'docs/data/bsd-city-update-2.json'])->assertSuccessful();
 });
-
-function bsdPromo(string $title): Promo
-{
-    return Promo::query()->where('title', $title)->firstOrFail();
-}
-
-function publishPromo(string $title, array $attributes = []): Promo
-{
-    $promo = bsdPromo($title);
-    $promo->update(['is_published' => true, ...$attributes]);
-
-    return $promo;
-}
 
 it('mengisi tanggal launching dari file dan 1 Januari untuk cluster yang hanya punya tahun', function () {
     expect(Cluster::where('slug', 'monard-of-the-armont')->first()->tanggal_launching->toDateString())->toBe('2026-07-07')
@@ -43,29 +27,14 @@ it('mengisi tanggal launching dari file dan 1 Januari untuk cluster yang hanya p
         ->and(Cluster::whereNotNull('tanggal_launching')->get()->filter(fn (Cluster $c) => $c->tanggal_launching->format('m-d') === '01-01')->count())->toBeGreaterThan(0);
 });
 
-it('mengimpor promo sebagai draft dengan sumber di catatan internal, aman diulang', function () {
+it('mengabaikan bagian "promos" di file update lama (sistem promo lama sudah dihapus)', function () {
+    expect(Schema::hasTable('promos'))->toBeFalse()
+        ->and(Schema::hasTable('cluster_promo'))->toBeFalse()
+        ->and(Schema::hasTable('kawasan_promo'))->toBeFalse()
+        ->and(json_decode((string) file_get_contents(base_path('docs/data/bsd-city-update-2.json')), true))->toHaveKey('promos');
+
+    // Import ulang file yang masih berisi "promos" tetap sukses.
     $this->artisan('import:bsd-update', ['path' => 'docs/data/bsd-city-update-2.json'])->assertSuccessful();
-
-    $promo = bsdPromo('Promo Caelus September');
-
-    expect(Promo::whereIn('title', ['Promo Castilo', 'Promo IZZI', 'Promo Caelus September'])->count())->toBe(3)
-        ->and(Promo::where('catatan_internal', '!=', null)->count())->toBe(9)
-        ->and($promo)
-        ->is_published->toBeFalse()
-        ->placement->toBe(PromoPlacement::Detail)
-        ->catatan_internal->toBe('sinarmasland.com halaman produk (Sep 2026)')
-        ->and($promo->starts_at->toDateTimeString())->toBe('2026-09-01 00:00:00')
-        ->and($promo->ends_at->toDateTimeString())->toBe('2026-09-30 23:59:59')
-        ->and($promo->clusters->pluck('slug')->all())->toBe(['caelus'])
-        ->and(DB::table('cluster_promo')->where('promo_id', $promo->id)->count())->toBe(1);
-});
-
-it('tidak mematikan lagi promo yang sudah dipublikasikan admin saat import diulang', function () {
-    publishPromo('Promo IZZI');
-
-    $this->artisan('import:bsd-update', ['path' => 'docs/data/bsd-city-update-2.json'])->assertSuccessful();
-
-    expect(bsdPromo('Promo IZZI')->is_published)->toBeTrue();
 });
 
 it('mengurutkan /properti default berdasarkan tanggal launching terbaru, kosong di bawah, lalu prioritas & nama', function () {
@@ -90,37 +59,23 @@ it('memakai urutan Terbaru di daftar cluster Detail Kawasan', function () {
     expect($names->search('Vyorelle at Vireya'))->toBeLessThan($names->search('Lynelle'));
 });
 
-it('tidak lagi menampilkan promo lama di website walau dipublikasikan (diganti Bank Benefit)', function () {
-    publishPromo('Promo IZZI');
-    publishPromo('Promo Lynelle');
-
+it('tidak lagi menampilkan promo lama di website (diganti Bank Benefit)', function () {
     $this->get('/properti/izzi')->assertOk()->assertInertia(fn (Assert $page) => $page->missing('promo'));
     $this->get('/properti/kawasan/vireya')->assertOk()->assertInertia(fn (Assert $page) => $page->missing('promos'));
-    $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->where('promos', null));
+    $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->missing('promos'));
 
     // Badge "Promo" sekarang dari Bank Benefit, bukan dari promo lama.
     $card = collect($this->get('/properti')->inertiaProps('clusters.data'))->firstWhere('name', 'IZZI');
     expect($card['badges'])->toBe(['Baru']);
 });
 
-it('bisa mengurutkan tabel cluster admin berdasarkan tanggal launching dan menghubungkan promo ke kawasan', function () {
+it('bisa mengurutkan tabel cluster admin berdasarkan tanggal launching', function () {
     $this->actingAs(User::where('email', 'admin@example.com')->first());
 
     Livewire::test(ListClusters::class)
         ->assertTableColumnExists('tanggal_launching')
         ->sortTable('tanggal_launching', 'desc')
         ->assertCanSeeTableRecords([Cluster::where('slug', 'monard-of-the-armont')->first()]);
-
-    $promo = bsdPromo('Promo Lynelle');
-    $vireya = Kawasan::where('slug', 'vireya')->first();
-
-    Livewire::test(EditPromo::class, ['record' => $promo->getRouteKey()])
-        ->assertSchemaStateSet(['catatan_internal' => 'vireyabsd.co.id (situs agen)'])
-        ->fillForm(['kawasans' => [$vireya->id]])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
-    expect($promo->fresh()->kawasans->pluck('slug')->all())->toBe(['vireya']);
 });
 
 it('tidak menulis "Tipe Tipe" untuk nama tipe yang sudah diawali "Tipe"', function () {

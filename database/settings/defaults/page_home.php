@@ -30,13 +30,6 @@ return [
         'link_url' => '/tentang-kami',
     ],
 
-    'promo' => [
-        'enabled' => true,
-        'source' => 'auto',
-        'items' => [],
-        'autoplay' => false,
-    ],
-
     'listing' => [
         'enabled' => true,
         'eyebrow' => 'Pilihan Properti',

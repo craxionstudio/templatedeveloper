@@ -16,7 +16,6 @@ use App\Models\FutureDevelopment;
 use App\Models\GalleryItem;
 use App\Models\HouseType;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Models\Redirect;
 use App\Models\SeoMeta;
 use App\Models\Tag;
@@ -35,7 +34,7 @@ class AdminAccess
     public const CONTENT_MODELS = [
         Area::class, Article::class, ArticleCategory::class, Author::class, Benefit::class, BenefitCluster::class, Cluster::class, DeveloperProfile::class,
         Facility::class, FacilityCategory::class, FutureDevelopment::class, GalleryItem::class, HouseType::class,
-        Kawasan::class, Promo::class, Redirect::class, SeoMeta::class, Tag::class,
+        Kawasan::class, Redirect::class, SeoMeta::class, Tag::class,
     ];
 
     /**

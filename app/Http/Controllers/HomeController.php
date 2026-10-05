@@ -8,7 +8,6 @@ use App\Models\Cluster;
 use App\Models\DeveloperProfile;
 use App\Models\Facility;
 use App\Models\FutureDevelopment;
-use App\Models\Promo;
 use App\Presenters\ArticleCard;
 use App\Presenters\ClusterCard;
 use App\Presenters\FacilityCard;
@@ -48,8 +47,6 @@ class HomeController extends Controller
                 'secondary' => ['label' => $hero['secondary_label'], 'url' => $hero['secondary_url'] ?: null],
             ],
             'about' => $this->about($settings->section('about')),
-            // Banner promo lama (tabel promos) disembunyikan sejak Bank Benefit.
-            'promos' => null,
             'listing' => $this->listing($settings->section('listing')),
             'region' => $this->region($settings->section('region')),
             'facilities' => $this->facilities($settings->section('facilities')),

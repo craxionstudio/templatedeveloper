@@ -164,11 +164,6 @@ class Cluster extends Model implements HasMedia
         return $this->houseTypes()->where('is_published', true);
     }
 
-    public function promos(): BelongsToMany
-    {
-        return $this->belongsToMany(Promo::class);
-    }
-
     /**
      * Benefit yang dicentang di cluster ini (urutan dari admin). Kartu & Detail Rumah memakai
      * activeBenefits (benefit nonaktif di Bank Benefit tidak tampil).

@@ -2,14 +2,12 @@
 
 namespace App\Filament\Pages\Settings;
 
-use App\Enums\PromoPlacement;
 use App\Models\Article;
 use App\Models\ArticleCategory;
 use App\Models\Cluster;
 use App\Models\Facility;
 use App\Models\FacilityCategory;
 use App\Models\FutureDevelopment;
-use App\Models\Promo;
 
 /**
  * Pilihan item untuk field "sumber data: pilih manual" di settings halaman.
@@ -50,11 +48,5 @@ class Options
     public static function articleCategories(): array
     {
         return ArticleCategory::query()->orderBy('sort_order')->pluck('name', 'id')->all();
-    }
-
-    /** @return array<int, string> */
-    public static function homePromos(): array
-    {
-        return Promo::query()->where('placement', PromoPlacement::HomeBanner->value)->orderBy('sort_order')->pluck('title', 'id')->all();
     }
 }

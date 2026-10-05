@@ -92,7 +92,7 @@ Data dummy (ikuti desain, teks dalam `[...]` wajib diganti):
 - 3 kawasan: Arunika Garden (Vega Garden, Lyra Residence, Orion Park), Arunika Hills
   (Kirana Hills, Nara Village), Arunika Lakeside (Sora Terrace, Sora Terrace II)
 - 2 cluster mandiri: Kalea Townhouse, Hana Residence — total 9 cluster dan 20 tipe rumah
-- 9 fasilitas (6 kategori), 4 pengembangan mendatang, 9 artikel di 5 kategori, 2 promo
+- 9 fasilitas (6 kategori), 4 pengembangan mendatang, 9 artikel di 5 kategori
 - Isi awal semua Pengaturan Halaman dibuat oleh migrasi settings (`database/settings/`),
   sumbernya `database/settings/defaults/*.php`
 
@@ -197,8 +197,8 @@ Login ke `/admin`, lalu isi lewat menu:
       atau sekaligus untuk banyak cluster lewat bulk action di tabel Cluster. Tanpa tanggal berakhir: benefit tampil
       selama dicentang. Tampil di Detail Rumah (section "Promo & Benefit" + tombol WA), chip di kartu (maks 3 + "+N"),
       badge "Promo" (kedua, setelah badge admin seperti "Baru"), filter `/properti?benefit=tanpa-dp` (satu benefit = halaman SEO sendiri), dan urutan "Promo".
-- **Konten** — Fasilitas (kategori dibuat langsung dari form), Pengembangan Mendatang, Profil Developer. (Menu Promo lama disembunyikan sejak
-  Bank Benefit; datanya belum dihapus.)
+- **Konten** — Fasilitas (kategori dibuat langsung dari form), Pengembangan Mendatang, Profil Developer. (Sistem promo lama dihapus 6 Okt 2026,
+  isinya diekspor ke `storage/app/backup/promos-{tanggal}.csv`; diganti Bank Benefit.)
 - **Artikel** — Artikel (rich text disanitasi, waktu baca otomatis, highlight; tag dibuat langsung dari form),
   Kategori, Penulis.
 - **Pengaturan** (4 menu) — **Beranda**; **Properti** (listing, Detail Kawasan, Detail Rumah); **Halaman Lain**
@@ -232,15 +232,14 @@ php artisan import:bsd-data --fresh
 php artisan import:bsd-data
 php artisan import:bsd-data path/ke/file-lain.json
 
-# File update (tanggal launching, promo), setelah import:bsd-data. Upsert, aman diulang.
+# File update (tanggal launching, tampilan cluster, benefit), setelah import:bsd-data. Upsert, aman diulang.
 php artisan import:bsd-update docs/data/bsd-city-update-2.json
 php artisan import:bsd-update docs/data/bsd-city-update-3.json
+php artisan import:bsd-update docs/data/bsd-city-update-4.json
 ```
 
 - `import:bsd-update`: tanggal launching per cluster (dasar urutan "Terbaru"; cluster yang baru punya tahun
-  launching diisi 1 Januari) dan promo (upsert per judul, placement Detail, relasi ke cluster lewat `cluster_slugs`,
-  `sumber` jadi catatan internal). Status publikasi dari file hanya dipakai saat promo dibuat, jadi promo yang sudah
-  dipublikasikan admin tidak dimatikan lagi.
+  launching diisi 1 Januari). Bagian `"promos"` di file lama (update-2) diabaikan: sistem promo lama sudah dihapus.
 - `import:bsd-update` juga membaca benefit per cluster (Bank Benefit):
   `"benefits": [{"cluster_slug": "castilo-at-terravia", "benefit_slug": "diskon", "teks_tampil": "Diskon hingga 13%"}]`.
   Upsert per (cluster, benefit). Benefit yang diubah atau dilepas di admin setelah import sebelumnya, atau ditambahkan
@@ -445,8 +444,10 @@ Best Practices 100, SEO 100**; LCP lab 2,3–2,6 dtk, CLS 0, TBT ≤ 80 ms.
     > untuk canonical, `og:url`, sitemap, RSS, dan JSON-LD. Salah isi = seluruh URL kanonik salah.
 4. `php artisan migrate --force`; deploy **pertama** saja: `php artisan db:seed --force` (isi awal settings, contoh
    konten, 3 akun admin; catat password yang dicetak, atau set `SEED_ADMIN_PASSWORD` dulu)
-5. Script deploy otomatis (`.github/workflows/deploy.yml`) juga mengimpor data asli saat file `docs/data/*.json`
-   berubah (dicatat di `storage/app/import-markers/`), didahului `php artisan backup:run --only-db
+5. Script deploy otomatis (`.github/workflows/deploy.yml` → `scripts/server/run-imports.sh`) juga mengimpor data asli
+   saat file `docs/data/*.json` berubah (dicatat di `storage/app/import-markers/`), urutan data → update-2 → update-3 →
+   update-4. Kalau `bsd-city-data.json` di-import ulang, marker semua update dihapus supaya update ikut di-import ulang
+   dengan urutan yang sama. Tiap import didahului `php artisan backup:run --only-db
 --disable-notifications`: `import:bsd-data … --fresh --force --no-interaction` hanya di import pertama, setelah itu
    tanpa `--fresh`; `import:bsd-update … --force --no-interaction`. Keduanya tidak pernah bertanya dengan `--force`.
 6. `php artisan storage:link && php artisan optimize && php artisan filament:optimize`

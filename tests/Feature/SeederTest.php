@@ -7,7 +7,6 @@ use App\Models\Facility;
 use App\Models\FutureDevelopment;
 use App\Models\HouseType;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Support\Rupiah;
 
 beforeEach(fn () => $this->seed());
@@ -20,8 +19,7 @@ it('mengisi data dummy sesuai brief bagian 10', function () {
         ->and(Facility::count())->toBe(9)
         ->and(FutureDevelopment::count())->toBe(4)
         ->and(Article::count())->toBe(9)
-        ->and(ArticleCategory::count())->toBe(5)
-        ->and(Promo::count())->toBe(2);
+        ->and(ArticleCategory::count())->toBe(5);
 });
 
 it('menaruh cluster di kawasan yang benar', function (string $kawasan, array $clusters) {

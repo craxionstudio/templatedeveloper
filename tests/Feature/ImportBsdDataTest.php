@@ -10,7 +10,6 @@ use App\Models\Article;
 use App\Models\Cluster;
 use App\Models\HouseType;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Models\SeoMeta;
 use App\Models\User;
 use App\Settings\ClusterDetailPageSettings;
@@ -49,7 +48,6 @@ it('mengganti data dummy dengan data BSD City tanpa menyentuh user, artikel, dan
         ->and(HouseType::count())->toBe(87)
         ->and(Cluster::withTrashed()->where('slug', 'vega-garden')->exists())->toBeFalse()
         ->and(Kawasan::withTrashed()->where('slug', 'arunika-garden')->exists())->toBeFalse()
-        ->and(Promo::where('title', 'Promo rumah ini')->first()->is_published)->toBeFalse()
         ->and(Article::published()->count())->toBe(0)
         ->and(User::where('email', 'admin@example.com')->exists())->toBeTrue()
         ->and(Article::count())->toBe($articles)

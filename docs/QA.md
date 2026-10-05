@@ -4,7 +4,7 @@ Hasil pemeriksaan sebelum serah terima. Semua dijalankan ulang dari nol di sesi 
 
 ## 1. Test otomatis (Pest)
 
-**327 test, semua lolos** (`composer test` = Pint + Pest). Pemetaan ke brief bagian 10:
+**333 test, semua lolos** (`composer test` = Pint + Pest). Pemetaan ke brief bagian 10:
 
 | Wajib di brief | File test |
 |---|---|

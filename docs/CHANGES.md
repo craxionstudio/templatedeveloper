@@ -702,6 +702,36 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   Test lama yang memeriksa angka hasil dan teks lama disesuaikan.
 - Tetap: tidak ada label sold out, sisa unit, atau periode harga.
 
+
+**Update 4: benefit per cluster, rantai import ulang, cookie aman, sistem promo lama dihapus** (permintaan pemilik 6 Okt 2026; data di `docs/data/bsd-city-update-4.json`)
+
+1. **Import update-4 (benefit per cluster):**
+   - Slug benefit di file (`tanpa-dp`, `diskon`, `free-bphtb`) sudah cocok dengan tabel `benefits`, jadi file tidak diubah. Semua 10 cluster di file ada dan punya halaman sendiri.
+   - Import di data asli: 18 benefit masuk, aman diulang (tanpa pivot dobel).
+   - Dicek di lokal:
+     - **Castilo:** "Tanpa DP" + "Diskon hingga 13% + 0,5%", badge "Baru" + "Promo".
+     - **Fleekhauz R:** "Tanpa DP", "Free BPHTB", "Diskon hingga 17%", badge "Promo".
+2. **Rantai import ulang:**
+   - Logika import di deploy dipindah ke `scripts/server/run-imports.sh` (dipanggil `deploy.yml` langkah 6). Urutannya tetap: data → update-2 → update-3 → update-4. Baris update-4 ada di script ini, bukan di `deploy.yml`.
+   - Kalau `bsd-city-data.json` di-import ulang (hash berubah), marker update-2/3/4 dihapus, jadi semua update ikut di-import ulang dengan urutan yang sama.
+   - Import yang gagal menghentikan deploy, dan marker file itu tidak diperbarui supaya dicoba lagi di deploy berikutnya.
+   - Marker lama di server tetap dipakai (nama file sama).
+3. **Cookie aman:**
+   - `ensure-env.sh` menyetel `SESSION_SECURE_COOKIE=true` (idempotent, baris dobel dirapikan, `.env` dibackup dulu).
+   - `verify-env.sh` sekarang juga mengecek login admin dari luar: `/admin/login` harus 200, cookie session harus ber-flag Secure, dan request kedua dengan cookie itu harus tetap 200.
+   - Kalau website atau login admin gagal, `.env` di-rollback otomatis seperti sebelumnya.
+4. **Sistem promo lama dihapus:**
+   - Migrasi `2026_10_06_400000_export_and_drop_promos_table` mengekspor isi `promos` (beserta slug cluster & kawasan yang terhubung) ke `storage/app/backup/promos-{tanggal}.csv` (UTF-8 BOM, file lama tidak ditimpa), lalu menghapus `promos`, `cluster_promo`, dan `kawasan_promo`.
+   - Yang ikut dihapus:
+     - Model `Promo`, enum `PromoPlacement`, resource admin Promo (yang sudah disembunyikan), relasi `promos()` di Cluster/Kawasan.
+     - Slider promo Beranda (`promo-slider.tsx`), promo contoh di seeder, dan bagian `promos` di `import:bsd-update` (bagian itu di file update-2 sekarang diabaikan).
+     - Settings banner promo Beranda, "Promo di kawasan ini", dan section promo lama Detail Rumah (settings migrasi `2026_10_06_400000_remove_old_promo_settings`).
+   - "Promo & Benefit" (Bank Benefit), badge "Promo", filter/urutan "Promo", dan template WA promo tetap ada.
+- **Test:**
+  - `DeployScriptsTest` (5): simulasi `run-imports.sh` dengan artisan palsu (urutan, `--fresh` hanya pertama, hanya file berubah, rantai saat data berubah, berhenti saat gagal lalu dicoba lagi), plus `ensure-env.sh` untuk cookie Secure.
+  - `Update4Test` (5): slug cocok, benefit Castilo/Fleekhauz R di detail/kartu/badge, ekspor CSV + drop tabel, sisa promo hilang (`/admin/promos` 404), dan login admin dengan cookie Secure.
+  - Test promo lama dihapus atau disesuaikan.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

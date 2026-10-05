@@ -72,40 +72,8 @@ jobs:
             command -v mysqldump >/dev/null 2>&1 && echo "mysqldump OK: $(command -v mysqldump)" || echo "mysqldump TIDAK tersedia"
 
             echo "=== 6. Import Data (hanya jika file data berubah) ==="
-            MARK_DIR=storage/app/import-markers
-            mkdir -p "$MARK_DIR"
-
-            import_if_changed () {
-              FILE="$1"; CMD="$2"; FIRST_FLAGS="$3"
-              if [ ! -f "$FILE" ]; then
-                echo "Lewati: $FILE tidak ditemukan"
-                return 0
-              fi
-              HASH=$(sha256sum "$FILE" | cut -d' ' -f1)
-              MARK="$MARK_DIR/$(basename "$FILE").sha256"
-              if [ -f "$MARK" ] && [ "$(cat "$MARK")" = "$HASH" ]; then
-                echo "Tidak berubah, lewati: $FILE"
-                return 0
-              fi
-              FLAGS=""
-              if [ ! -f "$MARK" ]; then FLAGS="$FIRST_FLAGS"; fi
-              echo "Backup database sebelum import $FILE"
-              if ! php artisan backup:run --only-db --disable-notifications; then
-                if echo "$FLAGS" | grep -q -- "--fresh"; then
-                  echo "Backup gagal. Import --fresh dibatalkan supaya data tidak hilang."
-                  exit 1
-                fi
-                echo "Peringatan: backup gagal, import (tanpa hapus data) tetap dilanjutkan"
-              fi
-              echo "Import $FILE $FLAGS"
-              php artisan $CMD "$FILE" $FLAGS --force --no-interaction
-              echo "$HASH" > "$MARK"
-            }
-
-            # Urutan penting: data utama dulu, lalu update berikutnya
-            import_if_changed docs/data/bsd-city-data.json     import:bsd-data   --fresh
-            import_if_changed docs/data/bsd-city-update-2.json import:bsd-update ""
-            import_if_changed docs/data/bsd-city-update-3.json import:bsd-update ""
+            # Urutan data → update-2 → update-3 → update-4; data utama berubah = semua update ikut di-import ulang.
+            bash scripts/server/run-imports.sh
 
             echo "=== 7. Memastikan Symlink Storage ==="
             php artisan storage:link || true

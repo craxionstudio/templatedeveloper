@@ -9,7 +9,6 @@ use App\Models\Facility;
 use App\Models\FacilityCategory;
 use App\Models\FutureDevelopment;
 use App\Models\Kawasan;
-use App\Models\Promo;
 use App\Models\Tag;
 use App\Models\User;
 
@@ -24,7 +23,7 @@ function admin(): User
 
 it('merender semua halaman admin untuk admin', function (string $url) {
     $ids = [
-        '{cluster}' => Cluster::first()->id, '{kawasan}' => Kawasan::first()->id, '{promo}' => Promo::first()->id,
+        '{cluster}' => Cluster::first()->id, '{kawasan}' => Kawasan::first()->id,
         '{facility}' => Facility::first()->id, '{fcat}' => FacilityCategory::first()->id, '{dev}' => FutureDevelopment::first()->id,
         '{article}' => Article::first()->id, '{acat}' => ArticleCategory::first()->id, '{tag}' => Tag::first()->id,
         '{author}' => Author::first()->id, '{user}' => User::first()->id,
@@ -36,7 +35,6 @@ it('merender semua halaman admin untuk admin', function (string $url) {
     '/admin/kawasans', '/admin/kawasans/create', '/admin/kawasans/{kawasan}/edit',
     '/admin/clusters', '/admin/clusters/create', '/admin/clusters/{cluster}/edit',
     '/admin/profil-lokasi', '/admin/profil-developer',
-    '/admin/promos', '/admin/promos/create', '/admin/promos/{promo}/edit',
     '/admin/facilities', '/admin/facilities/create', '/admin/facilities/{facility}/edit',
     '/admin/facility-categories', '/admin/facility-categories/{fcat}/edit',
     '/admin/future-developments', '/admin/future-developments/{dev}/edit',

@@ -4,7 +4,6 @@ use App\Models\Article;
 use App\Models\DeveloperProfile;
 use App\Models\Facility;
 use App\Models\FutureDevelopment;
-use App\Models\Promo;
 use App\Models\User;
 use App\Settings\GlobalSettings;
 use App\Settings\HomePageSettings;
@@ -77,7 +76,6 @@ it('mengganti teks profil lalu menonaktifkan konten contoh tanpa menghapusnya', 
         ->and(Article::published()->count())->toBe(0)
         ->and(Facility::published()->count())->toBe(0)
         ->and(FutureDevelopment::published()->count())->toBe(0)
-        ->and(Promo::where('is_published', true)->count())->toBe(0)
         ->and(User::where('email', 'admin@example.com')->exists())->toBe($admin);
 });
 
@@ -121,7 +119,7 @@ it('mematikan section Fasilitas, Pengembangan Mendatang, dan Artikel di Beranda'
         ->where('facilities', null)
         ->where('developments', null)
         ->where('articles', null)
-        ->where('promos', null));
+        ->missing('promos'));
 });
 
 it('menampilkan keadaan kosong di /fasilitas dan /artikel kalau belum ada konten yang dipublikasikan', function () {
