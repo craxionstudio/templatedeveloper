@@ -482,6 +482,7 @@ Catatan teknis lain: rich text disanitasi saat disimpan dan saat dikirim ke brow
   - `tests/Feature/WhatsAppTest.php`: template per konteks & dari admin, nomor cluster/global, endpoint lama hilang, 301 terima kasih, ekspor CSV leads, GA4 hanya kalau ID diisi (tanpa GTM/Pixel), meta verifikasi, CSP, Kebijakan Privasi.
   - `LeadTest` dihapus.
   - Test CSP/cache/SEO/halaman yang menyebut form, Pixel, atau terima kasih disesuaikan.
+- **Perbaikan deploy (5 Okt 2026):** deploy pertama Tahap C gagal di settings migrasi. Cache daftar kelas settings di server masih memuat `ThankYouPageSettings` yang sudah dihapus. Migrasi ekspor & hapus `leads` sudah sempat berjalan. Script deploy sekarang menjalankan `php artisan optimize:clear` sebelum `migrate`. Kegagalan ini sudah direproduksi dan perbaikannya diuji di lokal.
 - **Catatan migrasi lama:** dua settings migrasi lama (`2026_09_25_*`) membaca nilai bawaan yang sekarang sudah dihapus. Keduanya diberi fallback supaya instalasi baru (`migrate:fresh`) tetap jalan; di production keduanya sudah pernah jalan.
 
 **Laporan akhir Tahap A + B + C**

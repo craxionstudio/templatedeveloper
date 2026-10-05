@@ -46,6 +46,9 @@ jobs:
             npm run build
 
             echo "=== 5. Menjalankan Migrasi Database ==="
+            # Buang cache (config, route, daftar kelas settings) dari rilis sebelumnya dulu: migrasi
+            # settings membaca daftar kelas settings, dan kelas yang sudah dihapus membuatnya gagal.
+            php artisan optimize:clear
             php artisan migrate --force
 
             echo "=== 5b. Cek mysqldump untuk backup ==="
