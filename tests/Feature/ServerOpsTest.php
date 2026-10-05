@@ -21,6 +21,16 @@ it('menandai ssr:check gagal kalau halaman tidak dirender di server', function (
         ->assertFailed();
 });
 
+it('memakai host APP_URL supaya tidak kena redirect host kanonik di production', function () {
+    app()->detectEnvironment(fn () => 'production');
+    config(['app.url' => 'https://www.contoh-bsd.test', 'inertia.ssr.enabled' => true, 'inertia.ssr.url' => 'http://127.0.0.1:1']);
+
+    $this->artisan('ssr:check', ['path' => '/properti'])
+        ->doesntExpectOutputToContain('status 301')
+        ->expectsOutputToContain('tidak dirender di server')
+        ->assertFailed();
+});
+
 it('lolos ssr:check kalau server SSR berjalan', function () {
     $ssr = parse_url((string) config('inertia.ssr.url', 'http://127.0.0.1:13714'));
     $socket = @fsockopen($ssr['host'] ?? '127.0.0.1', $ssr['port'] ?? 13714, $errno, $errstr, 0.5);

@@ -523,6 +523,11 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - Jalur Supervisor (root): pemasangan otomatis, konfigurasi ditulis sekali, restart per deploy, autorestart setelah crash.
   - Simulasi langkah 9–12 deploy berakhir dengan notice SSR OK dan heartbeat.
 - **Test:** `tests/Feature/ServerOpsTest.php` (ssr:check gagal/lolos, ops:queue-status, jadwal scheduler) dan test cache halaman tanpa SSR.
+- **Perbaikan setelah deploy pertama:**
+  - Cron sudah terpasang, 4 job WebP (sejak 29 Sep) sudah diproses, dan SSR sudah jalan lewat penjaga cron tanpa root. Tapi deploy berhenti di langkah 12, karena dua hal:
+    - (1) `ssr:check` memakai host `localhost`, sehingga di production dialihkan 301 ke host kanonik. Sekarang memakai `APP_URL`.
+    - (2) `script_stop` di ssh-action memeriksa exit code setelah setiap baris, sehingga cabang `else` pada if/else multi-baris menghentikan deploy. Langkah 12 sekarang memakai bentuk satu baris.
+  - Kedua jalur (gagal & sukses) sudah diuji dengan simulasi `script_stop`.
 
 ---
 

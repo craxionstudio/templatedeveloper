@@ -24,7 +24,8 @@ class CheckSsr extends Command
         config(['site.page_cache.enabled' => false]);
 
         try {
-            $response = $kernel->handle(Request::create($path));
+            // Pakai skema & host APP_URL: di production host lain diarahkan 301 ke host kanonik.
+            $response = $kernel->handle(Request::create(rtrim((string) config('app.url'), '/').$path));
             $html = (string) $response->getContent();
             $status = $response->getStatusCode();
         } catch (Throwable $e) {

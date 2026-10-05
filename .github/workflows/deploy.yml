@@ -128,13 +128,11 @@ jobs:
             php artisan up
 
             echo "=== 12. Cek SSR halaman /properti & scheduler ==="
-            if SSR_RESULT=$(php artisan ssr:check /properti 2>&1); then
-              echo "$SSR_RESULT"
-              echo "::notice title=SSR::$SSR_RESULT"
-            else
-              echo "$SSR_RESULT"
-              echo "::warning title=SSR GAGAL::/properti TIDAK dirender di server (HTML hanya div kosong): $SSR_RESULT. Cek storage/logs/ssr.log dan langkah 10 di log deploy."
-            fi
+            # Catatan: script_stop di ssh-action memeriksa exit code setelah SETIAP baris, jadi cabang "else"
+            # di if/else multi-baris langsung menghentikan deploy. Di sini dipakai bentuk satu baris.
+            SSR_RESULT=$(php artisan ssr:check /properti 2>&1) && SSR_OK=1 || SSR_OK=0
+            echo "$SSR_RESULT"
+            [ "$SSR_OK" = "1" ] && echo "::notice title=SSR::$SSR_RESULT" || echo "::warning title=SSR GAGAL::/properti TIDAK dirender di server (HTML hanya div kosong): $SSR_RESULT. Cek storage/logs/ssr.log dan langkah 10 di log deploy."
             # Bukti cron berjalan: heartbeat scheduler ditulis tiap menit. Tunggu paling lama 75 detik.
             DEPLOY_TS=$(date +%s)
             HB_OK=0
@@ -143,10 +141,7 @@ jobs:
               if [ -n "$HB_FILE" ] && [ "$(stat -c %Y "$HB_FILE")" -ge "$DEPLOY_TS" ]; then HB_OK=1; break; fi
               sleep 5
             done
-            if [ "$HB_OK" = "1" ]; then
-              echo "::notice title=Cron::Scheduler berjalan (heartbeat $(cat "$HB_FILE")). $(php artisan ops:queue-status 2>/dev/null)"
-            else
-              echo "::warning title=Cron::Heartbeat scheduler tidak diperbarui dalam 75 detik: cron schedule:run belum berjalan untuk folder $(pwd)."
-            fi
+            QUEUE_NOW=$(php artisan ops:queue-status 2>/dev/null || echo "tidak terbaca")
+            [ "$HB_OK" = "1" ] && echo "::notice title=Cron::Scheduler berjalan (heartbeat $(cat "$HB_FILE")). $QUEUE_NOW" || echo "::warning title=Cron::Heartbeat scheduler tidak diperbarui dalam 75 detik: cron schedule:run belum berjalan untuk folder $(pwd). $QUEUE_NOW"
 
             echo "=== Deployment Berhasil Selesai! ==="

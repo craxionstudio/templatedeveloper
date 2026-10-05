@@ -41,5 +41,5 @@ if [ "${#ADD[@]}" -gt 0 ]; then
     } | crontab -
 fi
 
-echo "--- crontab sekarang ---"
-crontab -l 2>/dev/null || true
+echo "--- crontab sekarang (tanpa komentar) ---"
+crontab -l 2>/dev/null | grep -v '^[[:space:]]*#' | grep -v '^[[:space:]]*$' || true
