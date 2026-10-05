@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
  * Cache HTML awal halaman publik untuk tamu (hemat query DB + render SSR).
@@ -28,7 +29,13 @@ class CachePublicPages
         }
 
         $key = PageCache::key($request);
-        $cached = PageCache::store()->get($key);
+
+        // Cache hanya optimasi: gagal baca (izin file, store mati) = render biasa, bukan error 500.
+        try {
+            $cached = PageCache::store()->get($key);
+        } catch (Throwable) {
+            $cached = null;
+        }
 
         if (is_array($cached)) {
             $content = $cached['content'];
@@ -44,15 +51,20 @@ class CachePublicPages
         $response = $next($request);
 
         if ($response->getStatusCode() === 200 && str_contains((string) $response->headers->get('Content-Type'), 'text/html') && ! $response->headers->getCookies() && self::renderedOnServer((string) $response->getContent())) {
-            PageCache::store()->put($key, [
-                'content' => $response->getContent(),
-                'nonce' => Vite::cspNonce(),
-                'headers' => array_filter([
-                    'Content-Type' => $response->headers->get('Content-Type'),
-                    'Vary' => $response->headers->get('Vary'),
-                    'Link' => $response->headers->get('Link'),
-                ]),
-            ], PageCache::ttl());
+            try {
+                PageCache::store()->put($key, [
+                    'content' => $response->getContent(),
+                    'nonce' => Vite::cspNonce(),
+                    'headers' => array_filter([
+                        'Content-Type' => $response->headers->get('Content-Type'),
+                        'Vary' => $response->headers->get('Vary'),
+                        'Link' => $response->headers->get('Link'),
+                    ]),
+                ], PageCache::ttl());
+            } catch (Throwable) {
+                // Gagal menulis cache (mis. folder cache milik user lain): halaman tetap dikirim tanpa cache.
+                return $response;
+            }
             $response->headers->set('X-Page-Cache', 'MISS');
         }
 

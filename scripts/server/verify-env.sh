@@ -35,7 +35,18 @@ echo "Sesudah perubahan .env: $URL/ -> $OUT (curl exit $RC)"
 OK=0
 if [ "$RC" = "0" ] && [ "$CODE" -ge 200 ] 2> /dev/null && [ "$CODE" -lt 400 ]; then OK=1; fi
 
+diagnose() {
+    echo "--- Diagnosis (sebelum rollback) ---"
+    echo "User deploy: $(id -un); user PHP-FPM: $(ps -o user= -C "$(ps -eo comm | grep -m1 -E '^php-fpm' || echo php-fpm)" 2> /dev/null | sort -u | tr '\n' ' ')"
+    for P in storage storage/logs storage/logs/laravel.log storage/framework storage/framework/cache storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache bootstrap/cache/config.php storage/app/private; do
+        [ -e "$P" ] && stat -c '%U:%G %a %n' "$P"
+    done
+    echo "--- Error terakhir di log Laravel (baris pertama saja) ---"
+    grep -hE '^\[[0-9-]+ [0-9:]+\] [a-z]+\.(ERROR|CRITICAL|ALERT|EMERGENCY):' storage/logs/laravel*.log 2> /dev/null | tail -n 3 | cut -c1-400
+}
+
 if [ "$OK" = "0" ]; then
+    diagnose
     if [ "$BASE_RC" = "0" ] && [ -n "$BACKUP" ] && [ -f "$BACKUP" ]; then
         echo "ROLLBACK: website tidak bisa diakses normal setelah .env diubah (curl exit $RC, status $CODE)."
         echo "          Kemungkinan redirect loop (HTTPS di belakang proxy) atau APP_URL salah. .env dikembalikan dari $BACKUP."

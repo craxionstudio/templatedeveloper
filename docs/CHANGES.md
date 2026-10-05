@@ -563,6 +563,9 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - Sudah direproduksi dengan nginx (`proxy_buffer_size 4k`) di container.
   - Perbaikan: `AddLinkHeadersForPreloadedAssets::using(4)`, hanya 2 font, CSS, dan JS utama di header; sisanya tetap di-preload lewat `<link>` di HTML. Header turun ke ±2,9 KB dan semua halaman 200 lewat nginx.
   - Test regresi: header production < 3,5 KB.
+- **Deploy ketiga: 502 hilang, tapi website membalas 500 lewat web server** (request internal tetap OK), dan `.env` kembali di-rollback otomatis. Langkah yang diambil:
+  - Cache halaman dan cache layout dibuat tahan gagal: kalau cache tidak bisa dibaca/ditulis (mis. izin folder milik user lain), halaman tetap dikirim. Ada test untuk ini.
+  - Saat gagal, `verify-env.sh` sekarang menampilkan diagnosis: user deploy & PHP-FPM, pemilik/izin folder storage & cache, dan baris pertama error terakhir di log Laravel.
 - **Diuji di container:** `.env` kotor (key dobel, tanda kutip, tanpa newline), dua kali jalan (kedua tanpa perubahan), `SITE_INDEXABLE=true` tidak disentuh, rollback saat situs error, dan simulasi langkah 4b + 12 dengan `script_stop`.
 
 ---

@@ -98,6 +98,16 @@ describe('cache halaman publik', function () {
         PageCache::flush();
     });
 
+    it('tetap mengirim halaman kalau cache tidak bisa dibaca atau ditulis (mis. izin folder)', function () {
+        config([
+            'cache.stores.rusak' => ['driver' => 'file', 'path' => '/proc/tidak-bisa-ditulis/cache'],
+            'site.page_cache.store' => 'rusak',
+        ]);
+
+        $this->get('/properti')->assertOk()->assertHeaderMissing('X-Page-Cache')->assertSee('Vega Garden');
+        $this->get('/properti')->assertOk()->assertHeaderMissing('X-Page-Cache');
+    });
+
     it('tidak meng-cache halaman yang gagal dirender server (SSR mati)', function () {
         config(['inertia.ssr.enabled' => true, 'inertia.ssr.url' => 'http://127.0.0.1:1']);
 

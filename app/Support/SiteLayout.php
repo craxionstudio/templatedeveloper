@@ -6,6 +6,7 @@ use App\Models\Kawasan;
 use App\Settings\GlobalSettings;
 use App\Settings\NavigationSettings;
 use Illuminate\Database\Eloquent\Builder;
+use Throwable;
 
 /**
  * Menyusun data layout global (header, drawer mobile, footer) yang dibagikan ke semua
@@ -19,11 +20,16 @@ class SiteLayout
     public static function data(): array
     {
         // Sama untuk semua pengunjung; di-cache per versi konten (dibuang saat konten/settings berubah).
-        return PageCache::store()->remember(
-            'site-layout:'.PageCache::store()->get(PageCache::VERSION_KEY, 0),
-            3600,
-            fn (): array => self::build(),
-        );
+        // Cache gagal (izin file, store mati) = susun langsung, bukan error 500.
+        try {
+            return PageCache::store()->remember(
+                'site-layout:'.PageCache::store()->get(PageCache::VERSION_KEY, 0),
+                3600,
+                fn (): array => self::build(),
+            );
+        } catch (Throwable) {
+            return self::build();
+        }
     }
 
     /**
