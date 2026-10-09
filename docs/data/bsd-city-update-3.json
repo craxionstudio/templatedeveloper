@@ -1,7 +1,7 @@
 {
   "meta": {
-    "dibuat": "2026-10-05",
-    "catatan": "Update 3: 43 cluster tampil sebagai halaman lengkap; 101 cluster lama hanya tampil di daftar 'Cluster Lainnya' (tanpa halaman sendiri). Kawasan tanpa cluster aktif tidak punya halaman sendiri, hanya jadi judul grup di daftar tersebut."
+    "dibuat": "2026-10-09",
+    "catatan": "Update 3 (revisi): 26 cluster yang masih dipasarkan (launching 2019-2026 atau masih ada di program Royal Key 2026) tampil sebagai halaman lengkap; cluster lain hanya tampil di daftar 'Cluster Lainnya'. Kawasan punya halaman kalau minimal punya 1 cluster yang masih dipasarkan."
   },
   "cluster_tampilan": [
     {
@@ -58,7 +58,7 @@
     },
     {
       "slug": "laurel",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "layton",
@@ -66,11 +66,11 @@
     },
     {
       "slug": "lyndon",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "aether",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "caelus",
@@ -78,15 +78,15 @@
     },
     {
       "slug": "hylands",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "luxmore",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "sheffield",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "whelford",
@@ -94,7 +94,7 @@
     },
     {
       "slug": "whitsand",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "alesha",
@@ -102,7 +102,7 @@
     },
     {
       "slug": "anila",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "assana",
@@ -114,15 +114,15 @@
     },
     {
       "slug": "ingenia",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "precia",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "vivacia",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "amata",
@@ -130,7 +130,7 @@
     },
     {
       "slug": "aure",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "visana",
@@ -146,7 +146,7 @@
     },
     {
       "slug": "nusa-loka-park",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "savia-park",
@@ -162,19 +162,19 @@
     },
     {
       "slug": "green-cove",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "quantis-signature",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "regentown-gold",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "vermont-parkland",
-      "tampil_sebagai": "halaman"
+      "tampil_sebagai": "daftar"
     },
     {
       "slug": "lakewood",
@@ -612,7 +612,7 @@
     },
     {
       "slug": "the-eminent",
-      "punya_halaman": true
+      "punya_halaman": false
     },
     {
       "slug": "the-mozia",
