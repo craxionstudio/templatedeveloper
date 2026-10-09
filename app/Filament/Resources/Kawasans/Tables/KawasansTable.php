@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Kawasans\Tables;
 
+use App\Filament\Resources\Kawasans\Actions\MoveKawasanToOthersAction;
 use App\Support\Rupiah;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -47,6 +48,7 @@ class KawasansTable
                     ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                     ->url(fn ($record): string => url($record->publicPath()), shouldOpenInNewTab: true),
                 EditAction::make(),
+                MoveKawasanToOthersAction::make()->iconButton()->tooltip('Pindahkan ke Kawasan Lainnya'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

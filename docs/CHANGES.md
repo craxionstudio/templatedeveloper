@@ -732,6 +732,30 @@ Cara ukur JS: build production, gzip level 9 per file dari `manifest.json` (entr
   - `Update4Test` (5): slug cocok, benefit Castilo/Fleekhauz R di detail/kartu/badge, ekspor CSV + drop tabel, sisa promo hilang (`/admin/promos` 404), dan login admin dengan cookie Secure.
   - Test promo lama dihapus atau disesuaikan.
 
+
+**Revisi update-3 + menu admin terpisah** (permintaan pemilik 9 Okt 2026; `docs/data/bsd-city-update-3.json` direvisi)
+
+1. **Import revisi update-3:**
+   - Isi file: 26 cluster `halaman`, 118 cluster `daftar`; 12 kawasan punya halaman, 11 tidak (The Eminent tidak lagi).
+   - Hash file berubah, jadi deploy (`run-imports.sh`) meng-import ulang otomatis. Untuk kolom tampilan, file adalah sumber kebenaran: `tampil_sebagai` / `punya_halaman` selalu ditimpa sesuai file, termasuk cluster yang sebelumnya `halaman` dan sekarang `daftar`.
+   - URL cluster yang pindah ke daftar (mis. `/properti/laurel`, `/properti/aether`, `/properti/ingenia`) 301 ke `/properti/cluster-lainnya#{slug-kawasan}`. `/properti/kawasan/the-eminent` 301 ke `#the-eminent`.
+2. **Detail Kawasan:** judul section kartu jadi **"Cluster {nama_kawasan}"** (eyebrow "Pilihan rumah"), section chip nama jadi **"Cluster Lainnya"**. Urutannya kartu dulu, lalu chip. Tetap tanpa label status/sold out.
+3. **Admin, menu dipisah** (data tetap di tabel yang sama; resource admin difilter):
+   - **Cluster** (`tampil_sebagai = halaman`): form lengkap tanpa pilihan "Tampil sebagai". Action **Pindahkan ke Cluster Lainnya** (konfirmasi) ada di tabel dan halaman edit.
+   - **Cluster Lainnya** (`/admin/cluster-lainnya`, `daftar`):
+     - Form: nama + kawasan (dropdown semua kawasan, kosong = grup "Lainnya"); slug otomatis. Cluster baru langsung `daftar` dan dipublikasikan.
+     - Tabel: nama dan kawasan, dengan filter kawasan.
+     - Action **Aktifkan sebagai halaman** (konfirmasi) lalu membuka form Cluster lengkapnya.
+   - **Kawasan** (`punya_halaman = true`): form lengkap. Toggle "Punya halaman sendiri" dihapus. Action **Pindahkan ke Kawasan Lainnya**.
+   - **Kawasan Lainnya** (`/admin/kawasan-lainnya`): form nama saja. Action **Aktifkan sebagai halaman** lalu membuka form Kawasan.
+   - Saat dipindah ke "Lainnya", data lengkap (tipe, foto, deskripsi, benefit) tidak dihapus, hanya disembunyikan dari website.
+   - Kolom & filter "Tampil sebagai" di tabel Cluster dihapus.
+   - Urutan menu grup Properti: Cluster, Cluster Lainnya, Kawasan, Kawasan Lainnya, Profil Lokasi, lalu Bank Benefit (dipindah dari antara Kawasan dan Kawasan Lainnya).
+- **Test** (`OtherClustersTest`):
+  - Revisi update-3 dari file (halaman → daftar, 301 laurel/aether/ingenia & The Eminent).
+  - Menu Cluster / Cluster Lainnya: filter, pindah & aktifkan dengan data tetap utuh, tambah dengan nama + kawasan kosong.
+  - Menu Kawasan / Kawasan Lainnya, urutan menu, dan judul section kawasan baru.
+
 ---
 
 ## Revisi 1 — 23 Sep 2026: pola repo rezabsd

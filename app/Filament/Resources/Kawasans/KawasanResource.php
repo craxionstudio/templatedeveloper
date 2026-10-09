@@ -30,7 +30,7 @@ class KawasanResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Properti';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMap;
 
@@ -58,6 +58,14 @@ class KawasanResource extends Resource
             'create' => CreateKawasan::route('/create'),
             'edit' => EditKawasan::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Hanya kawasan dengan halaman sendiri; kawasan tanpa halaman dikelola di Kawasan Lainnya (tabel sama).
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('punya_halaman', true);
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

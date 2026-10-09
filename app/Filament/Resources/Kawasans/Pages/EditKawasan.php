@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Kawasans\Pages;
 
 use App\Filament\Actions\PreviewAction;
+use App\Filament\Resources\Kawasans\Actions\MoveKawasanToOthersAction;
 use App\Filament\Resources\Kawasans\KawasanResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -17,6 +18,7 @@ class EditKawasan extends EditRecord
     {
         return [
             PreviewAction::make('kawasan.preview', 'kawasan'),
+            MoveKawasanToOthersAction::make(redirect: true),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

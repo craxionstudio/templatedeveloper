@@ -96,7 +96,7 @@ class Kawasan extends Model implements HasMedia
     }
 
     /**
-     * Cluster yang hanya tampil sebagai nama ("Cluster lain di kawasan ini" & /properti/cluster-lainnya).
+     * Cluster yang hanya tampil sebagai nama (section "Cluster Lainnya" di Detail Kawasan & /properti/cluster-lainnya).
      */
     public function listedClusters(): HasMany
     {

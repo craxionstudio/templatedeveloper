@@ -1,10 +1,20 @@
 <?php
 
 use App\Enums\ClusterDisplay;
-use App\Filament\Resources\Clusters\Pages\CreateCluster;
+use App\Filament\Resources\Clusters\ClusterResource;
 use App\Filament\Resources\Clusters\Pages\EditCluster;
 use App\Filament\Resources\Clusters\Pages\ListClusters;
+use App\Filament\Resources\Kawasans\KawasanResource;
 use App\Filament\Resources\Kawasans\Pages\EditKawasan;
+use App\Filament\Resources\Kawasans\Pages\ListKawasans;
+use App\Filament\Resources\OtherClusters\OtherClusterResource;
+use App\Filament\Resources\OtherClusters\Pages\CreateOtherCluster;
+use App\Filament\Resources\OtherClusters\Pages\ListOtherClusters;
+use App\Filament\Resources\OtherKawasans\OtherKawasanResource;
+use App\Filament\Resources\OtherKawasans\Pages\CreateOtherKawasan;
+use App\Filament\Resources\OtherKawasans\Pages\EditOtherKawasan;
+use App\Filament\Resources\OtherKawasans\Pages\ListOtherKawasans;
+use App\Models\Benefit;
 use App\Models\Cluster;
 use App\Models\Kawasan;
 use App\Models\User;
@@ -119,13 +129,13 @@ it('menampilkan Cluster Lainnya: nama saja, per kawasan urut abjad, tanpa kawasa
         ]));
 });
 
-it('menampilkan "Cluster lain di kawasan ini" di Detail Kawasan, tersembunyi kalau kosong', function () {
+it('menampilkan section "Cluster Lainnya" (chip) setelah "Cluster {kawasan}" di Detail Kawasan, tersembunyi kalau kosong', function () {
     $this->get('/properti/kawasan/arunika-garden')->assertInertia(fn (Assert $page) => $page->where('otherClusters', null));
 
     listOnly('vega-garden', 'orion-park');
 
     $this->get('/properti/kawasan/arunika-garden')->assertInertia(fn (Assert $page) => $page
-        ->where('otherClusters.title', 'Cluster lain di kawasan ini')
+        ->where('otherClusters.title', 'Cluster Lainnya')
         ->where('otherClusters.names', ['Orion Park', 'Vega Garden'])
         ->has('clusters.items', 1));
 });
@@ -155,7 +165,7 @@ it('tidak menampilkan jumlah cluster/kawasan dan memakai judul baru di /properti
 
     $this->get('/properti/kawasan/arunika-garden')->assertInertia(fn (Assert $page) => $page
         ->where('hero.stats', fn ($stats) => ! collect($stats)->pluck('label')->contains('Cluster'))
-        ->where('clusters.title', 'Pilihan rumah di Arunika Garden'));
+        ->where('clusters.title', 'Cluster Arunika Garden'));
 });
 
 it('tidak menyebut istilah teknis atau jumlah cluster/kawasan di HTML publik (SSR)', function (string $path) {
@@ -177,42 +187,130 @@ it('tidak menyebut istilah teknis atau jumlah cluster/kawasan di HTML publik (SS
         ->not->toMatch('/\b(portofolio|halaman lengkap|tampil sebagai)\b/i');
 })->with(['/', '/properti', '/properti/kawasan', '/properti/kawasan/arunika-garden', '/properti/cluster-lainnya']);
 
-it('mengatur "Tampil sebagai" di form & tabel Cluster dan "Punya halaman sendiri" di form Kawasan', function () {
+it('memisahkan menu admin Cluster / Cluster Lainnya berdasarkan tampil_sebagai, dengan action pindah & aktifkan', function () {
     $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
-    $kawasan = Kawasan::query()->where('slug', 'arunika-garden')->firstOrFail();
+    listOnly('orion-park');
+    $vega = withClusterPhoto(Cluster::query()->where('slug', 'vega-garden')->firstOrFail());
+    $orion = Cluster::query()->where('slug', 'orion-park')->firstOrFail();
+    $vega->clusterBenefits()->create(['benefit_id' => Benefit::query()->where('slug', 'tanpa-dp')->value('id'), 'urutan' => 1]);
+    $types = $vega->houseTypes()->count();
 
-    // Daftar: cukup nama + kawasan (tanpa foto), tab lain disembunyikan.
-    Livewire::test(CreateCluster::class)
-        ->fillForm(['tampil_sebagai' => ClusterDisplay::Daftar->value, 'name' => 'Cluster Lama', 'kawasan_id' => $kawasan->id])
-        ->assertFormFieldHidden('galleryItems')
-        ->assertFormFieldHidden('status')
-        ->assertFormFieldHidden('is_published')
-        ->assertFormFieldVisible('name')
-        ->assertFormFieldVisible('kawasan_id')
+    // Cluster: hanya "halaman"; form lengkap tanpa pilihan "Tampil sebagai", kolom/filter itu juga tidak ada.
+    Livewire::test(ListClusters::class)
+        ->assertCanSeeTableRecords([$vega])
+        ->assertCanNotSeeTableRecords([$orion])
+        ->assertTableColumnDoesNotExist('tampil_sebagai');
+    expect(collect(Livewire::test(ListClusters::class)->instance()->getTable()->getFilters())->keys())->not->toContain('tampil_sebagai');
+    Livewire::test(EditCluster::class, ['record' => $vega->getRouteKey()])
+        ->assertFormFieldDoesNotExist('tampil_sebagai')
+        ->assertFormFieldExists('galleryItems');
+    $this->get(ClusterResource::getUrl('edit', ['record' => $orion]))->assertNotFound();
+
+    // Cluster Lainnya: hanya "daftar".
+    Livewire::test(ListOtherClusters::class)
+        ->assertCanSeeTableRecords([$orion])
+        ->assertCanNotSeeTableRecords([$vega])
+        ->assertTableColumnExists('kawasan.name')
+        ->filterTable('kawasan', 'lainnya')
+        ->assertCanNotSeeTableRecords([$orion]);
+
+    // Pindahkan ke Cluster Lainnya (konfirmasi): data lengkap tetap tersimpan.
+    Livewire::test(EditCluster::class, ['record' => $vega->getRouteKey()])
+        ->callAction('pindahKeLainnya')
+        ->assertRedirect(OtherClusterResource::getUrl('index'));
+    expect($vega->refresh()->tampil_sebagai)->toBe(ClusterDisplay::Daftar)
+        ->and($vega->houseTypes()->count())->toBe($types)
+        ->and($vega->galleryItems()->count())->toBeGreaterThan(0)
+        ->and($vega->clusterBenefits()->count())->toBe(1)
+        ->and($vega->description)->not->toBeEmpty();
+
+    // Aktifkan lagi sebagai halaman → buka form Cluster lengkapnya.
+    Livewire::test(ListOtherClusters::class)
+        ->callTableAction('aktifkanHalaman', $vega)
+        ->assertRedirect(ClusterResource::getUrl('edit', ['record' => $vega]));
+    expect($vega->refresh()->tampil_sebagai)->toBe(ClusterDisplay::Halaman);
+
+    // Tambah Cluster Lainnya: cukup nama + kawasan (boleh kosong), slug otomatis, langsung "daftar".
+    Livewire::test(CreateOtherCluster::class)
+        ->assertFormFieldExists('name')
+        ->assertFormFieldExists('kawasan_id')
+        ->assertFormFieldDoesNotExist('galleryItems')
+        ->fillForm(['name' => 'Giri Loka 1', 'kawasan_id' => null])
         ->call('create')
         ->assertHasNoFormErrors();
-
-    $created = Cluster::query()->where('name', 'Cluster Lama')->firstOrFail();
+    $created = Cluster::query()->where('name', 'Giri Loka 1')->firstOrFail();
     expect($created->tampil_sebagai)->toBe(ClusterDisplay::Daftar)
+        ->and($created->slug)->toBe('giri-loka-1')
+        ->and($created->kawasan_id)->toBeNull()
         ->and($created->is_published)->toBeTrue();
+    $this->get('/properti/cluster-lainnya')->assertInertia(fn (Assert $page) => $page
+        ->where('groups', fn ($groups) => in_array('Giri Loka 1', collect($groups)->firstWhere('id', 'lainnya')['clusters'], true)));
+});
 
-    Livewire::test(EditCluster::class, ['record' => Cluster::query()->where('slug', 'vega-garden')->first()->getRouteKey()])
-        ->assertFormFieldVisible('galleryItems')
-        ->fillForm(['tampil_sebagai' => ClusterDisplay::Daftar->value])
-        ->assertFormFieldHidden('galleryItems')
-        ->call('save')
+it('memisahkan menu admin Kawasan / Kawasan Lainnya berdasarkan punya_halaman, dengan action pindah & aktifkan', function () {
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
+    $garden = Kawasan::query()->where('slug', 'arunika-garden')->firstOrFail();
+    $hills = Kawasan::query()->where('slug', 'arunika-hills')->firstOrFail();
+    $hills->update(['punya_halaman' => false]);
+
+    Livewire::test(ListKawasans::class)->assertCanSeeTableRecords([$garden])->assertCanNotSeeTableRecords([$hills]);
+    Livewire::test(ListOtherKawasans::class)->assertCanSeeTableRecords([$hills])->assertCanNotSeeTableRecords([$garden]);
+    Livewire::test(EditKawasan::class, ['record' => $garden->getRouteKey()])->assertFormFieldDoesNotExist('punya_halaman');
+
+    $description = $garden->description;
+    Livewire::test(EditKawasan::class, ['record' => $garden->getRouteKey()])
+        ->callAction('pindahKeLainnya')
+        ->assertRedirect(OtherKawasanResource::getUrl('index'));
+    expect($garden->refresh()->punya_halaman)->toBeFalse()
+        ->and($garden->description)->toBe($description);
+
+    Livewire::test(EditOtherKawasan::class, ['record' => $garden->getRouteKey()])
+        ->assertFormFieldExists('name')
+        ->assertFormFieldDoesNotExist('description')
+        ->callAction('aktifkanHalaman')
+        ->assertRedirect(KawasanResource::getUrl('edit', ['record' => $garden]));
+    expect($garden->refresh()->punya_halaman)->toBeTrue();
+
+    Livewire::test(CreateOtherKawasan::class)
+        ->fillForm(['name' => 'Giri Loka'])
+        ->call('create')
         ->assertHasNoFormErrors();
+    expect(Kawasan::query()->where('name', 'Giri Loka')->first())
+        ->punya_halaman->toBeFalse()
+        ->slug->toBe('giri-loka');
+});
 
-    Livewire::test(ListClusters::class)
-        ->assertTableColumnExists('tampil_sebagai')
-        ->filterTable('tampil_sebagai', ClusterDisplay::Daftar->value)
-        ->assertCanSeeTableRecords(Cluster::query()->where('tampil_sebagai', 'daftar')->get())
-        ->assertCanNotSeeTableRecords(Cluster::query()->where('tampil_sebagai', 'halaman')->get());
+it('mengurutkan menu grup Properti: Cluster, Cluster Lainnya, Kawasan, Kawasan Lainnya, Profil Lokasi (lalu Bank Benefit)', function () {
+    $this->actingAs(User::query()->where('email', 'admin@example.com')->firstOrFail());
 
-    Livewire::test(EditKawasan::class, ['record' => $kawasan->getRouteKey()])
-        ->fillForm(['punya_halaman' => false])
-        ->call('save')
-        ->assertHasNoFormErrors();
+    $html = $this->get('/admin')->assertOk()->getContent();
+    $positions = collect(['/admin/clusters"', '/admin/cluster-lainnya"', '/admin/kawasans"', '/admin/kawasan-lainnya"', '/admin/profil-lokasi"', '/admin/bank-benefit"'])
+        ->map(fn (string $href) => strpos($html, $href));
 
-    expect($kawasan->refresh()->punya_halaman)->toBeFalse();
+    expect($positions->every(fn ($p) => $p !== false))->toBeTrue()
+        ->and($positions->all())->toBe($positions->sort()->values()->all());
+});
+
+it('menerapkan revisi update-3 dari file (sumber kebenaran): cluster halaman → daftar, The Eminent tanpa halaman', function () {
+    $this->artisan('import:bsd-data', ['--fresh' => true, '--force' => true])->assertSuccessful();
+
+    // Kondisi sebelum revisi: semua punya halaman (mis. dari import update-3 versi lama).
+    Cluster::query()->update(['tampil_sebagai' => 'halaman']);
+    Kawasan::query()->update(['punya_halaman' => true]);
+
+    $this->artisan('import:bsd-update', ['path' => 'docs/data/bsd-city-update-3.json'])->assertSuccessful();
+
+    $data = json_decode((string) file_get_contents(base_path('docs/data/bsd-city-update-3.json')), true);
+    expect(Cluster::query()->where('tampil_sebagai', 'halaman')->count())->toBe(collect($data['cluster_tampilan'])->where('tampil_sebagai', 'halaman')->count())
+        ->and(Cluster::query()->where('tampil_sebagai', 'daftar')->count())->toBe(collect($data['cluster_tampilan'])->where('tampil_sebagai', 'daftar')->count())
+        ->and(Kawasan::query()->where('slug', 'the-eminent')->value('punya_halaman'))->toBeFalse();
+
+    foreach (['laurel', 'aether', 'ingenia'] as $slug) {
+        $cluster = Cluster::query()->where('slug', $slug)->with('kawasan')->firstOrFail();
+        expect($cluster->tampil_sebagai)->toBe(ClusterDisplay::Daftar);
+        $this->get("/properti/{$slug}")->assertStatus(301)
+            ->assertRedirect('/properti/cluster-lainnya#'.($cluster->kawasan?->slug ?? 'lainnya'));
+    }
+
+    $this->get('/properti/kawasan/the-eminent')->assertStatus(301)->assertRedirect('/properti/cluster-lainnya#the-eminent');
 });

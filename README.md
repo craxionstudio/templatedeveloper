@@ -181,15 +181,21 @@ Kalau field teks di settings dikosongkan, halaman memakai isi awal dari
 Login ke `/admin`, lalu isi lewat menu:
 
 - **Properti**
-    - **Kawasan** — nama, ringkasan kartu, deskripsi, luas, foto hero + galeri, fasilitas kawasan,
-      brosur, peta, tab SEO. Di bawah form ada daftar cluster di kawasan itu (masukkan cluster
-      mandiri ke kawasan, atau "Jadikan mandiri"). Jumlah cluster & harga mulai dihitung otomatis.
-      Kawasan tampil di publik hanya kalau punya minimal 1 cluster yang dipublikasikan.
-    - **Cluster** — kawasan (kosong = cluster mandiri), jenis bangunan, tipe properti, badge,
-      status, deskripsi, harga (booking fee & catatan), spesifikasi material, galeri, video/360°,
-      brosur & pricelist, marketing, promo, tab SEO. Di bawah form: **Tipe rumah** (1 sampai n,
-      urutkan dengan drag). Rentang harga/LT/KT dan cicilan mulai di kartu cluster dihitung dari
-      tipe yang dipublikasikan. Slug `kawasan` ditolak karena bentrok dengan `/properti/kawasan`.
+    - **Cluster** — hanya cluster dengan halaman sendiri (`tampil_sebagai = halaman`). Kawasan (kosong = cluster
+      mandiri), jenis bangunan, tipe properti, badge, status, deskripsi, harga (booking fee & catatan), spesifikasi
+      material, galeri, video/360°, brosur & pricelist, marketing, Promo & Benefit, tab SEO. Di bawah form: **Tipe rumah**
+      (1 sampai n, urutkan dengan drag). Rentang harga/LT/KT dan cicilan mulai di kartu cluster dihitung dari tipe yang
+      dipublikasikan. Slug `kawasan` dan `cluster-lainnya` ditolak (bentrok dengan URL sistem). Action **Pindahkan ke
+      Cluster Lainnya** (dengan konfirmasi): halaman disembunyikan, data lengkap tetap tersimpan.
+    - **Cluster Lainnya** — cluster yang hanya tampil sebagai nama di `/properti/cluster-lainnya` (`tampil_sebagai =
+daftar`, tabel yang sama). Form: nama + kawasan (kosong = grup "Lainnya"), slug otomatis. Tabel: nama, kawasan,
+      filter kawasan. Action **Aktifkan sebagai halaman** (dengan konfirmasi), lalu form Cluster lengkapnya dibuka.
+    - **Kawasan** — hanya kawasan dengan halaman sendiri (`punya_halaman = true`). Nama, ringkasan kartu, deskripsi,
+      luas, foto hero + galeri, fasilitas kawasan, brosur, peta, tab SEO. Di bawah form ada daftar cluster di kawasan
+      itu. Kawasan tampil di publik hanya kalau punya minimal 1 cluster dengan halaman yang dipublikasikan. Action
+      **Pindahkan ke Kawasan Lainnya**.
+    - **Kawasan Lainnya** — kawasan tanpa halaman sendiri (hanya judul grup di Cluster Lainnya). Form: nama saja.
+      Action **Aktifkan sebagai halaman**.
     - **Profil Lokasi** — kota mandiri: deskripsi, foto aerial, peta, poin keunggulan wilayah.
     - **Bank Benefit** — daftar benefit tetap (Tanpa DP, Free BPHTB, Free Kitchen Set, Diskon, …) per kategori
       (pembayaran / bonus unit / material / diskon), ikon, urutan (drag), aktif/nonaktif, dan jumlah cluster pemakainya.
@@ -247,7 +253,7 @@ php artisan import:bsd-update docs/data/bsd-city-update-4.json
 - `import:bsd-update` (update 3) membaca `"cluster_tampilan": [{"slug": "…", "tampil_sebagai": "halaman"|"daftar"}]` dan
   `"kawasan_tampilan": [{"slug": "…", "punya_halaman": true|false}]` (format peta `slug → nilai` juga diterima).
   Cluster "daftar" tidak punya halaman sendiri: hanya nama di `/properti/cluster-lainnya` (per kawasan) dan di
-  section "Cluster lain di kawasan ini"; URL lamanya 301 ke `/properti/cluster-lainnya#{slug-kawasan}`. Kawasan dengan
+  section "Cluster Lainnya" di Detail Kawasan; URL lamanya 301 ke `/properti/cluster-lainnya#{slug-kawasan}`. Kawasan dengan
   `punya_halaman = false` tidak punya halaman detail, tidak tampil di daftar kawasan/footer/sitemap, dan URL lamanya
   301 ke grupnya di halaman itu.
 

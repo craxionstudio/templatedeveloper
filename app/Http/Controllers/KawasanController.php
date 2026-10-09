@@ -130,7 +130,7 @@ class KawasanController extends Controller
             // Cluster tanpa halaman sendiri di kawasan ini: chip nama saja (tanpa link/foto/status).
             'otherClusters' => ($names = OtherClusters::names($kawasan->listedClusters()->get(['id', 'name']))) !== [] ? [
                 'title' => $clustersSection['other_title'],
-                'eyebrow' => PageMeta::fill($clustersSection['eyebrow'], $values),
+                'eyebrow' => null,
                 'names' => $names,
             ] : null,
             'others' => $this->others($kawasan, $others),

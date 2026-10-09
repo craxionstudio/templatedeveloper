@@ -26,10 +26,10 @@ return [
     'clusters' => [
         'enabled' => true,
         // {kawasan} diganti otomatis. Tanpa jumlah cluster/tipe (Update 3).
-        'eyebrow' => 'Cluster di {kawasan}',
-        'title' => 'Pilihan rumah di {kawasan}',
+        'eyebrow' => 'Pilihan rumah',
+        'title' => 'Cluster {kawasan}',
         // Cluster tanpa halaman sendiri di kawasan ini: chip nama saja. Kosong = section tidak tampil.
-        'other_title' => 'Cluster lain di kawasan ini',
+        'other_title' => 'Cluster Lainnya',
         'link_label' => 'Semua cluster',
         'link_url' => '/properti',
     ],

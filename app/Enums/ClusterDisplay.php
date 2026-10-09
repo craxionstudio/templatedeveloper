@@ -13,7 +13,7 @@ enum ClusterDisplay: string implements HasColor, HasLabel
     /** Punya halaman detail, kartu di /properti, filter, sitemap. */
     case Halaman = 'halaman';
 
-    /** Hanya nama di /properti/cluster-lainnya dan section "Cluster lain di kawasan ini". */
+    /** Hanya nama di /properti/cluster-lainnya dan section "Cluster Lainnya" di Detail Kawasan. */
     case Daftar = 'daftar';
 
     public function getLabel(): string

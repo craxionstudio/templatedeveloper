@@ -96,8 +96,6 @@ class KawasanForm
                         Tab::make('Publikasi')->schema([
                             Toggle::make('is_published')->label('Dipublikasikan')->default(true)
                                 ->helperText('Kawasan tampil di publik hanya kalau punya minimal 1 cluster yang dipublikasikan.'),
-                            Toggle::make('punya_halaman')->label('Punya halaman sendiri')->default(true)
-                                ->helperText('Mati = tidak punya halaman detail, tidak tampil di daftar kawasan, footer, atau sitemap; hanya jadi judul grup di halaman "Cluster Lainnya". URL lamanya diarahkan (301) ke grup itu.'),
                             Toggle::make('is_featured')->label('Unggulan'),
                         ]),
                     ]),

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Clusters;
 
+use App\Enums\ClusterDisplay;
 use App\Filament\Resources\Clusters\Pages\CreateCluster;
 use App\Filament\Resources\Clusters\Pages\EditCluster;
 use App\Filament\Resources\Clusters\Pages\ListClusters;
@@ -30,7 +31,7 @@ class ClusterResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Properti';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHomeModern;
 
@@ -58,6 +59,14 @@ class ClusterResource extends Resource
             'create' => CreateCluster::route('/create'),
             'edit' => EditCluster::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Hanya cluster dengan halaman lengkap; cluster "daftar" dikelola di Cluster Lainnya (tabel sama).
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('tampil_sebagai', ClusterDisplay::Halaman->value);
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

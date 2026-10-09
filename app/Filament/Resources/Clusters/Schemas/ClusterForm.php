@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Clusters\Schemas;
 
 use App\Enums\ClusterBadge;
-use App\Enums\ClusterDisplay;
 use App\Enums\ClusterStatus;
 use App\Enums\PropertyType;
 use App\Filament\Forms\Fields;
@@ -25,22 +24,11 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
 class ClusterForm
 {
-    /**
-     * Cluster "Daftar Cluster Lainnya saja": hanya nama & kawasan yang diisi, tab lain disembunyikan.
-     */
-    public static function listOnly(Get $get): bool
-    {
-        $display = $get('tampil_sebagai');
-
-        return ($display instanceof ClusterDisplay ? $display : ClusterDisplay::tryFrom((string) $display)) === ClusterDisplay::Daftar;
-    }
-
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -50,14 +38,6 @@ class ClusterForm
                     ->persistTabInQueryString()
                     ->tabs([
                         Tab::make('Umum')->schema([
-                            Select::make('tampil_sebagai')
-                                ->label('Tampil sebagai')
-                                ->options(ClusterDisplay::class)
-                                ->default(ClusterDisplay::Halaman)
-                                ->selectablePlaceholder(false)
-                                ->dehydrateStateUsing(fn ($state) => $state ?? ClusterDisplay::Halaman)
-                                ->live()
-                                ->helperText('Halaman lengkap = punya halaman detail, kartu di /properti, filter, dan sitemap. Daftar Cluster Lainnya saja = hanya nama di halaman "Cluster Lainnya" (cukup isi nama dan kawasan).'),
                             Select::make('kawasan_id')
                                 ->label('Kawasan')
                                 ->options(fn (): array => self::kawasanOptions())
@@ -72,7 +52,7 @@ class ClusterForm
                                 ->required()
                                 ->maxLength(255)
                                 ->placeholder('Monard of The Armont'),
-                            Grid::make(1)->hidden(self::listOnly(...))->schema([
+                            Grid::make(1)->schema([
                                 Fields::gallery('Foto (foto pertama = foto utama kartu)')->required()->minItems(1),
                                 Grid::make(2)->schema([
                                     Select::make('status')
@@ -100,7 +80,7 @@ class ClusterForm
                                 ]),
                             ]),
                         ]),
-                        Tab::make('Harga')->hidden(self::listOnly(...))->schema([
+                        Tab::make('Harga')->schema([
                             Section::make('Dihitung dari tipe rumah')
                                 ->description('Rentang harga, luas tanah, kamar tidur, dan cicilan mulai di kartu cluster dihitung otomatis dari tipe rumah yang dipublikasikan (tab Tipe rumah di bawah).')
                                 ->schema([
@@ -116,7 +96,7 @@ class ClusterForm
                                 ->compact(),
                             TextInput::make('booking_fee')->label('Booking fee')->numeric()->minValue(0)->prefix('Rp')->placeholder('10000000'),
                         ]),
-                        Tab::make('Spesifikasi')->hidden(self::listOnly(...))->schema([
+                        Tab::make('Spesifikasi')->schema([
                             Repeater::make('facilities')
                                 ->label('Fasilitas cluster')
                                 ->helperText('Tampil sebagai daftar di Detail Rumah.')
@@ -135,7 +115,7 @@ class ClusterForm
                                 ->defaultItems(0)
                                 ->addActionLabel('Tambah baris'),
                         ]),
-                        Tab::make('Video & Brosur')->hidden(self::listOnly(...))->schema([
+                        Tab::make('Video & Brosur')->schema([
                             Grid::make(2)->schema([
                                 TextInput::make('video_url')->label('URL video')->url()->maxLength(255)->placeholder('https://www.youtube.com/watch?v=…'),
                                 TextInput::make('tour_360_url')->label('URL virtual tour 360°')->url()->maxLength(255)->placeholder('https://my.matterport.com/show/?m=…'),
@@ -146,7 +126,7 @@ class ClusterForm
                             ]),
                         ]),
                         Tab::make('Promo & Benefit')
-                            ->hidden(self::listOnly(...))
+
                             ->badge(fn (?Cluster $record): ?int => $record?->clusterBenefits()->count() ?: null)
                             ->schema([
                                 Text::make('Benefit dari Bank Benefit yang berlaku di cluster ini. Tampil di Detail Rumah (dengan tanda *), sebagai chip di kartu, dan memberi badge "Promo". Tanpa tanggal berakhir: lepas benefit kalau sudah tidak berlaku.'),
@@ -176,18 +156,18 @@ class ClusterForm
                                         ? (Benefit::query()->find($state['benefit_id'])?->name ?? null)
                                         : null),
                             ]),
-                        Tab::make('Marketing')->hidden(self::listOnly(...))->schema([
+                        Tab::make('Marketing')->schema([
                             Text::make('Kosongkan untuk memakai marketing default (Pengaturan → Properti). Semua tombol WhatsApp memakai nomor WA di Pengaturan Umum.'),
                             Grid::make(2)->schema([
                                 TextInput::make('marketing_name')->label('Nama marketing')->maxLength(80)->placeholder('Rina'),
                             ]),
                         ]),
-                        Tab::make('Publikasi')->hidden(self::listOnly(...))->schema([
+                        Tab::make('Publikasi')->schema([
                             Toggle::make('is_published')->label('Dipublikasikan')->default(true),
                             Toggle::make('is_featured')->label('Unggulan (tampil di Beranda)'),
                         ]),
                         Tab::make('Internal')
-                            ->hidden(self::listOnly(...))
+
                             ->icon(Heroicon::OutlinedLockClosed)
                             ->badge(fn (?Cluster $record): ?int => $record?->perlu_dilengkapi_count ?: null)
                             ->badgeColor('warning')
@@ -230,7 +210,7 @@ class ClusterForm
                         ->maxLength(300)
                         ->placeholder('Kosong = otomatis dari deskripsi.'),
                     SeoTab::fields(),
-                ])->hidden(self::listOnly(...)),
+                ]),
             ]);
     }
 

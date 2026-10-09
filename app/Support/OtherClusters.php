@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Cluster yang tidak punya halaman sendiri (tampil_sebagai = daftar): hanya tampil sebagai nama di
- * /properti/cluster-lainnya, dikelompokkan per kawasan, dan di "Cluster lain di kawasan ini".
+ * /properti/cluster-lainnya, dikelompokkan per kawasan, dan di section "Cluster Lainnya" Detail Kawasan.
  */
 class OtherClusters
 {

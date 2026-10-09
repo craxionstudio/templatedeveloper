@@ -51,7 +51,11 @@ type Props = {
         link: { label: string; url: string };
         items: ClusterCardData[];
     } | null;
-    otherClusters: { eyebrow: string; title: string; names: string[] } | null;
+    otherClusters: {
+        eyebrow: string | null;
+        title: string;
+        names: string[];
+    } | null;
     others: {
         eyebrow: string;
         title: string;
